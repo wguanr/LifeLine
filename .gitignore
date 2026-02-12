@@ -1,0 +1,10 @@
+node_modules/
+dist/
+.DS_Store
+*.log
+/tmp/
+test_screenshots/
+.env
+.env.local
+.env.*.local
+*.sw?
