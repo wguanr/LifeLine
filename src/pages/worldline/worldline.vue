@@ -2,183 +2,205 @@
   <view class="worldline-page">
     <!-- 顶部标题栏 -->
     <view class="header">
-      <text class="title">🌳 我的世界线</text>
-      <text class="era">{{ currentEra }}</text>
+      <text class="title">🌳 世界线</text>
+      <view class="header-stats">
+        <text class="stat">{{ branches.length }} 事件</text>
+        <text class="stat-dot">·</text>
+        <text class="stat">{{ completedCount }} 完成</text>
+      </view>
     </view>
 
-    <!-- 树形世界线容器 -->
-    <scroll-view class="tree-container" scroll-y>
-      <!-- 树干背景 -->
-      <view class="tree-trunk"></view>
-      
-      <!-- 世界线树 - 从下往上生长 -->
-      <view class="worldline-tree">
-        <!-- 当前活跃节点（用户已参与的事件） -->
-        <view v-for="(node, index) in activeNodes" :key="node.id" class="tree-node active">
-          <view class="node-branch" :class="getBranchDirection(index)">
-            <view class="branch-line active-line"></view>
+    <!-- 世界线树 -->
+    <scroll-view class="tree-scroll" scroll-y>
+      <view class="tree-wrapper">
+        <!-- 主干线 -->
+        <view class="trunk-line"></view>
+
+        <!-- 当前时刻指示器 -->
+        <view class="now-indicator">
+          <view class="now-pulse"></view>
+          <text class="now-label">现在</text>
+        </view>
+
+        <!-- 分支节点列表 -->
+        <view
+          v-for="(branch, index) in branches"
+          :key="branch.eventId"
+          class="branch-node"
+          :class="{ 'is-expanded': expandedId === branch.eventId }"
+        >
+          <!-- 节点圆点（在主干上） -->
+          <view
+            class="node-dot"
+            :class="[branch.completed ? 'dot-completed' : 'dot-active']"
+            @click="toggleBranch(branch.eventId)"
+          >
+            <text class="dot-icon">{{ getTypeIcon(branch.eventType) }}</text>
           </view>
-          <view class="node-content" :class="{ 'left': index % 2 === 0, 'right': index % 2 === 1 }">
-            <view class="node-card active-card">
-              <view class="node-icon">{{ getEventIcon(node.type) }}</view>
-              <view class="node-info">
-                <text class="node-title">{{ node.title }}</text>
-                <text class="node-desc">{{ node.detail || '进行中...' }}</text>
-                <view class="node-meta">
-                  <text class="node-time">{{ formatRelativeTime(node.timestamp) }}</text>
+
+          <!-- 分支线（未展开时） -->
+          <view
+            v-if="expandedId !== branch.eventId"
+            class="branch-arm"
+            :class="[index % 2 === 0 ? 'arm-left' : 'arm-right']"
+          ></view>
+
+          <!-- 分支卡片（未展开时：左右交替） -->
+          <view
+            v-if="expandedId !== branch.eventId"
+            class="branch-card"
+            :class="[
+              index % 2 === 0 ? 'card-left' : 'card-right',
+              branch.completed ? 'card-completed' : 'card-active'
+            ]"
+            @click="toggleBranch(branch.eventId)"
+          >
+            <view class="card-header">
+              <view class="card-title-row">
+                <text class="card-title">{{ branch.eventTitle }}</text>
+                <view class="card-badge" :class="branch.completed ? 'badge-done' : 'badge-active'">
+                  <text class="badge-text">{{ branch.completed ? '✓' : '…' }}</text>
                 </view>
               </view>
-              <view class="node-status-badge active-badge">进行中</view>
+              <text class="card-time">{{ formatRelativeTime(branch.startTime) }}</text>
+            </view>
+            <view class="expand-hint">
+              <text class="expand-arrow">▼ 查看故事</text>
             </view>
           </view>
-          <view class="node-dot active-dot">
-            <view class="dot-glow"></view>
-          </view>
-        </view>
 
-        <!-- 已完成的历史节点 -->
-        <view v-for="(node, index) in completedNodes" :key="node.id" class="tree-node completed">
-          <view class="node-branch" :class="getBranchDirection(index + activeNodes.length)">
-            <view class="branch-line completed-line"></view>
-          </view>
-          <view class="node-content" :class="{ 'left': (index + activeNodes.length) % 2 === 0, 'right': (index + activeNodes.length) % 2 === 1 }">
-            <view class="node-card completed-card">
-              <view class="node-icon">{{ getEventIcon(node.type) }}</view>
-              <view class="node-info">
-                <text class="node-title">{{ node.title }}</text>
-                <text class="node-desc">{{ node.detail || '已完成' }}</text>
+          <!-- 展开后的详情卡片（居中全宽） -->
+          <view
+            v-if="expandedId === branch.eventId"
+            class="expanded-card"
+            :class="branch.completed ? 'card-completed' : 'card-active'"
+          >
+            <!-- 卡片头部 -->
+            <view class="card-header">
+              <view class="card-title-row">
+                <text class="expanded-title">{{ getTypeIcon(branch.eventType) }} {{ branch.eventTitle }}</text>
+                <view class="card-badge" :class="branch.completed ? 'badge-done' : 'badge-active'">
+                  <text class="badge-text">{{ branch.completed ? '已完成' : '进行中' }}</text>
+                </view>
               </view>
-              <view class="node-status-badge completed-badge">✓</view>
+              <text class="card-time">{{ formatRelativeTime(branch.startTime) }}</text>
+            </view>
+
+            <!-- 选择时间线 -->
+            <view class="card-detail">
+              <view class="choice-timeline" v-if="branch.choices.length > 0">
+                <text class="detail-section-title">📜 你的选择</text>
+                <view
+                  v-for="(choice, ci) in branch.choices"
+                  :key="choice.id"
+                  class="choice-item"
+                >
+                  <view class="choice-connector">
+                    <view class="choice-dot"></view>
+                    <view v-if="ci < branch.choices.length - 1 || branch.completed" class="choice-line"></view>
+                  </view>
+                  <view class="choice-content">
+                    <text class="choice-text">{{ choice.text }}</text>
+                    <text v-if="choice.resultText" class="choice-result">{{ choice.resultText }}</text>
+                  </view>
+                </view>
+              </view>
+
+              <!-- 无选择时的提示 -->
+              <view v-else class="no-choices">
+                <text class="no-choices-text">🔮 故事刚刚开始，等待你的抉择...</text>
+              </view>
+
+              <!-- 结局摘要 -->
+              <view v-if="branch.completed && branch.endingSummary" class="ending-summary">
+                <text class="detail-section-title">🏁 结局</text>
+                <text class="ending-text">{{ branch.endingSummary }}</text>
+              </view>
+            </view>
+
+            <!-- 收起按钮 -->
+            <view class="collapse-btn" @click="toggleBranch(branch.eventId)">
+              <text class="collapse-text">▲ 收起</text>
             </view>
           </view>
-          <view class="node-dot completed-dot"></view>
         </view>
 
-        <!-- 空状态提示 -->
-        <view v-if="worldRecords.length === 0" class="empty-state">
+        <!-- 空状态 -->
+        <view v-if="branches.length === 0" class="empty-state">
           <text class="empty-icon">🌌</text>
           <text class="empty-title">世界线尚未展开</text>
-          <text class="empty-desc">去探索页面参与事件，开始你的故事吧</text>
+          <text class="empty-desc">去探索页面参与事件，你的每一个选择都将在这里留下痕迹</text>
         </view>
 
-        <!-- 根节点：账号注册 -->
-        <view class="tree-node root">
-          <view class="root-content">
-            <view class="root-card">
-              <view class="root-icon">🌱</view>
-              <view class="root-info">
-                <text class="root-title">世界线起点</text>
-                <text class="root-date">{{ formatDate(registrationDate) }} 加入</text>
-                <text class="root-desc">你的故事从这里开始...</text>
-              </view>
-            </view>
+        <!-- 起点节点 -->
+        <view class="origin-node">
+          <view class="origin-dot">
+            <text class="origin-icon">🌱</text>
           </view>
-          <view class="root-dot">
-            <view class="root-glow"></view>
-          </view>
-        </view>
-
-        <!-- 树根装饰 -->
-        <view class="tree-roots">
-          <view class="root-line left"></view>
-          <view class="root-line center"></view>
-          <view class="root-line right"></view>
+          <text class="origin-label">世界线起点</text>
         </view>
       </view>
 
-      <!-- 统计信息 -->
-      <view class="stats-summary">
-        <view class="stat-item">
-          <text class="stat-value">{{ totalEvents }}</text>
-          <text class="stat-label">参与事件</text>
-        </view>
-        <view class="stat-item">
-          <text class="stat-value">{{ totalChoices }}</text>
-          <text class="stat-label">关键抉择</text>
-        </view>
-        <view class="stat-item">
-          <text class="stat-value">{{ totalDays }}</text>
-          <text class="stat-label">成长天数</text>
-        </view>
-      </view>
+      <!-- 底部留白 -->
+      <view style="height: 160rpx;"></view>
     </scroll-view>
   </view>
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useWorldStore } from '@/stores/world'
+import type { WorldlineBranch } from '@/stores/world'
 
 const worldStore = useWorldStore()
 
-// 用户注册日期（模拟）
-const registrationDate = ref(Date.now() - 90 * 24 * 60 * 60 * 1000)
+// 当前展开的分支ID
+const expandedId = ref<string | null>(null)
 
-// 当前纪元
-const currentEra = computed(() => {
-  const days = Math.floor((Date.now() - registrationDate.value) / (24 * 60 * 60 * 1000))
-  if (days < 7) return '第一章·萌芽'
-  if (days < 30) return '第二章·成长'
-  if (days < 90) return '第三章·绽放'
-  return '第四章·收获'
-})
+// 分支列表（按时间倒序，最新在上）
+const branches = computed<WorldlineBranch[]>(() => worldStore.worldlineBranches)
 
-// 世界线记录
-const worldRecords = computed(() => worldStore.worldlineRecords)
+// 已完成数
+const completedCount = computed(() => branches.value.filter(b => b.completed).length)
 
-// 活跃节点：event_start和choice类型
-const activeNodes = computed(() =>
-  worldRecords.value.filter(r => r.type === 'event_start' || r.type === 'choice')
-)
-
-// 已完成节点
-const completedNodes = computed(() =>
-  worldRecords.value.filter(r => r.type === 'event_complete')
-)
-
-// 统计数据
-const totalEvents = computed(() => worldRecords.value.filter(r => r.type === 'event_start').length)
-const totalChoices = computed(() => worldRecords.value.filter(r => r.type === 'choice').length)
-const totalDays = computed(() => Math.floor((Date.now() - registrationDate.value) / (24 * 60 * 60 * 1000)))
-
-// 获取分支方向
-function getBranchDirection(index: number): string {
-  return index % 2 === 0 ? 'left' : 'right'
+// 切换分支展开/收起
+function toggleBranch(eventId: string) {
+  expandedId.value = expandedId.value === eventId ? null : eventId
 }
 
-// 获取事件图标
-function getEventIcon(type: string): string {
+// 事件类型图标
+function getTypeIcon(type: string): string {
   const icons: Record<string, string> = {
-    'event_start': '🚀',
-    'choice': '🎯',
-    'event_complete': '✅'
+    'social': '💬',
+    'story': '📖',
+    'challenge': '💼',
+    'craft': '🔨',
+    'exploration': '🗺️',
+    'creation': '✨'
   }
   return icons[type] || '📌'
 }
 
 // 格式化相对时间
 function formatRelativeTime(timestamp: number): string {
-  const now = Date.now()
-  const diff = now - timestamp
-  const minutes = Math.floor(diff / (60 * 1000))
-  const hours = Math.floor(diff / (60 * 60 * 1000))
-  const days = Math.floor(diff / (24 * 60 * 60 * 1000))
-  
+  const diff = Date.now() - timestamp
+  const minutes = Math.floor(diff / 60000)
+  const hours = Math.floor(diff / 3600000)
+  const days = Math.floor(diff / 86400000)
+
   if (minutes < 1) return '刚刚'
   if (minutes < 60) return `${minutes}分钟前`
   if (hours < 24) return `${hours}小时前`
   if (days === 1) return '昨天'
   if (days < 7) return `${days}天前`
   if (days < 30) return `${Math.floor(days / 7)}周前`
-  if (days < 365) return `${Math.floor(days / 30)}个月前`
-  return `${Math.floor(days / 365)}年前`
+  return `${Math.floor(days / 30)}个月前`
 }
 
-// 格式化日期
-function formatDate(timestamp: number): string {
-  const date = new Date(timestamp)
-  return `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日`
-}
+// 页面加载时注入演示数据
+onMounted(() => {
+  worldStore.seedDemoData()
+})
 </script>
 
 <style lang="scss" scoped>
@@ -186,449 +208,497 @@ function formatDate(timestamp: number): string {
 
 .worldline-page {
   width: 100%;
-  max-width: 100vw;
   height: 100vh;
   background: $white;
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  box-sizing: border-box;
-  margin: 0 auto;
-  
+
   &::before {
     content: '';
     position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: 
-      radial-gradient(ellipse at 0% 0%, rgba($primary-color, 0.06) 0%, transparent 50%),
-      radial-gradient(ellipse at 100% 100%, rgba($accent-color, 0.04) 0%, transparent 50%),
+    top: 0; left: 0; right: 0; bottom: 0;
+    background:
+      radial-gradient(ellipse at 30% 0%, rgba($primary-color, 0.04) 0%, transparent 60%),
+      radial-gradient(ellipse at 70% 100%, rgba($accent-color, 0.03) 0%, transparent 60%),
       linear-gradient(180deg, $white 0%, $gray-50 100%);
     pointer-events: none;
     z-index: -1;
   }
 }
 
+/* ===== 顶部栏 ===== */
 .header {
-  position: relative;
-  z-index: 100;
   flex-shrink: 0;
-  padding: calc(40rpx + env(safe-area-inset-top, 0px)) 30rpx 30rpx;
+  padding: calc(40rpx + env(safe-area-inset-top, 0px)) 32rpx 24rpx;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(40rpx) saturate(180%);
-  -webkit-backdrop-filter: blur(40rpx) saturate(180%);
-  border-bottom: 1rpx solid rgba(0, 0, 0, 0.05);
-  
+  background: rgba(255,255,255,0.92);
+  backdrop-filter: blur(40rpx);
+  -webkit-backdrop-filter: blur(40rpx);
+  border-bottom: 1rpx solid rgba(0,0,0,0.05);
+  z-index: 100;
+
   .title {
-    font-size: 40rpx;
-    font-weight: bold;
+    font-size: 38rpx;
+    font-weight: 700;
     color: $text-primary;
   }
-  
-  .era {
-    font-size: 24rpx;
-    color: $text-tertiary;
-    background: rgba($primary-color, 0.08);
-    padding: 8rpx 20rpx;
-    border-radius: $radius-full;
+
+  .header-stats {
+    display: flex;
+    align-items: center;
+    gap: 8rpx;
+
+    .stat {
+      font-size: 24rpx;
+      color: $text-tertiary;
+    }
+    .stat-dot {
+      font-size: 20rpx;
+      color: $gray-300;
+    }
   }
 }
 
-.tree-container {
+/* ===== 树滚动容器 ===== */
+.tree-scroll {
   flex: 1;
   min-height: 0;
-  padding: 0 30rpx calc(120rpx + env(safe-area-inset-bottom, 0px));
-  position: relative;
-  z-index: 1;
   width: 100%;
-  box-sizing: border-box;
 }
 
-.tree-trunk {
+.tree-wrapper {
+  position: relative;
+  padding: 40rpx 24rpx 0;
+  min-height: 100%;
+}
+
+/* ===== 主干线 ===== */
+.trunk-line {
   position: absolute;
   left: 50%;
-  top: 0;
-  bottom: 200rpx;
-  width: 6rpx;
-  background: linear-gradient(180deg, 
-    rgba($primary-color, 0.4) 0%,
-    rgba($primary-color, 0.3) 30%,
+  top: 80rpx;
+  bottom: 100rpx;
+  width: 4rpx;
+  background: linear-gradient(
+    180deg,
+    rgba($primary-color, 0.45) 0%,
     rgba($primary-color, 0.2) 70%,
-    rgba($accent-color, 0.3) 100%
+    rgba($primary-color, 0.08) 100%
   );
   transform: translateX(-50%);
-  border-radius: 3rpx;
-  
-  &::before {
-    content: '';
-    position: absolute;
-    left: -6rpx;
-    right: -6rpx;
-    top: 0;
-    bottom: 0;
-    background: inherit;
-    filter: blur(12rpx);
-    opacity: 0.3;
+  border-radius: 2rpx;
+}
+
+/* ===== 当前时刻指示器 ===== */
+.now-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12rpx;
+  margin-bottom: 48rpx;
+  position: relative;
+  z-index: 10;
+
+  .now-pulse {
+    width: 16rpx;
+    height: 16rpx;
+    border-radius: 50%;
+    background: $primary-color;
+    box-shadow: 0 0 0 6rpx rgba($primary-color, 0.2);
+    animation: pulse-ring 2s ease-in-out infinite;
+  }
+
+  .now-label {
+    font-size: 22rpx;
+    color: $primary-color;
+    font-weight: 600;
+    letter-spacing: 2rpx;
   }
 }
 
-.worldline-tree {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 40rpx 0;
+/* ===== 分支节点 ===== */
+.branch-node {
   position: relative;
-  width: 100%;
-  margin: 0 auto;
+  min-height: 140rpx;
+  margin-bottom: 40rpx;
 }
 
-.tree-node {
-  width: 100%;
-  max-width: 700rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-  margin: 0 auto 40rpx;
-  min-height: 120rpx;
-}
-
+/* 节点圆点 */
 .node-dot {
   position: absolute;
   left: 50%;
+  top: 16rpx;
   transform: translateX(-50%);
-  width: 24rpx;
-  height: 24rpx;
+  width: 52rpx;
+  height: 52rpx;
   border-radius: 50%;
-  background: $primary-color;
-  border: 4rpx solid $white;
-  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.1);
-  z-index: 10;
-  
-  &.active-dot {
-    background: $primary-color;
-    box-shadow: 0 0 20rpx rgba($primary-color, 0.4);
-    
-    .dot-glow {
-      position: absolute;
-      inset: -8rpx;
-      border-radius: 50%;
-      background: rgba($primary-color, 0.2);
-      animation: pulse 2s ease-in-out infinite;
-    }
-  }
-  
-  &.completed-dot {
-    background: $primary-color;
-  }
-}
-
-.node-branch {
-  position: absolute;
-  top: 50%;
-  width: 60rpx;
-  height: 3rpx;
-  
-  &.left {
-    right: 50%;
-    margin-right: 12rpx;
-    
-    .branch-line {
-      background: linear-gradient(90deg, rgba($primary-color, 0.3), transparent);
-    }
-  }
-  
-  &.right {
-    left: 50%;
-    margin-left: 12rpx;
-    
-    .branch-line {
-      background: linear-gradient(270deg, rgba($primary-color, 0.3), transparent);
-    }
-  }
-  
-  .branch-line {
-    width: 100%;
-    height: 100%;
-    border-radius: 2rpx;
-    
-    &.active-line {
-      background: linear-gradient(90deg, rgba($primary-color, 0.5), transparent) !important;
-    }
-    
-    &.completed-line {
-      background: linear-gradient(90deg, rgba($primary-color, 0.4), transparent) !important;
-    }
-  }
-}
-
-.node-content {
-  position: absolute;
-  width: calc(50% - 50rpx);
-  max-width: 320rpx;
-  
-  &.left {
-    right: calc(50% + 30rpx);
-  }
-  
-  &.right {
-    left: calc(50% + 30rpx);
-  }
-}
-
-.node-card {
-  @include glass-effect(0.85);
-  border-radius: $radius-lg;
-  padding: 20rpx;
   display: flex;
-  align-items: flex-start;
-  gap: 12rpx;
-  position: relative;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  cursor: pointer;
   transition: all $transition-normal;
-  min-height: $touch-target-min;
-  
+  border: 3rpx solid $white;
+
+  .dot-icon {
+    font-size: 22rpx;
+  }
+
+  &.dot-completed {
+    background: $white;
+    box-shadow: 0 2rpx 12rpx rgba($primary-color, 0.15);
+    border-color: rgba($primary-color, 0.25);
+  }
+
+  &.dot-active {
+    background: $gradient-primary;
+    box-shadow: 0 4rpx 16rpx rgba($primary-color, 0.35);
+    border-color: rgba($primary-light, 0.5);
+
+    .dot-icon {
+      filter: brightness(10);
+    }
+  }
+}
+
+/* 分支线 */
+.branch-arm {
+  position: absolute;
+  top: 38rpx;
+  width: 36rpx;
+  height: 3rpx;
+  background: rgba($primary-color, 0.18);
+
+  &.arm-left {
+    right: 50%;
+    margin-right: 26rpx;
+  }
+  &.arm-right {
+    left: 50%;
+    margin-left: 26rpx;
+  }
+}
+
+/* ===== 未展开的分支卡片 ===== */
+.branch-card {
+  position: absolute;
+  top: 0;
+  width: calc(50% - 56rpx);
+  border-radius: $radius-xl;
+  padding: 20rpx 24rpx;
+  cursor: pointer;
+  transition: all 0.3s ease;
+
+  &.card-left {
+    right: calc(50% + 44rpx);
+  }
+  &.card-right {
+    left: calc(50% + 44rpx);
+  }
+
+  &.card-completed {
+    background: rgba(255,255,255,0.85);
+    border: 1rpx solid rgba($primary-color, 0.08);
+    box-shadow: $shadow-xs;
+  }
+
+  &.card-active {
+    background: rgba(255,255,255,0.95);
+    border: 1rpx solid rgba($primary-color, 0.2);
+    box-shadow: 0 4rpx 16rpx rgba($primary-color, 0.08);
+  }
+
   &:active {
-    transform: scale(0.98);
-    background: rgba(255, 255, 255, 0.95);
+    transform: scale(0.97);
   }
-  
-  &.active-card {
-    @include glass-tinted($primary-color);
-    box-shadow: 0 4rpx 20rpx rgba($primary-color, 0.15);
+}
+
+/* 卡片头部 */
+.card-header {
+  .card-title-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8rpx;
+    margin-bottom: 4rpx;
   }
-  
-  &.completed-card {
-    @include glass-tinted($primary-color);
+
+  .card-title {
+    font-size: 26rpx;
+    font-weight: 600;
+    color: $text-primary;
+    flex: 1;
+    @include text-ellipsis(1);
   }
-  
-  .node-icon {
-    font-size: 32rpx;
+
+  .expanded-title {
+    font-size: 30rpx;
+    font-weight: 700;
+    color: $text-primary;
+    flex: 1;
+  }
+
+  .card-badge {
+    flex-shrink: 0;
+    width: 36rpx;
+    height: 36rpx;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    &.badge-done {
+      background: rgba($color-success, 0.12);
+      .badge-text { color: $color-success; font-size: 18rpx; }
+    }
+    &.badge-active {
+      background: rgba($primary-color, 0.12);
+      .badge-text { color: $primary-color; font-size: 18rpx; }
+    }
+  }
+
+  .card-time {
+    font-size: 22rpx;
+    color: $text-tertiary;
+  }
+}
+
+/* 展开提示 */
+.expand-hint {
+  margin-top: 8rpx;
+  .expand-arrow {
+    font-size: 20rpx;
+    color: $text-tertiary;
+  }
+}
+
+/* ===== 展开后的详情卡片 ===== */
+.expanded-card {
+  position: relative;
+  width: 100%;
+  border-radius: $radius-xl;
+  padding: 28rpx;
+  margin-top: 8rpx;
+  z-index: 20;
+  animation: card-expand 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  box-sizing: border-box;
+
+  &.card-completed {
+    background: rgba(255,255,255,0.92);
+    border: 1rpx solid rgba($primary-color, 0.15);
+    box-shadow: 0 8rpx 32rpx rgba($primary-color, 0.1);
+  }
+
+  &.card-active {
+    background: rgba(255,255,255,0.96);
+    border: 1rpx solid rgba($primary-color, 0.25);
+    box-shadow: 0 8rpx 32rpx rgba($primary-color, 0.12);
+  }
+
+  .card-header {
+    .card-badge {
+      width: auto;
+      border-radius: $radius-full;
+      padding: 4rpx 16rpx;
+    }
+  }
+}
+
+/* ===== 展开详情内容 ===== */
+.card-detail {
+  margin-top: 20rpx;
+  padding-top: 20rpx;
+  border-top: 1rpx solid $gray-100;
+}
+
+.detail-section-title {
+  font-size: 24rpx;
+  font-weight: 600;
+  color: $text-secondary;
+  display: block;
+  margin-bottom: 16rpx;
+}
+
+/* 选择时间线 */
+.choice-timeline {
+  margin-bottom: 16rpx;
+}
+
+.choice-item {
+  display: flex;
+  gap: 16rpx;
+}
+
+.choice-connector {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 20rpx;
+  flex-shrink: 0;
+  padding-top: 8rpx;
+
+  .choice-dot {
+    width: 14rpx;
+    height: 14rpx;
+    border-radius: 50%;
+    background: $primary-color;
     flex-shrink: 0;
   }
-  
-  .node-info {
+
+  .choice-line {
+    width: 2rpx;
     flex: 1;
-    min-width: 0;
-    
-    .node-title {
-      font-size: 26rpx;
-      font-weight: 600;
-      color: $text-primary;
-      display: block;
-      margin-bottom: 4rpx;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-    
-    .node-desc {
-      font-size: 20rpx;
-      color: $text-tertiary;
-      display: block;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-    
-    .node-meta {
-      display: flex;
-      gap: 12rpx;
-      margin-top: 8rpx;
-      
-      .node-time {
-        font-size: 18rpx;
-        color: $text-tertiary;
-      }
-    }
-  }
-  
-  .node-status-badge {
-    position: absolute;
-    top: -8rpx;
-    right: -8rpx;
-    font-size: 18rpx;
-    padding: 6rpx 14rpx;
-    border-radius: $radius-full;
-    
-    &.active-badge {
-      background: $gradient-primary;
-      color: $white;
-      box-shadow: 0 4rpx 12rpx rgba($primary-color, 0.3);
-    }
-    
-    &.completed-badge {
-      background: $primary-color;
-      color: $white;
-      width: 32rpx;
-      height: 32rpx;
-      padding: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 50%;
-    }
+    min-height: 16rpx;
+    background: rgba($primary-color, 0.15);
+    margin-top: 4rpx;
   }
 }
 
-// 空状态
+.choice-content {
+  flex: 1;
+  padding-bottom: 16rpx;
+
+  .choice-text {
+    font-size: 26rpx;
+    font-weight: 500;
+    color: $text-primary;
+    display: block;
+    margin-bottom: 8rpx;
+  }
+
+  .choice-result {
+    font-size: 23rpx;
+    color: $text-tertiary;
+    line-height: 1.55;
+    display: block;
+    padding: 14rpx 18rpx;
+    background: $gray-50;
+    border-radius: $radius-md;
+    border-left: 4rpx solid rgba($primary-color, 0.25);
+  }
+}
+
+/* 无选择提示 */
+.no-choices {
+  padding: 24rpx 0;
+
+  .no-choices-text {
+    font-size: 24rpx;
+    color: $text-tertiary;
+    font-style: italic;
+  }
+}
+
+/* 结局摘要 */
+.ending-summary {
+  margin-top: 16rpx;
+  padding: 18rpx 22rpx;
+  background: rgba($color-success, 0.05);
+  border-radius: $radius-lg;
+  border: 1rpx solid rgba($color-success, 0.1);
+
+  .ending-text {
+    font-size: 24rpx;
+    color: $text-secondary;
+    line-height: 1.6;
+    display: block;
+    margin-top: 8rpx;
+  }
+}
+
+/* 收起按钮 */
+.collapse-btn {
+  margin-top: 16rpx;
+  text-align: center;
+  padding: 12rpx;
+  cursor: pointer;
+
+  .collapse-text {
+    font-size: 22rpx;
+    color: $primary-color;
+    font-weight: 500;
+  }
+}
+
+/* ===== 空状态 ===== */
 .empty-state {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 80rpx 40rpx;
-  
+  padding: 120rpx 60rpx;
+  text-align: center;
+
   .empty-icon {
     font-size: 80rpx;
-    margin-bottom: 20rpx;
+    margin-bottom: 24rpx;
   }
-  
   .empty-title {
     font-size: 32rpx;
     font-weight: 600;
     color: $text-primary;
     margin-bottom: 12rpx;
   }
-  
   .empty-desc {
     font-size: 24rpx;
     color: $text-tertiary;
+    line-height: 1.6;
   }
 }
 
-// 根节点
-.tree-node.root {
-  margin-top: 60rpx;
-  margin-bottom: 0;
-  
-  .root-content {
-    width: 100%;
-    display: flex;
-    justify-content: center;
-  }
-  
-  .root-card {
-    @include glass-tinted($primary-color);
-    border-radius: $radius-xl;
-    padding: 28rpx;
-    display: flex;
-    align-items: center;
-    gap: 16rpx;
-    max-width: 400rpx;
-    
-    .root-icon {
-      font-size: 48rpx;
-    }
-    
-    .root-info {
-      .root-title {
-        font-size: 28rpx;
-        font-weight: bold;
-        color: $primary-color;
-        display: block;
-      }
-      
-      .root-date {
-        font-size: 22rpx;
-        color: $text-secondary;
-        display: block;
-        margin: 4rpx 0;
-      }
-      
-      .root-desc {
-        font-size: 20rpx;
-        color: $text-tertiary;
-        font-style: italic;
-      }
-    }
-  }
-  
-  .root-dot {
-    position: absolute;
-    left: 50%;
-    top: -30rpx;
-    transform: translateX(-50%);
-    width: 40rpx;
-    height: 40rpx;
+/* ===== 起点节点 ===== */
+.origin-node {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40rpx 0 20rpx;
+  position: relative;
+  z-index: 10;
+
+  .origin-dot {
+    width: 72rpx;
+    height: 72rpx;
     border-radius: 50%;
     background: $gradient-primary;
-    border: 4rpx solid $white;
-    box-shadow: 0 4rpx 16rpx rgba($primary-color, 0.3);
-    z-index: 10;
-    
-    .root-glow {
-      position: absolute;
-      inset: -12rpx;
-      border-radius: 50%;
-      background: radial-gradient(circle, rgba($primary-color, 0.2) 0%, transparent 70%);
-    }
-  }
-}
-
-.tree-roots {
-  display: flex;
-  justify-content: center;
-  gap: 20rpx;
-  margin-top: 20rpx;
-  
-  .root-line {
-    width: 4rpx;
-    height: 60rpx;
-    background: linear-gradient(180deg, rgba($primary-color, 0.3), transparent);
-    border-radius: 2rpx;
-    
-    &.left {
-      transform: rotate(-20deg);
-    }
-    
-    &.right {
-      transform: rotate(20deg);
-    }
-  }
-}
-
-.stats-summary {
-  display: flex;
-  justify-content: space-around;
-  @include glass-card;
-  padding: 28rpx;
-  margin: 40rpx auto;
-  width: 100%;
-  max-width: 700rpx;
-  box-sizing: border-box;
-  
-  .stat-item {
     display: flex;
-    flex-direction: column;
     align-items: center;
-    
-    .stat-value {
-      font-size: 36rpx;
-      font-weight: bold;
-      color: $primary-color;
+    justify-content: center;
+    box-shadow: 0 4rpx 24rpx rgba($primary-color, 0.3);
+    border: 4rpx solid $white;
+    margin-bottom: 12rpx;
+
+    .origin-icon {
+      font-size: 32rpx;
     }
-    
-    .stat-label {
-      font-size: 22rpx;
-      color: $text-tertiary;
-      margin-top: 4rpx;
-    }
+  }
+
+  .origin-label {
+    font-size: 22rpx;
+    color: $text-tertiary;
+    font-weight: 500;
   }
 }
 
-@keyframes pulse {
+/* ===== 动画 ===== */
+@keyframes pulse-ring {
   0%, 100% {
-    transform: scale(1);
-    opacity: 0.5;
+    box-shadow: 0 0 0 6rpx rgba($primary-color, 0.2);
   }
   50% {
-    transform: scale(1.5);
+    box-shadow: 0 0 0 14rpx rgba($primary-color, 0);
+  }
+}
+
+@keyframes card-expand {
+  from {
     opacity: 0;
+    transform: translateY(-10rpx) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
   }
 }
 </style>
