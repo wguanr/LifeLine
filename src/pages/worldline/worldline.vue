@@ -14,7 +14,7 @@
       <!-- 世界线树 - 从下往上生长 -->
       <view class="worldline-tree">
         <!-- 当前活跃节点（用户已参与的事件） -->
-        <view v-for="(node, index) in activeNodes" :key="node.eventId" class="tree-node active">
+        <view v-for="(node, index) in activeNodes" :key="node.id" class="tree-node active">
           <view class="node-branch" :class="getBranchDirection(index)">
             <view class="branch-line active-line"></view>
           </view>
@@ -22,8 +22,8 @@
             <view class="node-card active-card">
               <view class="node-icon">{{ getEventIcon(node.type) }}</view>
               <view class="node-info">
-                <text class="node-title">{{ node.eventTitle }}</text>
-                <text class="node-desc">{{ node.detail }}</text>
+                <text class="node-title">{{ node.title }}</text>
+                <text class="node-desc">{{ node.detail || '进行中...' }}</text>
                 <view class="node-meta">
                   <text class="node-time">{{ formatRelativeTime(node.timestamp) }}</text>
                 </view>
@@ -37,7 +37,7 @@
         </view>
 
         <!-- 已完成的历史节点 -->
-        <view v-for="(node, index) in completedNodes" :key="node.eventId" class="tree-node completed">
+        <view v-for="(node, index) in completedNodes" :key="node.id" class="tree-node completed">
           <view class="node-branch" :class="getBranchDirection(index + activeNodes.length)">
             <view class="branch-line completed-line"></view>
           </view>
@@ -45,16 +45,20 @@
             <view class="node-card completed-card">
               <view class="node-icon">{{ getEventIcon(node.type) }}</view>
               <view class="node-info">
-                <text class="node-title">{{ node.eventTitle }}</text>
-                <text class="node-desc">{{ node.detail }}</text>
-                <view class="node-rewards" v-if="node.rewards?.tags">
-                  <text v-for="tag in node.rewards.tags" :key="tag" class="reward-tag">🏷️ {{ tag }}</text>
-                </view>
+                <text class="node-title">{{ node.title }}</text>
+                <text class="node-desc">{{ node.detail || '已完成' }}</text>
               </view>
               <view class="node-status-badge completed-badge">✓</view>
             </view>
           </view>
           <view class="node-dot completed-dot"></view>
+        </view>
+
+        <!-- 空状态提示 -->
+        <view v-if="worldRecords.length === 0" class="empty-state">
+          <text class="empty-icon">🌌</text>
+          <text class="empty-title">世界线尚未展开</text>
+          <text class="empty-desc">去探索页面参与事件，开始你的故事吧</text>
         </view>
 
         <!-- 根节点：账号注册 -->
@@ -98,115 +102,43 @@
         </view>
       </view>
     </scroll-view>
-
-    <!-- 节点详情弹窗 -->
-    <view v-if="selectedNode" class="node-modal" @click="selectedNode = null">
-      <view class="modal-content" @click.stop>
-        <view class="modal-header" :style="{ background: `linear-gradient(135deg, ${selectedNode.color || '#667eea'}40, transparent)` }">
-          <text class="modal-icon">{{ selectedNode.icon }}</text>
-          <text class="modal-title">{{ selectedNode.title }}</text>
-          <text class="modal-close" @click="selectedNode = null">✕</text>
-        </view>
-        <view class="modal-body">
-          <text class="modal-desc">{{ selectedNode.description }}</text>
-          
-          <view v-if="selectedNode.globalStats" class="modal-stats">
-            <text class="stats-title">📊 全服数据</text>
-            <text class="stats-participants">👥 {{ formatNumber(selectedNode.globalStats.totalParticipants) }} 人参与</text>
-            <view class="choice-distribution">
-              <view v-for="(count, choice) in selectedNode.globalStats.choiceDistribution" :key="choice" class="choice-bar">
-                <text class="choice-name">{{ getChoiceLabel(String(choice)) }}</text>
-                <view class="bar-track">
-                  <view class="bar-fill" :style="{ width: getChoicePercent(selectedNode.globalStats, String(choice)) + '%' }"></view>
-                </view>
-                <text class="choice-percent">{{ getChoicePercent(selectedNode.globalStats, String(choice)) }}%</text>
-              </view>
-            </view>
-          </view>
-
-          <view v-if="selectedNode.userChoice" class="user-choice-section">
-            <text class="choice-label">🎯 你的选择</text>
-            <text class="choice-value">{{ getChoiceLabel(selectedNode.userChoice) }}</text>
-          </view>
-        </view>
-        <view class="modal-footer">
-          <button v-if="selectedNode.userStatus === 'available'" class="action-btn primary" @click="joinEvent(selectedNode)">
-            参与事件
-          </button>
-          <button v-else-if="selectedNode.userStatus === 'joined'" class="action-btn secondary">
-            进行中...
-          </button>
-          <button v-else-if="selectedNode.userStatus === 'locked'" class="action-btn disabled">
-            🔒 未解锁
-          </button>
-          <button v-else class="action-btn completed-btn">
-            ✅ 已完成
-          </button>
-        </view>
-      </view>
-    </view>
   </view>
 </template>
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { useWorldlineStore } from '@/stores/worldline'
-import type { WorldEvent, GlobalStats } from '@/types'
+import { useWorldStore } from '@/stores/world'
 
-const worldlineStore = useWorldlineStore()
-
-// 选中的节点
-const selectedNode = ref<WorldEvent | null>(null)
+const worldStore = useWorldStore()
 
 // 用户注册日期（模拟）
 const registrationDate = ref(Date.now() - 90 * 24 * 60 * 60 * 1000)
 
 // 当前纪元
-const currentEra = computed(() => worldlineStore.currentEra)
-
-// 基于个人时间线数据构建世界线节点
-// 按事件分组，每个事件只显示一次
-const timelineByEvent = computed(() => {
-  const timeline = worldlineStore.sortedTimeline
-  const eventMap = new Map<string, { 
-    eventId: string, 
-    eventTitle: string, 
-    type: string, 
-    timestamp: number,
-    detail: string,
-    rewards?: { tags?: string[], stats?: Record<string, number> }
-  }>()
-  
-  // 按时间倒序遍历，取每个事件的最新状态
-  for (const node of timeline) {
-    if (!eventMap.has(node.eventId)) {
-      eventMap.set(node.eventId, {
-        eventId: node.eventId,
-        eventTitle: node.eventTitle,
-        type: node.type,
-        timestamp: node.timestamp,
-        detail: node.detail,
-        rewards: node.rewards
-      })
-    }
-  }
-  
-  return Array.from(eventMap.values())
+const currentEra = computed(() => {
+  const days = Math.floor((Date.now() - registrationDate.value) / (24 * 60 * 60 * 1000))
+  if (days < 7) return '第一章·萌芽'
+  if (days < 30) return '第二章·成长'
+  if (days < 90) return '第三章·绽放'
+  return '第四章·收获'
 })
 
-// 活跃节点：显示用户已参与但未完成的事件
-const activeNodes = computed(() => 
-  timelineByEvent.value.filter(e => e.type === 'join' || e.type === 'choice')
+// 世界线记录
+const worldRecords = computed(() => worldStore.worldlineRecords)
+
+// 活跃节点：event_start和choice类型
+const activeNodes = computed(() =>
+  worldRecords.value.filter(r => r.type === 'event_start' || r.type === 'choice')
 )
 
-// 已完成节点：显示用户已完成或获得奖励的事件
-const completedNodes = computed(() => 
-  timelineByEvent.value.filter(e => e.type === 'complete' || e.type === 'reward')
+// 已完成节点
+const completedNodes = computed(() =>
+  worldRecords.value.filter(r => r.type === 'event_complete')
 )
 
 // 统计数据
-const totalEvents = computed(() => worldlineStore.timelineStats.totalEvents)
-const totalChoices = computed(() => worldlineStore.timelineStats.totalChoices)
+const totalEvents = computed(() => worldRecords.value.filter(r => r.type === 'event_start').length)
+const totalChoices = computed(() => worldRecords.value.filter(r => r.type === 'choice').length)
 const totalDays = computed(() => Math.floor((Date.now() - registrationDate.value) / (24 * 60 * 60 * 1000)))
 
 // 获取分支方向
@@ -214,26 +146,12 @@ function getBranchDirection(index: number): string {
   return index % 2 === 0 ? 'left' : 'right'
 }
 
-// 选择节点
-function selectNode(node: WorldEvent) {
-  selectedNode.value = node
-}
-
-// 参与事件
-function joinEvent(event: WorldEvent) {
-  worldlineStore.recordEventJoin(event.id, event.title)
-  selectedNode.value = null
-  uni.showToast({ title: '已加入事件', icon: 'success' })
-}
-
 // 获取事件图标
 function getEventIcon(type: string): string {
   const icons: Record<string, string> = {
-    'join': '🚀',
+    'event_start': '🚀',
     'choice': '🎯',
-    'complete': '✅',
-    'reward': '🎁',
-    'unlock': '🔓'
+    'event_complete': '✅'
   }
   return icons[type] || '📌'
 }
@@ -242,9 +160,13 @@ function getEventIcon(type: string): string {
 function formatRelativeTime(timestamp: number): string {
   const now = Date.now()
   const diff = now - timestamp
+  const minutes = Math.floor(diff / (60 * 1000))
+  const hours = Math.floor(diff / (60 * 60 * 1000))
   const days = Math.floor(diff / (24 * 60 * 60 * 1000))
   
-  if (days === 0) return '今天'
+  if (minutes < 1) return '刚刚'
+  if (minutes < 60) return `${minutes}分钟前`
+  if (hours < 24) return `${hours}小时前`
   if (days === 1) return '昨天'
   if (days < 7) return `${days}天前`
   if (days < 30) return `${Math.floor(days / 7)}周前`
@@ -252,61 +174,10 @@ function formatRelativeTime(timestamp: number): string {
   return `${Math.floor(days / 365)}年前`
 }
 
-// 获取类型标签
-function getTypeLabel(type: string): string {
-  const labels: Record<string, string> = {
-    'global': '🌍 全服',
-    'branch': '🌿 分支',
-    'personal': '👤 个人'
-  }
-  return labels[type] || type
-}
-
-// 获取选择标签
-function getChoiceLabel(choice: string): string {
-  const labels: Record<string, string> = {
-    'health': '健康优先',
-    'career': '事业优先',
-    'social': '社交优先',
-    'family_reunion': '与家人团聚',
-    'travel': '外出旅行',
-    'work': '坚守工作',
-    'exercise': '运动健身',
-    'diet': '健康饮食',
-    'sleep': '规律作息'
-  }
-  return labels[choice] || choice
-}
-
-// 格式化数字
-function formatNumber(num: number): string {
-  if (num >= 10000) {
-    return (num / 10000).toFixed(1) + 'w'
-  }
-  if (num >= 1000) {
-    return (num / 1000).toFixed(1) + 'k'
-  }
-  return num.toString()
-}
-
 // 格式化日期
 function formatDate(timestamp: number): string {
   const date = new Date(timestamp)
   return `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日`
-}
-
-// 计算选择百分比
-function getChoicePercent(stats: GlobalStats, choice: string): number {
-  const total = Object.values(stats.choiceDistribution).reduce((a, b) => a + b, 0)
-  if (total === 0) return 0
-  return Math.round((stats.choiceDistribution[choice] / total) * 100)
-}
-
-// 获取节点奖励
-function getNodeRewards(eventId: string): { tags?: string[], stats?: Record<string, number> } | null {
-  const timeline = worldlineStore.sortedTimeline
-  const rewardNode = timeline.find(n => n.eventId === eventId && (n.type === 'complete' || n.type === 'reward'))
-  return rewardNode?.rewards || null
 }
 </script>
 
@@ -324,7 +195,6 @@ function getNodeRewards(eventId: string): { tags?: string[], stats?: Record<stri
   box-sizing: border-box;
   margin: 0 auto;
   
-  // 柔和的背景渐变
   &::before {
     content: '';
     position: fixed;
@@ -363,6 +233,9 @@ function getNodeRewards(eventId: string): { tags?: string[], stats?: Record<stri
   .era {
     font-size: 24rpx;
     color: $text-tertiary;
+    background: rgba($primary-color, 0.08);
+    padding: 8rpx 20rpx;
+    border-radius: $radius-full;
   }
 }
 
@@ -376,7 +249,6 @@ function getNodeRewards(eventId: string): { tags?: string[], stats?: Record<stri
   box-sizing: border-box;
 }
 
-// 树干 - 白色系
 .tree-trunk {
   position: absolute;
   left: 50%;
@@ -416,7 +288,6 @@ function getNodeRewards(eventId: string): { tags?: string[], stats?: Record<stri
   margin: 0 auto;
 }
 
-// 树节点
 .tree-node {
   width: 100%;
   max-width: 700rpx;
@@ -428,7 +299,6 @@ function getNodeRewards(eventId: string): { tags?: string[], stats?: Record<stri
   min-height: 120rpx;
 }
 
-// 节点圆点 - 白色系
 .node-dot {
   position: absolute;
   left: 50%;
@@ -440,11 +310,6 @@ function getNodeRewards(eventId: string): { tags?: string[], stats?: Record<stri
   border: 4rpx solid $white;
   box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.1);
   z-index: 10;
-  
-  &.future-dot {
-    background: $gray-300;
-    border-color: $white;
-  }
   
   &.active-dot {
     background: $primary-color;
@@ -464,7 +329,6 @@ function getNodeRewards(eventId: string): { tags?: string[], stats?: Record<stri
   }
 }
 
-// 分支线 - 白色系
 .node-branch {
   position: absolute;
   top: 50%;
@@ -504,7 +368,6 @@ function getNodeRewards(eventId: string): { tags?: string[], stats?: Record<stri
   }
 }
 
-// 节点内容
 .node-content {
   position: absolute;
   width: calc(50% - 50rpx);
@@ -519,7 +382,6 @@ function getNodeRewards(eventId: string): { tags?: string[], stats?: Record<stri
   }
 }
 
-// 节点卡片 - 白色系
 .node-card {
   @include glass-effect(0.85);
   border-radius: $radius-lg;
@@ -534,10 +396,6 @@ function getNodeRewards(eventId: string): { tags?: string[], stats?: Record<stri
   &:active {
     transform: scale(0.98);
     background: rgba(255, 255, 255, 0.95);
-  }
-  
-  &.locked {
-    opacity: 0.5;
   }
   
   &.active-card {
@@ -578,40 +436,14 @@ function getNodeRewards(eventId: string): { tags?: string[], stats?: Record<stri
       white-space: nowrap;
     }
     
-    .node-status {
-      font-size: 20rpx;
-      color: $text-tertiary;
-    }
-    
-    .node-choice {
-      font-size: 20rpx;
-      color: $primary-color;
-      display: block;
-    }
-    
     .node-meta {
       display: flex;
       gap: 12rpx;
       margin-top: 8rpx;
       
-      .node-type, .node-participants {
+      .node-time {
         font-size: 18rpx;
         color: $text-tertiary;
-      }
-    }
-    
-    .node-rewards {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8rpx;
-      margin-top: 8rpx;
-      
-      .reward-tag {
-        font-size: 18rpx;
-        color: $accent-dark;
-        background: rgba($accent-color, 0.1);
-        padding: 4rpx 10rpx;
-        border-radius: $radius-sm;
       }
     }
   }
@@ -644,7 +476,32 @@ function getNodeRewards(eventId: string): { tags?: string[], stats?: Record<stri
   }
 }
 
-// 根节点 - 白色系
+// 空状态
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 80rpx 40rpx;
+  
+  .empty-icon {
+    font-size: 80rpx;
+    margin-bottom: 20rpx;
+  }
+  
+  .empty-title {
+    font-size: 32rpx;
+    font-weight: 600;
+    color: $text-primary;
+    margin-bottom: 12rpx;
+  }
+  
+  .empty-desc {
+    font-size: 24rpx;
+    color: $text-tertiary;
+  }
+}
+
+// 根节点
 .tree-node.root {
   margin-top: 60rpx;
   margin-bottom: 0;
@@ -713,7 +570,6 @@ function getNodeRewards(eventId: string): { tags?: string[], stats?: Record<stri
   }
 }
 
-// 树根装饰 - 白色系
 .tree-roots {
   display: flex;
   justify-content: center;
@@ -736,7 +592,6 @@ function getNodeRewards(eventId: string): { tags?: string[], stats?: Record<stri
   }
 }
 
-// 统计摘要 - 白色系
 .stats-summary {
   display: flex;
   justify-content: space-around;
@@ -766,182 +621,6 @@ function getNodeRewards(eventId: string): { tags?: string[], stats?: Record<stri
   }
 }
 
-// 弹窗样式
-.node-modal {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.7);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  padding: 40rpx;
-}
-
-.modal-content {
-  background: #1a1a2e;
-  border-radius: 24rpx;
-  width: 100%;
-  max-width: 600rpx;
-  max-height: 80vh;
-  overflow: hidden;
-  
-  .modal-header {
-    padding: 24rpx;
-    display: flex;
-    align-items: center;
-    gap: 16rpx;
-    border-bottom: 1rpx solid rgba(255, 255, 255, 0.1);
-    
-    .modal-icon {
-      font-size: 40rpx;
-    }
-    
-    .modal-title {
-      flex: 1;
-      font-size: 32rpx;
-      font-weight: bold;
-      color: #fff;
-    }
-    
-    .modal-close {
-      font-size: 32rpx;
-      color: rgba(255, 255, 255, 0.5);
-      padding: 8rpx;
-    }
-  }
-  
-  .modal-body {
-    padding: 24rpx;
-    max-height: 50vh;
-    overflow-y: auto;
-    
-    .modal-desc {
-      font-size: 26rpx;
-      color: rgba(255, 255, 255, 0.8);
-      line-height: 1.6;
-      display: block;
-      margin-bottom: 24rpx;
-    }
-    
-    .modal-stats {
-      background: rgba(255, 255, 255, 0.05);
-      border-radius: 16rpx;
-      padding: 20rpx;
-      margin-bottom: 20rpx;
-      
-      .stats-title {
-        font-size: 26rpx;
-        font-weight: 600;
-        color: #fff;
-        display: block;
-        margin-bottom: 12rpx;
-      }
-      
-      .stats-participants {
-        font-size: 24rpx;
-        color: rgba(255, 255, 255, 0.6);
-        display: block;
-        margin-bottom: 16rpx;
-      }
-      
-      .choice-distribution {
-        .choice-bar {
-          display: flex;
-          align-items: center;
-          gap: 12rpx;
-          margin-bottom: 12rpx;
-          
-          .choice-name {
-            font-size: 22rpx;
-            color: rgba(255, 255, 255, 0.7);
-            width: 120rpx;
-            flex-shrink: 0;
-          }
-          
-          .bar-track {
-            flex: 1;
-            height: 16rpx;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 8rpx;
-            overflow: hidden;
-            
-            .bar-fill {
-              height: 100%;
-              background: linear-gradient(90deg, #667eea, #8B5CF6);
-              border-radius: 8rpx;
-              transition: width 0.5s ease;
-            }
-          }
-          
-          .choice-percent {
-            font-size: 22rpx;
-            color: #8B5CF6;
-            width: 60rpx;
-            text-align: right;
-          }
-        }
-      }
-    }
-    
-    .user-choice-section {
-      background: rgba(139, 92, 246, 0.1);
-      border: 1rpx solid rgba(139, 92, 246, 0.3);
-      border-radius: 16rpx;
-      padding: 16rpx 20rpx;
-      display: flex;
-      align-items: center;
-      gap: 12rpx;
-      
-      .choice-label {
-        font-size: 24rpx;
-        color: rgba(255, 255, 255, 0.6);
-      }
-      
-      .choice-value {
-        font-size: 26rpx;
-        font-weight: 600;
-        color: #8B5CF6;
-      }
-    }
-  }
-  
-  .modal-footer {
-    padding: 20rpx 24rpx;
-    border-top: 1rpx solid rgba(255, 255, 255, 0.1);
-    
-    .action-btn {
-      width: 100%;
-      height: 80rpx;
-      border-radius: 40rpx;
-      font-size: 28rpx;
-      font-weight: 600;
-      border: none;
-      
-      &.primary {
-        background: linear-gradient(135deg, #667eea, #8B5CF6);
-        color: #fff;
-      }
-      
-      &.secondary {
-        background: rgba(139, 92, 246, 0.2);
-        color: #8B5CF6;
-      }
-      
-      &.disabled {
-        background: rgba(255, 255, 255, 0.1);
-        color: rgba(255, 255, 255, 0.4);
-      }
-      
-      &.completed-btn {
-        background: rgba(76, 175, 80, 0.2);
-        color: #4CAF50;
-      }
-    }
-  }
-}
-
-// 动画
 @keyframes pulse {
   0%, 100% {
     transform: scale(1);

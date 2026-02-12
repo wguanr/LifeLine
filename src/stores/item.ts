@@ -24,11 +24,14 @@ export const useItemStore = defineStore('item', () => {
     return items.value.find(i => i.id === id)
   }
 
+  const getItem = getItemById
+
   return {
     items,
     isLoading,
     visibleItems,
     loadItems,
-    getItemById
+    getItemById,
+    getItem
   }
 })

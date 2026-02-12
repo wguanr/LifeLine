@@ -68,13 +68,14 @@ export interface EventChoice {
       time?: number
       energy?: number
       reputation?: number
-      tags?: string[]
+      tags?: Record<string, number> | string[]
       items?: string[]
     }
     penalties?: {
       time?: number
       energy?: number
       reputation?: number
+      tags?: Record<string, number>
     }
     resultText: string
   }
@@ -92,7 +93,7 @@ export interface GameEvent {
   title: string
   description: string
   cover: string
-  type: 'story' | 'social' | 'challenge' | 'exploration' | 'creation'
+  type: 'story' | 'social' | 'challenge' | 'craft' | 'exploration' | 'creation'
   status: 'active' | 'upcoming' | 'ended' | 'draft'
   requirements: {
     tags?: string[]
@@ -149,5 +150,7 @@ export interface TagDefinition {
 }
 
 // ==================== 世界相关 ====================
+
+export type EventOutcome = EventChoice['outcome']
 
 export type WorldType = 'real' | 'chain'

@@ -516,12 +516,13 @@ export const useUserStore = defineStore('user', () => {
     }
   }
   
-  // 支付费用（时间和精力）
-  const pay = (cost: { time?: number; energy?: number }) => {
+  // 支付费用（时间、精力、社交积分）
+  const pay = (cost: { time?: number; energy?: number; reputation?: number }) => {
     if (!canAfford(cost)) return false
     updateWallet({
       time: cost.time ? -cost.time : 0,
-      energy: cost.energy ? -cost.energy : 0
+      energy: cost.energy ? -cost.energy : 0,
+      reputation: cost.reputation ? -cost.reputation : 0
     })
     return true
   }
