@@ -208,6 +208,8 @@ onMounted(() => {
 
 .worldline-page {
   width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
   height: 100vh;
   background: $white;
   display: flex;

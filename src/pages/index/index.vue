@@ -76,7 +76,7 @@
                 v-else-if="card.type === 'item'" 
                 :item="card.data as Item"
                 @click="onItemClick"
-                @mint="onItemMint"
+                @buy="onItemBuy"
                 @stateChange="onItemStateChange"
               />
               
@@ -262,9 +262,9 @@
                 </view>
                 
                 <view v-else-if="card.type === 'item'" class="action-list">
-                  <view class="action-item" @click="onCardAction(card, 'mint')">
-                    <text class="action-icon">⛏️</text>
-                    <text class="action-text">铸造物品</text>
+                  <view class="action-item" @click="onCardAction(card, 'buy')">
+                    <text class="action-icon">🛒</text>
+                    <text class="action-text">买入物品</text>
                   </view>
                   <view class="action-item" @click="onCardAction(card, 'save')">
                     <text class="action-icon">📌</text>
@@ -480,8 +480,8 @@ const onCardAction = (card: Card, action: string) => {
     case 'report':
       uni.showToast({ title: '举报已提交', icon: 'none' })
       break
-    case 'mint':
-      uni.showToast({ title: '铸造功能开发中', icon: 'none' })
+    case 'buy':
+      uni.showToast({ title: '请点击卡片上的买入按钮', icon: 'none' })
       break
     case 'follow':
       uni.showToast({ title: '已关注', icon: 'success' })
@@ -503,9 +503,9 @@ const onItemClick = (item: Item) => {
   console.log('Item click:', item)
 }
 
-// 物品铸造
-const onItemMint = (item: Item) => {
-  console.log('Item mint:', item)
+// 物品买入
+const onItemBuy = (item: Item) => {
+  console.log('Item buy:', item)
 }
 
 // 用户点击
@@ -579,13 +579,15 @@ $safe-area-bottom: env(safe-area-inset-bottom, 0px);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12rpx 16rpx;
+  padding: 12rpx 24rpx;
   padding-top: calc(12rpx + #{$safe-area-top});
   flex-shrink: 0;
   background: rgba(255, 255, 255, 0.98);
   backdrop-filter: blur(40rpx) saturate(180%);
   -webkit-backdrop-filter: blur(40rpx) saturate(180%);
   border-bottom: 1rpx solid rgba(0, 0, 0, 0.05);
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .status-left {
@@ -597,7 +599,7 @@ $safe-area-bottom: env(safe-area-inset-bottom, 0px);
   gap: 8rpx;
   flex: 1;
   justify-content: center;
-  max-width: 280rpx;
+  min-width: 0; // 允许收缩
 }
 
 .status-right {
@@ -681,10 +683,14 @@ $safe-area-bottom: env(safe-area-inset-bottom, 0px);
   // 为底部TabBar预留空间（uni-app TabBar高度约50px + 安全区域）
   padding-bottom: calc(100rpx + #{$safe-area-bottom});
   box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .card-swiper {
   width: 100%;
+  max-width: 480px; // 限制卡片最大宽度，宽屏居中
   height: 100%;
   touch-action: pan-y; // 允许垂直滑动
 }
@@ -695,7 +701,7 @@ $safe-area-bottom: env(safe-area-inset-bottom, 0px);
   display: flex;
   align-items: stretch;
   justify-content: center;
-  padding: 8rpx;
+  padding: 12rpx 16rpx;
   box-sizing: border-box;
   overflow: hidden;
   touch-action: pan-y; // 允许垂直滑动

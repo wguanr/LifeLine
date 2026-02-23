@@ -124,6 +124,10 @@ export interface Item {
     description: string
   }>
   tags: string[]
+  /** 展示在卡片上的特性标签（3-5个） */
+  featureTags: string[]
+  /** 物品的事件故事 */
+  story: string
   visible: boolean
   createdAt: number
 }

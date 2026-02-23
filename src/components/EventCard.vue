@@ -19,11 +19,59 @@
       <!-- 主体内容区 -->
       <view class="card-body">
         <template v-if="mode === 'preview'">
+          <!-- 氛围区：大图标 + 渐变背景 -->
+          <view class="atmosphere-zone" :class="event.type">
+            <text class="atmo-icon">{{ getTypeIcon(event.type) }}</text>
+            <view class="atmo-particles">
+              <view class="particle" v-for="i in 5" :key="i" :class="'p-' + i" />
+            </view>
+          </view>
+
           <text class="event-title">{{ event.title }}</text>
           <text class="event-desc">{{ event.description }}</text>
+
+          <!-- 事件深度信息 -->
+          <view class="event-meta-row">
+            <view class="meta-chip">
+              <text class="meta-icon">📖</text>
+              <text class="meta-text">{{ event.stages.length }} 个阶段</text>
+            </view>
+            <view class="meta-chip">
+              <text class="meta-icon">🎭</text>
+              <text class="meta-text">{{ totalChoicesCount }} 种选择</text>
+            </view>
+            <view class="meta-chip participants-chip">
+              <text class="meta-icon">👥</text>
+              <text class="meta-text">{{ formatNumber(event.participantCount || 0) }}</text>
+            </view>
+          </view>
+
+          <!-- 可能获得的标签预览 -->
+          <view class="reward-preview" v-if="possibleTags.length > 0">
+            <text class="reward-label">可能获得</text>
+            <view class="reward-tags">
+              <view 
+                class="preview-tag" 
+                v-for="(tag, idx) in possibleTags.slice(0, 4)" 
+                :key="tag.id"
+                :class="'tag-color-' + (idx % 5)"
+              >
+                <text class="preview-tag-icon">{{ tag.icon }}</text>
+                <text class="preview-tag-name">{{ tag.name }}</text>
+              </view>
+              <view class="preview-tag more" v-if="possibleTags.length > 4">
+                <text class="preview-tag-name">+{{ possibleTags.length - 4 }}</text>
+              </view>
+            </view>
+          </view>
         </template>
         
         <template v-else-if="mode === 'playing'">
+          <!-- 阶段进度条 -->
+          <view class="stage-progress-bar">
+            <view class="stage-progress-fill" :style="{ width: stageProgressPercent + '%' }" />
+            <text class="stage-progress-text">阶段 {{ currentStageIndex + 1 }} / {{ event.stages.length }}</text>
+          </view>
           <text class="stage-title">{{ currentStage?.title }}</text>
           <text class="stage-desc">{{ currentStage?.description }}</text>
         </template>
@@ -53,11 +101,6 @@
             </view>
             <view v-else class="entry-fee free">
               <text class="free-label">随时参与</text>
-            </view>
-            
-            <view class="participants">
-              <text class="participants-icon">👥</text>
-              <text class="participants-count">{{ formatNumber(event.participantCount || 0) }}</text>
             </view>
           </view>
           
@@ -196,6 +239,36 @@ const currentStageIndex = ref(0)
 const lastResult = ref<EventOutcome | null>(null)
 const nextStageId = ref<string | null>(null)
 
+// ========== 新增：计算事件深度信息 ==========
+const totalChoicesCount = computed(() => {
+  return props.event.stages.reduce((sum, stage) => sum + stage.choices.length, 0)
+})
+
+const stageProgressPercent = computed(() => {
+  if (props.event.stages.length <= 1) return 100
+  return ((currentStageIndex.value + 1) / props.event.stages.length) * 100
+})
+
+// 提取所有可能获得的标签（去重）
+const possibleTags = computed(() => {
+  const tagIds = new Set<string>()
+  props.event.stages.forEach(stage => {
+    stage.choices.forEach(choice => {
+      if (choice.outcome.rewards?.tags) {
+        if (Array.isArray(choice.outcome.rewards.tags)) {
+          choice.outcome.rewards.tags.forEach(t => tagIds.add(t))
+        } else {
+          Object.keys(choice.outcome.rewards.tags).forEach(t => tagIds.add(t))
+        }
+      }
+    })
+  })
+  return Array.from(tagIds).map(id => {
+    const def = getTagDefinition(id)
+    return { id, name: def?.name || id, icon: def?.icon || '🏷️' }
+  })
+})
+
 // ========== 快节奏多倍投入 ==========
 const multiplier = ref(0)
 const maxMultiplier = 10
@@ -320,7 +393,6 @@ const startConfirmCountdown = () => {
 // ========== 涟漪效果 ==========
 const addRipple = () => {
   const id = ++rippleId
-  // 随机位置模拟点击涟漪
   const x = 30 + Math.random() * 140
   const y = 10 + Math.random() * 30
   ripples.push({ id, x, y })
@@ -335,27 +407,23 @@ const addRipple = () => {
 const handleTapJoin = () => {
   if (!canJoin.value) return
   
-  // 无入场费的事件，直接参与
   if (!hasEntryFee.value) {
     multiplier.value = 1
     confirmJoin()
     return
   }
   
-  // 有入场费的事件，每次点击追加一倍
   if (canAffordNext.value || multiplier.value === 0) {
     multiplier.value++
     tapAnimKey.value++
     addRipple()
     
-    // 触发震动反馈（如果支持）
     try {
       if (navigator && navigator.vibrate) {
         navigator.vibrate(multiplier.value > 3 ? [30, 20, 30] : 15)
       }
     } catch (e) {}
     
-    // 重置倒计时
     startConfirmCountdown()
   }
 }
@@ -365,14 +433,12 @@ const confirmJoin = () => {
   
   const finalMultiplier = Math.max(multiplier.value, 1)
   
-  // 支付费用
   if (props.event.entryFee && hasEntryFee.value) {
     userStore.pay(totalCost.value)
   }
   
   eventStore.startEvent(props.event.id)
   
-  // 同步到世界线
   worldStore.recordEvent(
     props.event.id, 
     props.event.title + (finalMultiplier > 1 ? ` (${finalMultiplier}倍投入)` : '')
@@ -448,14 +514,20 @@ const handleSelectChoice = (choice: EventChoice) => {
     if (result.rewards.energy) userStore.updateWallet({ energy: result.rewards.energy })
     if (result.rewards.reputation) userStore.updateWallet({ reputation: result.rewards.reputation })
     
-    if (result.rewards.tags && typeof result.rewards.tags === 'object' && !Array.isArray(result.rewards.tags)) {
+    if (result.rewards.tags) {
       const totalCostVal = {
         time: (props.event.entryFee?.time || 0) + (choice.cost?.time || 0),
         energy: (props.event.entryFee?.energy || 0) + (choice.cost?.energy || 0)
       }
-      Object.entries(result.rewards.tags).forEach(([tagId, weight]) => {
-        userStore.updateTagWeight(tagId, weight as number, 'event', props.event.id, props.event.title, totalCostVal)
-      })
+      if (typeof result.rewards.tags === 'object' && !Array.isArray(result.rewards.tags)) {
+        Object.entries(result.rewards.tags).forEach(([tagId, weight]) => {
+          userStore.updateTagWeight(tagId, weight as number, 'event', props.event.id, props.event.title, totalCostVal)
+        })
+      } else if (Array.isArray(result.rewards.tags)) {
+        ;(result.rewards.tags as string[]).forEach((tagId: string) => {
+          userStore.updateTagWeight(tagId, 5, 'event', props.event.id, props.event.title, totalCostVal)
+        })
+      }
     }
     
     if (result.rewards.items) {
@@ -480,7 +552,6 @@ const handleSelectChoice = (choice: EventChoice) => {
     }
   }
   
-  // 同步到世界线
   worldStore.recordChoice(props.event.id, props.event.title, choice.text)
   
   mode.value = 'result'
@@ -587,7 +658,7 @@ defineExpose({
   min-height: 0;
   display: flex;
   flex-direction: column;
-  padding: 48rpx 40rpx 40rpx;
+  padding: 32rpx 32rpx 28rpx;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
 }
@@ -596,7 +667,8 @@ defineExpose({
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 32rpx;
+  margin-bottom: 24rpx;
+  flex-shrink: 0;
 }
 
 .event-type {
@@ -651,33 +723,194 @@ defineExpose({
   flex: 1;
   display: flex;
   flex-direction: column;
+  justify-content: flex-start;
+  min-height: 0;
+}
+
+// ==================== 氛围区 ====================
+.atmosphere-zone {
+  position: relative;
+  width: 100%;
+  height: 160rpx;
+  border-radius: $radius-xl;
+  display: flex;
+  align-items: center;
   justify-content: center;
+  margin-bottom: 24rpx;
+  overflow: hidden;
+  flex-shrink: 0;
+
+  &.story { background: linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, rgba(52, 211, 153, 0.08) 100%); }
+  &.challenge { background: linear-gradient(135deg, rgba(239, 68, 68, 0.12) 0%, rgba(248, 113, 113, 0.08) 100%); }
+  &.craft { background: linear-gradient(135deg, rgba(107, 114, 128, 0.12) 0%, rgba(156, 163, 175, 0.08) 100%); }
+  &.social { background: linear-gradient(135deg, rgba(59, 130, 246, 0.12) 0%, rgba(96, 165, 250, 0.08) 100%); }
+  &.exploration { background: linear-gradient(135deg, rgba(139, 92, 246, 0.12) 0%, rgba(167, 139, 250, 0.08) 100%); }
+  &.creation { background: linear-gradient(135deg, rgba(245, 158, 11, 0.12) 0%, rgba(252, 211, 77, 0.08) 100%); }
+}
+
+.atmo-icon {
+  font-size: 80rpx;
+  z-index: 2;
+}
+
+.atmo-particles {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+.particle {
+  position: absolute;
+  width: 8rpx;
+  height: 8rpx;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.05);
+  animation: float-particle 4s ease-in-out infinite;
+
+  &.p-1 { top: 20%; left: 15%; animation-delay: 0s; }
+  &.p-2 { top: 60%; left: 80%; animation-delay: 0.8s; }
+  &.p-3 { top: 30%; left: 65%; animation-delay: 1.6s; width: 12rpx; height: 12rpx; }
+  &.p-4 { top: 70%; left: 25%; animation-delay: 2.4s; }
+  &.p-5 { top: 45%; left: 90%; animation-delay: 3.2s; width: 6rpx; height: 6rpx; }
+}
+
+@keyframes float-particle {
+  0%, 100% { transform: translateY(0) scale(1); opacity: 0.3; }
+  50% { transform: translateY(-10rpx) scale(1.3); opacity: 0.6; }
 }
 
 .event-title, .stage-title, .result-title {
-  font-size: 52rpx;
+  font-size: 44rpx;
   font-weight: 700;
   color: $text-primary;
-  margin-bottom: 20rpx;
+  margin-bottom: 12rpx;
   line-height: 1.3;
 }
 
 .event-desc, .stage-desc, .result-desc {
-  font-size: 30rpx;
+  font-size: 28rpx;
   color: $text-secondary;
   line-height: 1.7;
+  margin-bottom: 20rpx;
+  @include text-ellipsis(3);
 }
 
+// ==================== 事件深度信息 ====================
+.event-meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+  margin-bottom: 20rpx;
+}
+
+.meta-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6rpx;
+  padding: 8rpx 16rpx;
+  background: $gray-50;
+  border-radius: $radius-full;
+  border: 1rpx solid $gray-100;
+}
+
+.meta-icon { font-size: 20rpx; }
+.meta-text { font-size: 22rpx; color: $text-secondary; font-weight: 500; }
+
+.participants-chip {
+  background: rgba($primary-color, 0.06);
+  border-color: rgba($primary-color, 0.12);
+  .meta-text { color: $primary-color; font-weight: 600; }
+}
+
+// ==================== 标签预览 ====================
+.reward-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 10rpx;
+  margin-bottom: 16rpx;
+}
+
+.reward-label {
+  font-size: 22rpx;
+  color: $text-tertiary;
+  font-weight: 500;
+}
+
+.reward-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10rpx;
+}
+
+.preview-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6rpx;
+  padding: 6rpx 16rpx;
+  border-radius: $radius-full;
+  
+  &.tag-color-0 { background: rgba(#6366F1, 0.08); .preview-tag-name { color: #4F46E5; } .preview-tag-icon { color: #4F46E5; } }
+  &.tag-color-1 { background: rgba(#10B981, 0.08); .preview-tag-name { color: #059669; } .preview-tag-icon { color: #059669; } }
+  &.tag-color-2 { background: rgba(#F59E0B, 0.08); .preview-tag-name { color: #D97706; } .preview-tag-icon { color: #D97706; } }
+  &.tag-color-3 { background: rgba(#EF4444, 0.08); .preview-tag-name { color: #DC2626; } .preview-tag-icon { color: #DC2626; } }
+  &.tag-color-4 { background: rgba(#8B5CF6, 0.08); .preview-tag-name { color: #7C3AED; } .preview-tag-icon { color: #7C3AED; } }
+  
+  &.more {
+    background: $gray-100;
+    .preview-tag-name { color: $text-tertiary; }
+  }
+}
+
+.preview-tag-icon { font-size: 20rpx; }
+.preview-tag-name { font-size: 22rpx; font-weight: 500; }
+
+// ==================== 阶段进度条 ====================
+.stage-progress-bar {
+  position: relative;
+  width: 100%;
+  height: 36rpx;
+  background: $gray-100;
+  border-radius: $radius-full;
+  margin-bottom: 24rpx;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.stage-progress-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background: $gradient-primary;
+  border-radius: $radius-full;
+  transition: width 0.5s ease;
+}
+
+.stage-progress-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 20rpx;
+  font-weight: 600;
+  color: $text-secondary;
+  z-index: 1;
+}
+
+// ==================== 底部 ====================
 .card-footer {
   margin-top: auto;
-  padding-top: 32rpx;
+  flex-shrink: 0;
+  padding-top: 24rpx;
 }
 
 .footer-info {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 24rpx;
+  margin-bottom: 20rpx;
 }
 
 .entry-fee {
@@ -711,19 +944,7 @@ defineExpose({
 .fee-icon { font-size: 20rpx; }
 .fee-value { font-size: 24rpx; font-weight: 600; }
 
-.participants {
-  display: flex;
-  align-items: center;
-  gap: 8rpx;
-  padding: 8rpx 16rpx;
-  background: $gray-50;
-  border-radius: $radius-lg;
-}
-
-.participants-icon { font-size: 22rpx; }
-.participants-count { font-size: 24rpx; color: $text-secondary; font-weight: 500; }
-
-// ==================== 参与按钮 - 增强交互 ====================
+// ==================== 参与按钮 ====================
 .action-btn {
   position: relative;
   width: 100%;
@@ -745,10 +966,7 @@ defineExpose({
   -webkit-tap-highlight-color: transparent;
   overflow: hidden;
   
-  // 按下时缩放
-  &:active {
-    transform: scale(0.95);
-  }
+  &:active { transform: scale(0.95); }
   
   &.disabled {
     background: $gray-200;
@@ -756,29 +974,24 @@ defineExpose({
     box-shadow: none;
   }
   
-  // 倍数等级 - 颜色渐变升级
   &.level-1 {
     background: $gradient-primary;
     box-shadow: 0 4rpx 16rpx rgba(16, 185, 129, 0.35);
   }
-  
   &.level-2 {
     background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
     box-shadow: 0 4rpx 20rpx rgba(59, 130, 246, 0.4);
   }
-  
   &.level-3 {
     background: linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%);
     box-shadow: 0 6rpx 24rpx rgba(139, 92, 246, 0.45);
   }
-  
   &.level-high {
     background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
     box-shadow: 0 6rpx 28rpx rgba(239, 68, 68, 0.5);
     animation: glow-pulse 1s ease-in-out infinite;
   }
   
-  // 点击弹跳动画 - 交替触发
   &.tap-0.is-tapping {
     animation: tap-bounce-a 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
   }
@@ -793,41 +1006,33 @@ defineExpose({
   letter-spacing: 4rpx;
 }
 
-// 弹跳动画A
 @keyframes tap-bounce-a {
   0% { transform: scale(0.92); }
   50% { transform: scale(1.06); }
   100% { transform: scale(1); }
 }
 
-// 弹跳动画B
 @keyframes tap-bounce-b {
   0% { transform: scale(0.92); }
   50% { transform: scale(1.06); }
   100% { transform: scale(1); }
 }
 
-// 高倍数发光脉冲
 @keyframes glow-pulse {
   0%, 100% { box-shadow: 0 6rpx 28rpx rgba(239, 68, 68, 0.5); }
   50% { box-shadow: 0 8rpx 40rpx rgba(239, 68, 68, 0.7); }
 }
 
-// 涟漪容器
 .ripple-container {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  top: 0; left: 0; right: 0; bottom: 0;
   pointer-events: none;
   overflow: hidden;
 }
 
 .ripple {
   position: absolute;
-  width: 20rpx;
-  height: 20rpx;
+  width: 20rpx; height: 20rpx;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.5);
   transform: translate(-50%, -50%) scale(0);
@@ -835,17 +1040,10 @@ defineExpose({
 }
 
 @keyframes ripple-expand {
-  0% {
-    transform: translate(-50%, -50%) scale(0);
-    opacity: 0.6;
-  }
-  100% {
-    transform: translate(-50%, -50%) scale(15);
-    opacity: 0;
-  }
+  0% { transform: translate(-50%, -50%) scale(0); opacity: 0.6; }
+  100% { transform: translate(-50%, -50%) scale(15); opacity: 0; }
 }
 
-// 按钮内容
 .btn-content {
   display: flex;
   flex-direction: column;
@@ -864,31 +1062,18 @@ defineExpose({
   font-weight: 800;
   letter-spacing: 2rpx;
   transition: font-size 0.15s ease;
-  
   &.level-1 { font-size: 44rpx; }
   &.level-2 { font-size: 48rpx; }
   &.level-3 { font-size: 52rpx; }
   &.level-4, &.level-5 { font-size: 56rpx; }
 }
 
-.btn-label {
-  font-size: 26rpx;
-  font-weight: 500;
-  opacity: 0.9;
-}
+.btn-label { font-size: 26rpx; font-weight: 500; opacity: 0.9; }
+.btn-cost-text { font-size: 24rpx; font-weight: 400; opacity: 0.85; }
 
-.btn-cost-text {
-  font-size: 24rpx;
-  font-weight: 400;
-  opacity: 0.85;
-}
-
-// 倒计时进度条
 .btn-timer-bar {
   position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
+  bottom: 0; left: 0; right: 0;
   height: 8rpx;
   background: rgba(0, 0, 0, 0.2);
   
@@ -927,7 +1112,6 @@ defineExpose({
     transform: scale(0.98);
     box-shadow: 0 2rpx 12rpx rgba(16, 185, 129, 0.15);
   }
-  
   &.disabled { opacity: 0.5; }
 }
 
@@ -952,7 +1136,6 @@ defineExpose({
 
 .option-arrow { font-size: 28rpx; color: $text-tertiary; font-weight: 300; }
 
-// 进度点
 .progress-dots {
   display: flex;
   justify-content: center;
@@ -960,21 +1143,16 @@ defineExpose({
 }
 
 .dot {
-  width: 12rpx;
-  height: 12rpx;
+  width: 12rpx; height: 12rpx;
   border-radius: 50%;
   background: $gray-200;
   transition: all $transition-normal;
   
-  &.active {
-    width: 32rpx;
-    border-radius: 6rpx;
-    background: $primary-color;
-  }
+  &.active { width: 32rpx; border-radius: 6rpx; background: $primary-color; }
   &.completed { background: $primary-light; }
 }
 
-// 结果奖励
+// ==================== 结果奖励 ====================
 .result-rewards {
   background: rgba(16, 185, 129, 0.06);
   border-radius: $radius-xl;
@@ -1004,7 +1182,6 @@ defineExpose({
 .tag-icon, .item-icon { font-size: 22rpx; }
 .tag-name, .item-name { font-size: 24rpx; color: $text-primary; font-weight: 500; }
 
-// 结果惩罚
 .result-penalties {
   background: rgba(239, 68, 68, 0.06);
   border-radius: $radius-xl;

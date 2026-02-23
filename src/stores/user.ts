@@ -2,6 +2,19 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import type { User, UserTag, UserItem, UserWallet, TagAction } from '@/types'
 import { getTagDefinition } from '@/data/tags'
+import { mockItems } from '@/data/items'
+
+/** 标签可信度数据结构 */
+export interface TagCredibility {
+  tagId: string
+  name: string
+  icon: string
+  category: string
+  credibility: number
+  /** 来源明细：事件贡献 + 物品贡献 */
+  fromActions: number
+  fromItems: number
+}
 
 export const useUserStore = defineStore('user', () => {
   // ==================== 状态 ====================
@@ -45,6 +58,80 @@ export const useUserStore = defineStore('user', () => {
   
   const inventory = computed(() => user.value?.inventory ?? [])
   const tagActions = computed(() => user.value?.history.tagActions ?? [])
+
+  // ==================== 标签可信度画像系统 ====================
+
+  /**
+   * 标签可信度（credibility）计算
+   * 
+   * 可信度 = 该标签关联的所有行为的「货币投入价值」之和
+   * 货币投入价值 = time + energy * 1.5 + reputation * 0.5
+   * 
+   * 来源1: tagActions 历史（事件选择产生）
+   * 来源2: 用户持有的 item 对应标签（按 item 的 mintCost 计算）
+   * 
+   * 仅返回可信度 > 50 的标签
+   */
+  /** 将货币成本换算为单一价值分数 */
+  const costToValue = (cost: { time?: number; energy?: number; reputation?: number }): number => {
+    return (cost.time ?? 0) + (cost.energy ?? 0) * 1.5 + (cost.reputation ?? 0) * 0.5
+  }
+
+  /**
+   * 所有标签的可信度（含明细），按可信度降序
+   */
+  const allTagCredibilities = computed<TagCredibility[]>(() => {
+    const credMap = new Map<string, { fromActions: number; fromItems: number }>()
+
+    const ensureTag = (tagId: string) => {
+      if (!credMap.has(tagId)) {
+        credMap.set(tagId, { fromActions: 0, fromItems: 0 })
+      }
+      return credMap.get(tagId)!
+    }
+
+    // 来源1: tagActions 历史 — 每条行为的 cost 换算为价值
+    for (const action of tagActions.value) {
+      const entry = ensureTag(action.tagId)
+      entry.fromActions += costToValue(action.cost)
+    }
+
+    // 来源2: 用户持有的 item — 按 item 定义的 mintCost × 持有数量
+    for (const userItem of inventory.value) {
+      const itemDef = mockItems.find(i => i.id === userItem.itemId)
+      if (!itemDef) continue
+      const itemValue = costToValue(itemDef.mintCost) * userItem.quantity
+      for (const tagId of itemDef.tags) {
+        const entry = ensureTag(tagId)
+        entry.fromItems += itemValue
+      }
+    }
+
+    // 组装结果
+    const result: TagCredibility[] = []
+    for (const [tagId, scores] of credMap) {
+      const def = getTagDefinition(tagId)
+      if (!def) continue
+      result.push({
+        tagId,
+        name: def.name,
+        icon: def.icon,
+        category: def.category,
+        credibility: Math.round(scores.fromActions + scores.fromItems),
+        fromActions: Math.round(scores.fromActions),
+        fromItems: Math.round(scores.fromItems)
+      })
+    }
+
+    return result.sort((a, b) => b.credibility - a.credibility)
+  })
+
+  /**
+   * 可信标签画像：仅包含可信度 > 50 的标签
+   */
+  const credibleTags = computed<TagCredibility[]>(() => {
+    return allTagCredibilities.value.filter(t => t.credibility > 50)
+  })
   
   // 检查用户是否拥有特定标签
   const hasTag = (tagId: string) => {
@@ -542,7 +629,34 @@ export const useUserStore = defineStore('user', () => {
     }
   }
   
-  // 移除物品
+    /**
+   * 买入物品（核心交互）
+   * 扣除 mintCost，添加物品到背包，记录标签行为
+   * 支持多次购买，每次都产生标签贡献
+   */
+  const buyItem = (itemDef: { id: string; name: string; mintCost: { time?: number; energy?: number }; tags: string[] }) => {
+    if (!user.value) return false
+    // 检查是否能支付
+    if (!canAfford(itemDef.mintCost)) {
+      return false
+    }
+    // 扣除货币
+    pay(itemDef.mintCost)
+    // 添加物品
+    addItem({
+      itemId: itemDef.id,
+      quantity: 1,
+      acquiredAt: Date.now(),
+      source: 'buy_' + itemDef.id
+    })
+    // 记录标签行为（每次买入都产生标签贡献，类似事件参与）
+    for (const tagId of itemDef.tags) {
+      updateTagWeight(tagId, 5, 'item', itemDef.id, itemDef.name, itemDef.mintCost)
+    }
+    return true
+  }
+
+    // 移除物品
   const removeItem = (itemId: string, quantity: number = 1) => {
     if (user.value) {
       const existing = user.value.inventory.find(i => i.itemId === itemId)
@@ -614,6 +728,9 @@ export const useUserStore = defineStore('user', () => {
     tagsByCategory,
     inventory,
     tagActions,
+    allTagCredibilities,
+    credibleTags,
+    costToValue,
     hasTag,
     getTagWeight,
     hasItem,
@@ -637,6 +754,7 @@ export const useUserStore = defineStore('user', () => {
     
     // 物品
     addItem,
+    buyItem,
     removeItem,
     
     // 事件

@@ -11,6 +11,8 @@ export const mockItems: Item[] = [
     mintCost: { time: 10 },
     effects: [{ type: 'energy', value: 10, description: '恢复10点精力' }],
     tags: ['foodie'],
+    featureTags: ['提神醒脑', '社交利器', '日常必备'],
+    story: '这张咖啡券来自街角那家总是排长队的精品咖啡店。据说他们的拿铁用的是哥伦比亚单一产区的豆子，每一杯都是手工拉花。拿着这张券走进店里，咖啡师会对你露出会心一笑——"又是老朋友啊。"',
     visible: true,
     createdAt: Date.now() - 86400000
   },
@@ -24,6 +26,8 @@ export const mockItems: Item[] = [
     mintCost: { time: 5 },
     effects: [{ type: 'energy', value: 5, description: '恢复5点精力' }],
     tags: ['foodie'],
+    featureTags: ['省钱神器', '懒人福音', '即时满足'],
+    story: '加班到深夜，肚子咕咕叫。打开外卖App，红包自动弹出——"今晚吃点好的犒劳自己吧。"你点了一份热腾腾的牛肉面，配上一颗卤蛋。外卖小哥冒雨送来时，你多说了句谢谢。',
     visible: true,
     createdAt: Date.now() - 172800000
   },
@@ -37,6 +41,8 @@ export const mockItems: Item[] = [
     mintCost: { time: 30, energy: 10 },
     effects: [{ type: 'energy', value: 15, description: '每日恢复15点精力' }],
     tags: ['fitness_lover'],
+    featureTags: ['身心平衡', '居家健身', '柔韧提升', '减压神器'],
+    story: '这块瑜伽垫是你下定决心改变生活方式的那天买的。第一次铺开它的时候，你连最简单的下犬式都做不好。但三个月后，你已经能稳稳地做完一整套流瑜伽。每天清晨，当阳光透过窗帘洒在垫子上，你知道这是属于自己的安静时刻。',
     visible: true,
     createdAt: Date.now() - 259200000
   },
@@ -50,6 +56,8 @@ export const mockItems: Item[] = [
     mintCost: { time: 15 },
     effects: [{ type: 'time', value: 20, description: '提升时间管理效率' }],
     tags: ['minimalist', 'learner'],
+    featureTags: ['灵感捕手', '效率工具', '极简美学', '自我对话'],
+    story: '这本笔记本的封面是素雅的亚麻色，摸起来有微微的颗粒感。你在第一页写下了今年的三个目标，然后每天用它记录想法和待办事项。翻到中间，你会发现某一页画了一只歪歪扭扭的猫——那是开会无聊时的杰作。',
     visible: true,
     createdAt: Date.now() - 345600000
   },
@@ -63,6 +71,8 @@ export const mockItems: Item[] = [
     mintCost: { time: 45, energy: 15 },
     effects: [{ type: 'time', value: 30, description: '旅行时节省时间' }],
     tags: ['traveler', 'explorer'],
+    featureTags: ['说走就走', '轻装上阵', '收纳达人', '户外必备', '自由象征'],
+    story: '这个背包陪你走过了很多地方。侧面那道不起眼的划痕，是在云南徒步时被树枝刮的；内袋里还夹着一张大理古城的明信片。每次出发前把它从衣柜里拿出来，你就知道——又一段新的旅程要开始了。',
     visible: true,
     createdAt: Date.now() - 432000000
   },
@@ -76,6 +86,8 @@ export const mockItems: Item[] = [
     mintCost: { time: 120, energy: 20 },
     effects: [{ type: 'reputation', value: 25, description: '获得25社交积分' }],
     tags: ['kindhearted', 'warmhearted'],
+    featureTags: ['亲子时光', '温暖陪伴', '成长记忆', '社交拓展', '爱的投资'],
+    story: '这张活动券是邻居阿姨送的，她说"带孩子去玩玩吧，那里的老师特别好"。活动那天，你看着孩子们在草地上追逐嬉闹，家长们围坐在一起聊天。你突然意识到，有些最珍贵的时刻，不需要花很多钱。',
     visible: true,
     createdAt: Date.now() - 518400000
   },
@@ -89,6 +101,8 @@ export const mockItems: Item[] = [
     mintCost: { time: 20 },
     effects: [{ type: 'energy', value: 8, description: '每日恢复8点精力' }],
     tags: ['minimalist'],
+    featureTags: ['治愈系', '桌面装饰', '生命力量'],
+    story: '这盆多肉是你在花鸟市场淘来的，老板说"这种最好养，忘了浇水也没关系"。你把它放在电脑旁边，每天看着它慢慢长大。有一天你发现它冒出了一朵小花，那种惊喜感就像收到了一封来自大自然的情书。',
     visible: true,
     createdAt: Date.now() - 604800000
   }
