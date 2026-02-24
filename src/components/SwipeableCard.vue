@@ -1,9 +1,10 @@
 <template>
   <view 
     class="swipeable-card"
-    @touchstart="onTouchStart"
+    @touchstart.passive="onTouchStart"
     @touchmove="onTouchMove"
-    @touchend="onTouchEnd"
+    @touchend.passive="onTouchEnd"
+    @touchcancel.passive="onTouchCancel"
   >
     <!-- 左滑详情面板 -->
     <view 
@@ -27,19 +28,19 @@
     <!-- 主卡片内容 -->
     <view 
       class="card-content"
-      :style="{ transform: `translateX(${cardOffset}px)` }"
+      :style="cardStyle"
       @click="onCardClick"
     >
       <slot></slot>
       
       <!-- 左滑指示器 -->
-      <view class="swipe-indicator left" :class="{ active: swipeDirection === 'left' }">
+      <view class="swipe-indicator left" :class="{ active: swipeHint === 'left' }">
         <text class="indicator-icon">📋</text>
         <text class="indicator-text">详情</text>
       </view>
       
       <!-- 右滑指示器 -->
-      <view class="swipe-indicator right" :class="{ active: swipeDirection === 'right' }">
+      <view class="swipe-indicator right" :class="{ active: swipeHint === 'right' }">
         <text class="indicator-icon">⚙️</text>
         <text class="indicator-text">操作</text>
       </view>
@@ -105,30 +106,50 @@ const emit = defineEmits<{
   (e: 'panelChange', panel: 'left' | 'right' | null): void
 }>()
 
-// 滑动阈值
+// 常量
 const SWIPE_THRESHOLD = props.threshold || 80
 const PANEL_WIDTH = 280
+// 方向判定的最小移动距离（越小越灵敏，但太小容易误判）
+const DIRECTION_LOCK_THRESHOLD = 8
+// 水平/垂直比率阈值：水平距离需要大于垂直距离的这个倍数才判定为水平
+const DIRECTION_RATIO = 1.2
 
 // 触摸状态
 const startX = ref(0)
 const startY = ref(0)
 const currentX = ref(0)
 const isSwiping = ref(false)
-const isHorizontalSwipe = ref(false)
+
+// 方向锁定状态：null=未确定, 'horizontal'=水平, 'vertical'=垂直
+const lockedDirection = ref<'horizontal' | 'vertical' | null>(null)
 
 // 面板状态
 const showLeftPanel = ref(false)
 const showRightPanel = ref(false)
 
+// 是否处于水平滑动中
+const isHorizontalLocked = computed(() => lockedDirection.value === 'horizontal')
+
 // 卡片偏移量
 const cardOffset = computed(() => {
   if (showLeftPanel.value) return PANEL_WIDTH
   if (showRightPanel.value) return -PANEL_WIDTH
-  if (!isSwiping.value || !isHorizontalSwipe.value) return 0
+  if (!isSwiping.value || !isHorizontalLocked.value) return 0
   
   const deltaX = currentX.value - startX.value
-  // 限制最大偏移量
-  return Math.max(-PANEL_WIDTH, Math.min(PANEL_WIDTH, deltaX))
+  // 添加阻尼效果：超过面板宽度后减速
+  const clamped = Math.max(-PANEL_WIDTH, Math.min(PANEL_WIDTH, deltaX))
+  return clamped
+})
+
+// 卡片样式（滑动中不使用transition避免延迟感）
+const cardStyle = computed(() => {
+  const offset = cardOffset.value
+  const isAnimating = isSwiping.value && isHorizontalLocked.value
+  return {
+    transform: `translateX(${offset}px)`,
+    transition: isAnimating ? 'none' : 'transform 0.3s ease'
+  }
 })
 
 // 左面板偏移量
@@ -143,71 +164,103 @@ const rightPanelOffset = computed(() => {
   return PANEL_WIDTH + Math.min(0, cardOffset.value)
 })
 
-// 滑动方向
-const swipeDirection = computed(() => {
-  if (!isSwiping.value || !isHorizontalSwipe.value) return null
+// 滑动方向提示
+const swipeHint = computed(() => {
+  if (!isSwiping.value || !isHorizontalLocked.value) return null
   const deltaX = currentX.value - startX.value
   if (deltaX > 30) return 'right'
   if (deltaX < -30) return 'left'
   return null
 })
 
+// 重置所有触摸状态
+function resetTouchState() {
+  isSwiping.value = false
+  lockedDirection.value = null
+  currentX.value = 0
+  startX.value = 0
+  startY.value = 0
+}
+
 // 触摸开始
 function onTouchStart(e: TouchEvent) {
   if (props.disabled) return
+  // 如果面板已打开，不处理新的滑动
+  if (showLeftPanel.value || showRightPanel.value) return
   
   const touch = e.touches[0]
   startX.value = touch.clientX
   startY.value = touch.clientY
   currentX.value = touch.clientX
   isSwiping.value = true
-  isHorizontalSwipe.value = false
+  lockedDirection.value = null
 }
 
-// 触摸移动
+// 触摸移动 - 核心手势判定逻辑
 function onTouchMove(e: TouchEvent) {
   if (!isSwiping.value || props.disabled) return
   
   const touch = e.touches[0]
-  currentX.value = touch.clientX
+  const deltaX = touch.clientX - startX.value
+  const deltaY = touch.clientY - startY.value
+  const absDeltaX = Math.abs(deltaX)
+  const absDeltaY = Math.abs(deltaY)
   
-  const deltaX = Math.abs(currentX.value - startX.value)
-  const deltaY = Math.abs(touch.clientY - startY.value)
-  
-  // 判断是否为水平滑动 - 只有水平移动明显大于垂直移动时才认为是水平滑动
-  if (!isHorizontalSwipe.value && (deltaX > 15 || deltaY > 15)) {
-    // 只有水平移动距离是垂直移动的2倍以上时，才认为是水平滑动
-    isHorizontalSwipe.value = deltaX > deltaY * 2
+  // 阶段1：方向未锁定，尝试判定方向
+  if (lockedDirection.value === null) {
+    const totalMove = absDeltaX + absDeltaY
+    
+    // 移动距离不够，还不能判定方向
+    if (totalMove < DIRECTION_LOCK_THRESHOLD) return
+    
+    // 判定方向：水平移动明显大于垂直移动 → 水平滑动
+    if (absDeltaX > absDeltaY * DIRECTION_RATIO) {
+      lockedDirection.value = 'horizontal'
+    } else {
+      // 垂直或斜向 → 锁定为垂直，让swiper处理
+      lockedDirection.value = 'vertical'
+    }
   }
   
-  // 只有确定是水平滑动时才阻止默认行为，让垂直滑动传递给swiper
-  if (isHorizontalSwipe.value && deltaX > 30) {
-    e.preventDefault?.()
-    e.stopPropagation?.()
+  // 阶段2：已锁定方向
+  if (lockedDirection.value === 'horizontal') {
+    // 水平滑动：更新偏移量，阻止事件传播给swiper
+    currentX.value = touch.clientX
+    // 阻止默认行为和事件冒泡，防止swiper响应
+    e.preventDefault()
+    e.stopPropagation()
   }
-  // 如果是垂直滑动，不阻止事件，让swiper可以正常工作
+  // 垂直滑动：什么都不做，让事件自然传播给swiper
 }
 
 // 触摸结束
 function onTouchEnd() {
-  if (!isSwiping.value || props.disabled) return
+  if (!isSwiping.value || props.disabled) {
+    resetTouchState()
+    return
+  }
   
-  const deltaX = currentX.value - startX.value
-  
-  if (isHorizontalSwipe.value) {
+  // 只有水平锁定时才处理面板打开
+  if (lockedDirection.value === 'horizontal') {
+    const deltaX = currentX.value - startX.value
+    
     if (deltaX > SWIPE_THRESHOLD) {
-      // 右滑 - 显示详情
+      // 右滑 → 显示左侧详情面板
       openLeftPanel()
       emit('swipeRight')
     } else if (deltaX < -SWIPE_THRESHOLD) {
-      // 左滑 - 显示操作
+      // 左滑 → 显示右侧操作面板
       openRightPanel()
       emit('swipeLeft')
     }
   }
   
-  isSwiping.value = false
-  isHorizontalSwipe.value = false
+  resetTouchState()
+}
+
+// 触摸取消（如来电中断等）
+function onTouchCancel() {
+  resetTouchState()
 }
 
 // 打开左面板（详情）
@@ -251,7 +304,6 @@ function emitAction(action: string) {
 
 // 点击卡片内容区域
 function onCardClick(e: Event) {
-  // 如果有面板打开，则关闭面板并阻止事件冒泡
   if (showLeftPanel.value || showRightPanel.value) {
     e.stopPropagation()
     closeAllPanels()
@@ -275,6 +327,9 @@ defineExpose({
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  // 告诉浏览器这个元素主要处理水平方向的触摸
+  // 让浏览器优先将垂直滑动传递给swiper
+  touch-action: pan-y;
 }
 
 .card-content {
@@ -284,8 +339,8 @@ defineExpose({
   min-height: 0;
   display: flex;
   flex-direction: column;
-  transition: transform 0.3s ease;
   z-index: 10;
+  // 默认有transition，滑动中通过内联样式覆盖为none
 }
 
 // 滑动指示器
@@ -303,6 +358,7 @@ defineExpose({
   opacity: 0;
   transition: opacity 0.2s;
   z-index: 20;
+  pointer-events: none;
   
   &.left {
     right: 20rpx;
