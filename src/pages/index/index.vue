@@ -93,6 +93,25 @@
               <template #detail>
                 <!-- 事件详情 -->
                 <view v-if="card.type === 'event'" class="detail-content">
+                  <!-- 已参与状态提示 -->
+                  <view class="detail-section owned-notice" v-if="eventStore.isEventCompleted((card.data as GameEvent).id)">
+                    <view class="owned-notice-box" style="border-color: #059669; background: #ecfdf5;">
+                      <text class="owned-notice-icon">✅</text>
+                      <view class="owned-notice-info">
+                        <text class="owned-notice-title" style="color: #059669;">你已完成此事件</text>
+                        <text class="owned-notice-desc">可前往世界线页面查看完整历史抉择</text>
+                      </view>
+                    </view>
+                  </view>
+                  <view class="detail-section owned-notice" v-else-if="eventStore.isEventActive((card.data as GameEvent).id)">
+                    <view class="owned-notice-box" style="border-color: #d97706; background: #fffbeb;">
+                      <text class="owned-notice-icon">⏳</text>
+                      <view class="owned-notice-info">
+                        <text class="owned-notice-title" style="color: #d97706;">事件进行中</text>
+                        <text class="owned-notice-desc">你已开始参与此事件，可继续探索</text>
+                      </view>
+                    </view>
+                  </view>
                   <view class="detail-section">
                     <text class="section-title">📖 事件简介</text>
                     <text class="section-text">{{ (card.data as GameEvent).description }}</text>
@@ -253,10 +272,35 @@
               <!-- 操作面板内容 -->
               <template #actions>
                 <view v-if="card.type === 'event'" class="action-list">
-                  <view class="action-item" @click="onCardAction(card, 'join')">
-                    <text class="action-icon">🎯</text>
-                    <text class="action-text">立即参与</text>
-                  </view>
+                  <!-- 已完成事件 -->
+                  <template v-if="eventStore.isEventCompleted((card.data as GameEvent).id)">
+                    <view class="action-item" @click="onCardAction(card, 'viewHistory')">
+                      <text class="action-icon">📜</text>
+                      <text class="action-text">查看历史抉择</text>
+                    </view>
+                    <view class="action-item" @click="onCardAction(card, 'replay')">
+                      <text class="action-icon">🔄</text>
+                      <text class="action-text">重新体验</text>
+                    </view>
+                  </template>
+                  <!-- 进行中事件 -->
+                  <template v-else-if="eventStore.isEventActive((card.data as GameEvent).id)">
+                    <view class="action-item" @click="onCardAction(card, 'continue')">
+                      <text class="action-icon">▶️</text>
+                      <text class="action-text">继续事件</text>
+                    </view>
+                    <view class="action-item" @click="onCardAction(card, 'viewHistory')">
+                      <text class="action-icon">📜</text>
+                      <text class="action-text">查看已做抉择</text>
+                    </view>
+                  </template>
+                  <!-- 未参与事件 -->
+                  <template v-else>
+                    <view class="action-item" @click="onCardAction(card, 'join')">
+                      <text class="action-icon">🎯</text>
+                      <text class="action-text">立即参与</text>
+                    </view>
+                  </template>
                   <view class="action-item" @click="onCardAction(card, 'save')">
                     <text class="action-icon">📌</text>
                     <text class="action-text">收藏事件</text>
@@ -510,6 +554,15 @@ const onCardAction = (card: Card, action: string) => {
       break
     case 'report':
       uni.showToast({ title: '举报已提交', icon: 'none' })
+      break
+    case 'viewHistory':
+      uni.switchTab({ url: '/pages/worldline/worldline' })
+      break
+    case 'replay':
+      uni.showToast({ title: '重新体验功能开发中', icon: 'none' })
+      break
+    case 'continue':
+      uni.showToast({ title: '请点击卡片上的“继续事件”按钮', icon: 'none' })
       break
     case 'buy':
       uni.showToast({ title: '请点击卡片上的买入按钮', icon: 'none' })

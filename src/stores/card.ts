@@ -47,13 +47,40 @@ export const useCardStore = defineStore('card', () => {
       currentIndex.value = 0
       usedIds.value.clear()
       
-      // 生成初始卡片
-      for (let i = 0; i < QUEUE_SIZE; i++) {
-        const card = generateCard()
-        if (card) {
-          cardQueue.value.push(card)
+      // 保底机制：确保每轮至少有1张物品卡片和1张用户卡片
+      const guaranteedTypes: CardType[] = ['item', 'user']
+      const guaranteedCards: Card[] = []
+      
+      for (const type of guaranteedTypes) {
+        const data = getCardData(type)
+        if (data) {
+          guaranteedCards.push({
+            id: `card_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+            type,
+            data,
+            weight: Math.random() * 100
+          })
         }
       }
+      
+      // 生成剩余卡片（按权重随机）
+      const remaining = QUEUE_SIZE - guaranteedCards.length
+      const randomCards: Card[] = []
+      for (let i = 0; i < remaining; i++) {
+        const card = generateCard()
+        if (card) {
+          randomCards.push(card)
+        }
+      }
+      
+      // 混合并打乱顺序
+      const allCards = [...guaranteedCards, ...randomCards]
+      for (let i = allCards.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1))
+        ;[allCards[i], allCards[j]] = [allCards[j], allCards[i]]
+      }
+      
+      cardQueue.value = allCards
     } finally {
       isLoading.value = false
     }

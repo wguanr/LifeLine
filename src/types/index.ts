@@ -130,6 +130,14 @@ export interface Item {
   story: string
   visible: boolean
   createdAt: number
+  /** 是否可叠加购买（默认true），为false时已拥有则不可再买 */
+  stackable?: boolean
+  /** 最大叠加数量（仅stackable时有效） */
+  maxStack?: number
+  /** 铸造上限 */
+  maxMint?: number
+  /** 已铸造数量 */
+  mintedCount?: number
 }
 
 // ==================== 卡片相关 ====================

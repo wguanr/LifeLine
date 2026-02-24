@@ -112,7 +112,7 @@
             @click.stop="onBuy"
           >
             <text class="btn-text" v-if="justBought">✓ 已买入</text>
-            <text class="btn-text" v-else-if="!canBuy">余额不足</text>
+            <text class="btn-text" v-else-if="!canBuy">{{ buyDisabledReason || '余额不足' }}</text>
             <text class="btn-text" v-else>🛒 买入</text>
           </view>
         </template>
@@ -156,7 +156,25 @@ const acquiredInfo = computed(() => {
   return `${diffDay} 天前`
 })
 
-const canBuy = computed(() => userStore.canAfford(props.item.mintCost))
+const canBuy = computed(() => {
+  // 检查资源是否足够
+  if (!userStore.canAfford(props.item.mintCost)) return false
+  // 不可叠加物品：已拥有则不可再买
+  if (props.item.stackable === false && ownedQuantity.value > 0) return false
+  // 可叠加物品：检查是否达到最大叠加数
+  if (props.item.maxStack && ownedQuantity.value >= props.item.maxStack) return false
+  // 检查铸造上限
+  if (props.item.maxMint && (props.item.mintedCount || 0) >= props.item.maxMint) return false
+  return true
+})
+
+const buyDisabledReason = computed(() => {
+  if (!userStore.canAfford(props.item.mintCost)) return '余额不足'
+  if (props.item.stackable === false && ownedQuantity.value > 0) return '已拥有'
+  if (props.item.maxStack && ownedQuantity.value >= props.item.maxStack) return '已达上限'
+  if (props.item.maxMint && (props.item.mintedCount || 0) >= props.item.maxMint) return '已售罄'
+  return ''
+})
 
 const storyPreview = computed(() => {
   if (!props.item.story) return ''
