@@ -579,13 +579,15 @@ $safe-area-bottom: env(safe-area-inset-bottom, 0px);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12rpx 24rpx;
-  padding-top: calc(12rpx + #{$safe-area-top});
+  padding: 16rpx 24rpx;
+  padding-top: calc(16rpx + #{$safe-area-top});
+  padding-bottom: 16rpx;
   flex-shrink: 0;
   background: rgba(255, 255, 255, 0.98);
   backdrop-filter: blur(40rpx) saturate(180%);
   -webkit-backdrop-filter: blur(40rpx) saturate(180%);
-  border-bottom: 1rpx solid rgba(0, 0, 0, 0.05);
+  border-bottom: 1rpx solid rgba(0, 0, 0, 0.06);
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
   max-width: 100%;
   box-sizing: border-box;
 }
@@ -680,6 +682,8 @@ $safe-area-bottom: env(safe-area-inset-bottom, 0px);
   z-index: 1;
   overflow: hidden;
   min-height: 0; // 重要：允许flex子元素收缩
+  // 顶部留出间距，避免卡片紧贴status-bar
+  padding-top: 8rpx;
   // 为底部TabBar预留空间（uni-app TabBar高度约50px + 安全区域）
   padding-bottom: calc(100rpx + #{$safe-area-bottom});
   box-sizing: border-box;
@@ -701,7 +705,7 @@ $safe-area-bottom: env(safe-area-inset-bottom, 0px);
   display: flex;
   align-items: stretch;
   justify-content: center;
-  padding: 12rpx 16rpx;
+  padding: 8rpx 16rpx 12rpx;
   box-sizing: border-box;
   overflow: hidden;
   touch-action: pan-y; // 允许垂直滑动

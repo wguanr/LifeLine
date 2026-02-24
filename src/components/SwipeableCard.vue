@@ -1,15 +1,15 @@
 <template>
   <view 
     class="swipeable-card"
-    @touchstart="onTouchStart"
+    @touchstart.passive="onTouchStart"
     @touchmove="onTouchMove"
-    @touchend="onTouchEnd"
+    @touchend.passive="onTouchEnd"
+    @touchcancel.passive="onTouchCancel"
   >
     <!-- 左滑详情面板 -->
     <view 
       class="detail-panel left-panel"
       :class="{ visible: showLeftPanel }"
-      :style="{ transform: `translateX(${leftPanelOffset}px)` }"
     >
       <view class="panel-content">
         <view class="panel-header">
@@ -27,21 +27,21 @@
     <!-- 主卡片内容 -->
     <view 
       class="card-content"
-      :style="{ transform: `translateX(${cardOffset}px)` }"
-      @click="onCardClick"
+      :class="{ 'panel-open': showLeftPanel || showRightPanel }"
+      :style="cardContentStyle"
     >
       <slot></slot>
       
-      <!-- 左滑指示器 -->
-      <view class="swipe-indicator left" :class="{ active: swipeDirection === 'left' }">
-        <text class="indicator-icon">📋</text>
-        <text class="indicator-text">详情</text>
-      </view>
-      
-      <!-- 右滑指示器 -->
-      <view class="swipe-indicator right" :class="{ active: swipeDirection === 'right' }">
-        <text class="indicator-icon">⚙️</text>
-        <text class="indicator-text">操作</text>
+      <!-- 底部快捷按钮栏 -->
+      <view class="quick-actions" v-if="!showLeftPanel && !showRightPanel">
+        <view class="quick-btn detail-btn" @click.stop="openLeftPanel">
+          <text class="quick-icon">📋</text>
+          <text class="quick-text">详情</text>
+        </view>
+        <view class="quick-btn action-btn" @click.stop="openRightPanel">
+          <text class="quick-icon">⚙️</text>
+          <text class="quick-text">操作</text>
+        </view>
       </view>
     </view>
 
@@ -49,7 +49,6 @@
     <view 
       class="action-panel right-panel"
       :class="{ visible: showRightPanel }"
-      :style="{ transform: `translateX(${rightPanelOffset}px)` }"
     >
       <view class="panel-content">
         <view class="panel-header">
@@ -105,109 +104,125 @@ const emit = defineEmits<{
   (e: 'panelChange', panel: 'left' | 'right' | null): void
 }>()
 
-// 滑动阈值
-const SWIPE_THRESHOLD = props.threshold || 80
+// 面板宽度
 const PANEL_WIDTH = 280
+// 方向锁定阈值：移动超过此距离后锁定方向
+const LOCK_THRESHOLD = 12
+// 水平滑动触发面板的阈值
+const SWIPE_THRESHOLD = props.threshold || 80
+// 水平/垂直比率要求：水平距离必须是垂直距离的N倍才认为是水平滑动
+const DIRECTION_RATIO = 2.5
 
 // 触摸状态
 const startX = ref(0)
 const startY = ref(0)
 const currentX = ref(0)
 const isSwiping = ref(false)
-const isHorizontalSwipe = ref(false)
+// 方向锁定：null=未锁定, 'horizontal'=水平, 'vertical'=垂直
+const lockedDirection = ref<'horizontal' | 'vertical' | null>(null)
 
 // 面板状态
 const showLeftPanel = ref(false)
 const showRightPanel = ref(false)
 
-// 卡片偏移量
-const cardOffset = computed(() => {
-  if (showLeftPanel.value) return PANEL_WIDTH
-  if (showRightPanel.value) return -PANEL_WIDTH
-  if (!isSwiping.value || !isHorizontalSwipe.value) return 0
-  
-  const deltaX = currentX.value - startX.value
-  // 限制最大偏移量
-  return Math.max(-PANEL_WIDTH, Math.min(PANEL_WIDTH, deltaX))
-})
-
-// 左面板偏移量
-const leftPanelOffset = computed(() => {
-  if (showLeftPanel.value) return 0
-  return -PANEL_WIDTH + Math.max(0, cardOffset.value)
-})
-
-// 右面板偏移量
-const rightPanelOffset = computed(() => {
-  if (showRightPanel.value) return 0
-  return PANEL_WIDTH + Math.min(0, cardOffset.value)
-})
-
-// 滑动方向
-const swipeDirection = computed(() => {
-  if (!isSwiping.value || !isHorizontalSwipe.value) return null
-  const deltaX = currentX.value - startX.value
-  if (deltaX > 30) return 'right'
-  if (deltaX < -30) return 'left'
-  return null
+// 卡片内容样式
+const cardContentStyle = computed(() => {
+  if (showLeftPanel.value) {
+    return { transform: `translateX(${PANEL_WIDTH}px)` }
+  }
+  if (showRightPanel.value) {
+    return { transform: `translateX(-${PANEL_WIDTH}px)` }
+  }
+  // 滑动中跟手
+  if (isSwiping.value && lockedDirection.value === 'horizontal') {
+    const deltaX = currentX.value - startX.value
+    const clampedX = Math.max(-PANEL_WIDTH, Math.min(PANEL_WIDTH, deltaX))
+    return { 
+      transform: `translateX(${clampedX}px)`,
+      transition: 'none'
+    }
+  }
+  return { transform: 'translateX(0)' }
 })
 
 // 触摸开始
 function onTouchStart(e: TouchEvent) {
-  if (props.disabled) return
+  if (props.disabled || showLeftPanel.value || showRightPanel.value) return
   
   const touch = e.touches[0]
   startX.value = touch.clientX
   startY.value = touch.clientY
   currentX.value = touch.clientX
   isSwiping.value = true
-  isHorizontalSwipe.value = false
+  lockedDirection.value = null
 }
 
-// 触摸移动
+// 触摸移动 - 核心方向锁定逻辑
 function onTouchMove(e: TouchEvent) {
   if (!isSwiping.value || props.disabled) return
   
   const touch = e.touches[0]
-  currentX.value = touch.clientX
-  
-  const deltaX = Math.abs(currentX.value - startX.value)
+  const deltaX = Math.abs(touch.clientX - startX.value)
   const deltaY = Math.abs(touch.clientY - startY.value)
   
-  // 判断是否为水平滑动 - 只有水平移动明显大于垂直移动时才认为是水平滑动
-  if (!isHorizontalSwipe.value && (deltaX > 15 || deltaY > 15)) {
-    // 只有水平移动距离是垂直移动的2倍以上时，才认为是水平滑动
-    isHorizontalSwipe.value = deltaX > deltaY * 2
+  // 方向未锁定时，等待移动超过阈值再判定
+  if (lockedDirection.value === null) {
+    const totalDelta = deltaX + deltaY
+    if (totalDelta < LOCK_THRESHOLD) return // 还没移动够，不判定
+    
+    // 判定方向：水平距离必须是垂直距离的 DIRECTION_RATIO 倍
+    if (deltaX > deltaY * DIRECTION_RATIO && deltaX > LOCK_THRESHOLD) {
+      lockedDirection.value = 'horizontal'
+    } else {
+      lockedDirection.value = 'vertical'
+      // 垂直方向：完全放手，让 swiper 处理
+      isSwiping.value = false
+      return
+    }
   }
   
-  // 只有确定是水平滑动时才阻止默认行为，让垂直滑动传递给swiper
-  if (isHorizontalSwipe.value && deltaX > 30) {
-    e.preventDefault?.()
-    e.stopPropagation?.()
+  // 已锁定为水平方向：更新位置，阻止事件传播
+  if (lockedDirection.value === 'horizontal') {
+    currentX.value = touch.clientX
+    // 阻止事件传播给 swiper，防止同时触发垂直切换
+    e.preventDefault()
+    e.stopPropagation()
   }
-  // 如果是垂直滑动，不阻止事件，让swiper可以正常工作
 }
 
 // 触摸结束
 function onTouchEnd() {
-  if (!isSwiping.value || props.disabled) return
+  if (!isSwiping.value || props.disabled) {
+    resetTouch()
+    return
+  }
   
-  const deltaX = currentX.value - startX.value
-  
-  if (isHorizontalSwipe.value) {
+  if (lockedDirection.value === 'horizontal') {
+    const deltaX = currentX.value - startX.value
+    
     if (deltaX > SWIPE_THRESHOLD) {
-      // 右滑 - 显示详情
+      // 右滑 - 显示详情面板
       openLeftPanel()
       emit('swipeRight')
     } else if (deltaX < -SWIPE_THRESHOLD) {
-      // 左滑 - 显示操作
+      // 左滑 - 显示操作面板
       openRightPanel()
       emit('swipeLeft')
     }
   }
   
+  resetTouch()
+}
+
+// 触摸取消
+function onTouchCancel() {
+  resetTouch()
+}
+
+// 重置触摸状态
+function resetTouch() {
   isSwiping.value = false
-  isHorizontalSwipe.value = false
+  lockedDirection.value = null
 }
 
 // 打开左面板（详情）
@@ -249,15 +264,6 @@ function emitAction(action: string) {
   closeRightPanel()
 }
 
-// 点击卡片内容区域
-function onCardClick(e: Event) {
-  // 如果有面板打开，则关闭面板并阻止事件冒泡
-  if (showLeftPanel.value || showRightPanel.value) {
-    e.stopPropagation()
-    closeAllPanels()
-  }
-}
-
 // 暴露方法给父组件
 defineExpose({
   openLeftPanel,
@@ -275,6 +281,8 @@ defineExpose({
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  // 关键：告诉浏览器优先处理垂直滑动
+  touch-action: pan-y;
 }
 
 .card-content {
@@ -284,45 +292,54 @@ defineExpose({
   min-height: 0;
   display: flex;
   flex-direction: column;
-  transition: transform 0.3s ease;
+  transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   z-index: 10;
+  // 继承 pan-y
+  touch-action: pan-y;
+  
+  &.panel-open {
+    // 面板打开后禁止卡片内容的触摸交互
+    pointer-events: none;
+  }
 }
 
-// 滑动指示器
-.swipe-indicator {
+// 底部快捷按钮栏
+.quick-actions {
   position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
+  bottom: 12rpx;
+  right: 12rpx;
   display: flex;
-  flex-direction: column;
-  align-items: center;
   gap: 8rpx;
-  padding: 20rpx;
-  background: rgba(0, 0, 0, 0.7);
-  border-radius: 16rpx;
-  opacity: 0;
-  transition: opacity 0.2s;
-  z-index: 20;
+  z-index: 15;
+  pointer-events: auto;
+}
+
+.quick-btn {
+  display: flex;
+  align-items: center;
+  gap: 4rpx;
+  padding: 8rpx 16rpx;
+  border-radius: 20rpx;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(10rpx);
+  -webkit-backdrop-filter: blur(10rpx);
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.08);
+  border: 1rpx solid rgba(0, 0, 0, 0.06);
+  transition: all 0.2s;
   
-  &.left {
-    right: 20rpx;
+  &:active {
+    transform: scale(0.95);
+    background: rgba(255, 255, 255, 0.95);
   }
   
-  &.right {
-    left: 20rpx;
-  }
-  
-  &.active {
-    opacity: 1;
-  }
-  
-  .indicator-icon {
-    font-size: 40rpx;
-  }
-  
-  .indicator-text {
+  .quick-icon {
     font-size: 22rpx;
-    color: #fff;
+  }
+  
+  .quick-text {
+    font-size: 20rpx;
+    color: #666;
+    font-weight: 500;
   }
 }
 
@@ -334,7 +351,7 @@ defineExpose({
   bottom: 0;
   width: 280px;
   background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-  transition: transform 0.3s ease;
+  transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   z-index: 5;
   
   .panel-content {
@@ -360,6 +377,11 @@ defineExpose({
       font-size: 32rpx;
       color: rgba(255, 255, 255, 0.6);
       padding: 10rpx;
+      min-width: 44px;
+      min-height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
   }
   
