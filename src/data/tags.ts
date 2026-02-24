@@ -1,6 +1,7 @@
 import type { TagDefinition } from '@/types'
+import { aigcTagDefinitions } from './aigc_tags'
 
-export const tagDefinitions: TagDefinition[] = [
+const baseTagDefinitions: TagDefinition[] = [
   // 生活类
   { id: 'traveler', name: '旅行者', icon: '✈️', description: '热爱探索新地方', category: 'life' },
   { id: 'explorer', name: '探索者', icon: '🧭', description: '对未知充满好奇', category: 'life' },
@@ -26,6 +27,9 @@ export const tagDefinitions: TagDefinition[] = [
   { id: 'persistent', name: '坚持者', icon: '🏔️', description: '坚持不懈', category: 'growth' },
   { id: 'creative', name: '创造者', icon: '🎨', description: '富有创造力', category: 'growth' }
 ]
+
+// 合并基础标签和AIGC标签
+export const tagDefinitions: TagDefinition[] = [...baseTagDefinitions, ...aigcTagDefinitions]
 
 export const getTagDefinition = (tagId: string): TagDefinition | undefined => {
   return tagDefinitions.find(t => t.id === tagId)

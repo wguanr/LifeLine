@@ -1,0 +1,3189 @@
+{
+  "events": [
+    {
+      "id": "aigc_event_001",
+      "title": "全球关税战：生活成本骤升",
+      "description": "4月2日，因全球关税战爆发，你发现心仪的进口商品价格突然上涨，生活支出压力增大。面对物价涨势和供应链波动，你需要权衡选择，调整消费和生活方式。",
+      "cover": "⚖️",
+      "type": "challenge",
+      "status": "active",
+      "requirements": {},
+      "entryFee": {
+        "time": 1,
+        "energy": 2
+      },
+      "stages": [
+        {
+          "stageId": "stage_1",
+          "title": "面对商品涨价",
+          "choices": [
+            {
+              "id": "1_a",
+              "text": "继续购买，保持生活品质",
+              "cost": {
+                "energy": 3
+              },
+              "outcome": {
+                "items": [],
+                "tags": [
+                  {
+                    "id": "persistent",
+                    "value": 2
+                  },
+                  {
+                    "id": "workaholic",
+                    "value": 1
+                  }
+                ],
+                "description": "你坚持购买进口商品，体验得到短暂满足，但消费压力加大。"
+              }
+            },
+            {
+              "id": "1_b",
+              "text": "减少进口商品消费，尝试本地替代",
+              "cost": {
+                "time": 2
+              },
+              "outcome": {
+                "items": [],
+                "tags": [
+                  {
+                    "id": "minimalist",
+                    "value": 2
+                  },
+                  {
+                    "id": "creative",
+                    "value": 1
+                  }
+                ],
+                "description": "你调整生活习惯，支持本地产品，体现环保和节俭。"
+              }
+            }
+          ]
+        },
+        {
+          "stageId": "stage_2",
+          "title": "供应链波动影响",
+          "choices": [
+            {
+              "id": "2_a",
+              "text": "主动寻找新供应商，保证物资充足",
+              "cost": {
+                "time": 3,
+                "energy": 2
+              },
+              "outcome": {
+                "items": [
+                  "新供应商联系"
+                ],
+                "tags": [
+                  {
+                    "id": "connector",
+                    "value": 3
+                  },
+                  {
+                    "id": "negotiator",
+                    "value": 2
+                  }
+                ],
+                "description": "你积极调整资源渠道，确保生活稳定。"
+              }
+            },
+            {
+              "id": "2_b",
+              "text": "接受短期物资紧张，减少非必要消费",
+              "cost": {
+                "energy": 1
+              },
+              "outcome": {
+                "items": [],
+                "tags": [
+                  {
+                    "id": "persistent",
+                    "value": 1
+                  },
+                  {
+                    "id": "minimalist",
+                    "value": 1
+                  }
+                ],
+                "description": "你耐心等待市场平稳，锻炼自我控制力。"
+              }
+            }
+          ]
+        },
+        {
+          "stageId": "stage_3",
+          "title": "面对中国稀土出口暂停",
+          "choices": [
+            {
+              "id": "3_a",
+              "text": "关注新闻，学习国际贸易知识",
+              "cost": {
+                "time": 2
+              },
+              "outcome": {
+                "items": [],
+                "tags": [
+                  {
+                    "id": "learner",
+                    "value": 3
+                  },
+                  {
+                    "id": "techie",
+                    "value": 2
+                  }
+                ],
+                "description": "你主动了解局势，提升自身竞争力。"
+              }
+            },
+            {
+              "id": "3_b",
+              "text": "忽略国际形势，专注个人生活",
+              "cost": {
+                "energy": 0
+              },
+              "outcome": {
+                "items": [],
+                "tags": [
+                  {
+                    "id": "work_life_balance",
+                    "value": 2
+                  }
+                ],
+                "description": "你选择保持内心平静，避免压力过大。"
+              }
+            }
+          ]
+        },
+        {
+          "stageId": "stage_4",
+          "title": "中美达成90天减税协议",
+          "choices": [
+            {
+              "id": "4_a",
+              "text": "抓住机会，适时增加进口消费",
+              "cost": {
+                "energy": 2
+              },
+              "outcome": {
+                "items": [
+                  "进口商品优惠券"
+                ],
+                "tags": [
+                  {
+                    "id": "persistent",
+                    "value": 2
+                  }
+                ],
+                "description": "你利用政策红利，改善生活品质。"
+              }
+            },
+            {
+              "id": "4_b",
+              "text": "保持谨慎，继续节约消费",
+              "cost": {
+                "energy": 1
+              },
+              "outcome": {
+                "items": [],
+                "tags": [
+                  {
+                    "id": "minimalist",
+                    "value": 2
+                  },
+                  {
+                    "id": "persistent",
+                    "value": 1
+                  }
+                ],
+                "description": "你保持理性，防范未来风险。"
+              }
+            }
+          ]
+        }
+      ],
+      "participantCount": 15842,
+      "createdAt": 1717449600,
+      "source": {
+        "type": "aigc",
+        "newsTitle": "特朗普打响全球关税战",
+        "newsDate": "2025-04-02",
+        "region": "全球",
+        "urgency": "critical"
+      }
+    },
+    {
+      "id": "aigc_event_001",
+      "title": "战争阴影下的日常抉择",
+      "description": "作为生活在冲突边缘的普通人，你必须在不断变化的局势中做出选择，权衡生活安全与内心信念，面对战争带来的种种挑战。",
+      "cover": "⚔️",
+      "type": "story",
+      "status": "active",
+      "requirements": {},
+      "entryFee": {
+        "time": 5,
+        "energy": 10
+      },
+      "stages": [
+        {
+          "stageId": "stage1",
+          "title": "战事升级，你的首要反应",
+          "choices": [
+            {
+              "choiceId": "c1",
+              "text": "尽快囤积生活必需品，准备可能的断供",
+              "cost": {
+                "time": 2,
+                "energy": 5
+              },
+              "outcome": {
+                "items": [
+                  "必需品储备"
+                ],
+                "tags": {
+                  "minimalist": -1,
+                  "persistent": 1
+                },
+                "description": "你成功准备了充足的物资，但内心压力也随之增加。"
+              }
+            },
+            {
+              "choiceId": "c2",
+              "text": "保持日常，坚信和平即将到来",
+              "cost": {
+                "energy": 3
+              },
+              "outcome": {
+                "tags": {
+                  "kindhearted": 1,
+                  "persistent": -1
+                },
+                "description": "保持乐观让你心态平和，但可能错过准备的最佳时间。"
+              }
+            }
+          ]
+        },
+        {
+          "stageId": "stage2",
+          "title": "无人机袭击使局势紧张，你如何应对？",
+          "choices": [
+            {
+              "choiceId": "c1",
+              "text": "关注新闻，积极传播真相，帮助邻里了解情况",
+              "cost": {
+                "time": 3,
+                "energy": 4
+              },
+              "outcome": {
+                "tags": {
+                  "connector": 2,
+                  "social_butterfly": 1,
+                  "workaholic": 1
+                },
+                "description": "你成为社区的信息枢纽，获得邻居的信任与支持。"
+              }
+            },
+            {
+              "choiceId": "c2",
+              "text": "关闭所有新闻，保护自己免受负面情绪影响",
+              "cost": {
+                "energy": 2
+              },
+              "outcome": {
+                "tags": {
+                  "work_life_balance": 1,
+                  "persistent": -1
+                },
+                "description": "你避免了焦虑，但也可能错过重要信息。"
+              }
+            }
+          ]
+        },
+        {
+          "stageId": "stage3",
+          "title": "欧盟提供巨额贷款支持，社会反应复杂",
+          "choices": [
+            {
+              "choiceId": "c1",
+              "text": "参与社区志愿活动，帮助受战争影响的人",
+              "cost": {
+                "time": 4,
+                "energy": 6
+              },
+              "outcome": {
+                "tags": {
+                  "helpful": 2,
+                  "warmhearted": 2
+                },
+                "description": "你的付出温暖了许多受难者，也让自己更加坚强。"
+              }
+            },
+            {
+              "choiceId": "c2",
+              "text": "关注经济影响，考虑调整个人理财计划",
+              "cost": {
+                "time": 2
+              },
+              "outcome": {
+                "tags": {
+                  "negotiator": 1,
+                  "workaholic": 1
+                },
+                "items": [
+                  "投资规划"
+                ],
+                "description": "你提前做好财务准备，面对不确定性更有底气。"
+              }
+            }
+          ]
+        },
+        {
+          "stageId": "stage4",
+          "title": "停火谈判呼声高涨，你的态度是？",
+          "choices": [
+            {
+              "choiceId": "c1",
+              "text": "支持谈判，期待和平与稳定",
+              "cost": {
+                "energy": 3
+              },
+              "outcome": {
+                "tags": {
+                  "kindhearted": 2,
+                  "persistent": -1
+                },
+                "description": "你渴望和平，但也意识到过程的艰难。"
+              }
+            },
+            {
+              "choiceId": "c2",
+              "text": "保持警惕，担心谈判可能带来的风险",
+              "cost": {
+                "energy": 4
+              },
+              "outcome": {
+                "tags": {
+                  "persistent": 2,
+                  "negotiator": 1
+                },
+                "description": "你的谨慎让你更理智地看待局势，但也增加了心理负担。"
+              }
+            }
+          ]
+        }
+      ],
+      "participantCount": 12500,
+      "createdAt": 1742246400,
+      "source": {
+        "type": "aigc",
+        "newsTitle": "俄乌战争进入第四年",
+        "newsDate": "2025-06-15",
+        "region": "欧洲/俄罗斯",
+        "urgency": "critical"
+      }
+    },
+    {
+      "id": "aigc_event_001",
+      "title": "AI巨变下的职场挑战",
+      "description": "最近AI技术进步迅速，你发现公司引入了DeepSeek的新AI系统，工作流程面临巨大变革。面对不确定的未来，你需要做出选择，适应或抗拒这场技术浪潮。",
+      "cover": "🤖",
+      "type": "challenge",
+      "status": "active",
+      "requirements": {},
+      "entryFee": {
+        "time": 2,
+        "energy": 3
+      },
+      "stages": [
+        {
+          "stageId": "stage1",
+          "title": "初识AI冲击",
+          "choices": [
+            {
+              "id": "c1",
+              "text": "主动学习AI相关技能，提升竞争力",
+              "cost": {
+                "time": 3,
+                "energy": 4
+              },
+              "outcome": {
+                "tagsAdd": [
+                  "learner",
+                  "persistent"
+                ],
+                "tagsRemove": [],
+                "rewards": {
+                  "experience": 50
+                },
+                "penalties": {}
+              }
+            },
+            {
+              "id": "c2",
+              "text": "保持现状，继续用传统方式完成工作",
+              "cost": {
+                "time": 2,
+                "energy": 2
+              },
+              "outcome": {
+                "tagsAdd": [
+                  "workaholic"
+                ],
+                "tagsRemove": [],
+                "rewards": {},
+                "penalties": {
+                  "stress": 10
+                }
+              }
+            }
+          ]
+        },
+        {
+          "stageId": "stage2",
+          "title": "面对裁员传闻",
+          "choices": [
+            {
+              "id": "c1",
+              "text": "积极参与公司内部AI转型讨论，争取话语权",
+              "cost": {
+                "time": 2,
+                "energy": 3
+              },
+              "outcome": {
+                "tagsAdd": [
+                  "connector",
+                  "negotiator"
+                ],
+                "tagsRemove": [],
+                "rewards": {
+                  "reputation": 10
+                },
+                "penalties": {}
+              }
+            },
+            {
+              "id": "c2",
+              "text": "开始寻找AI无法取代的职业技能",
+              "cost": {
+                "time": 4,
+                "energy": 5
+              },
+              "outcome": {
+                "tagsAdd": [
+                  "creative",
+                  "persistent"
+                ],
+                "tagsRemove": [],
+                "rewards": {
+                  "experience": 40
+                },
+                "penalties": {}
+              }
+            },
+            {
+              "id": "c3",
+              "text": "对AI裁员传闻感到焦虑，影响工作效率",
+              "cost": {
+                "time": 0,
+                "energy": 0
+              },
+              "outcome": {
+                "tagsAdd": [
+                  "workaholic"
+                ],
+                "tagsRemove": [],
+                "rewards": {},
+                "penalties": {
+                  "stress": 20
+                }
+              }
+            }
+          ]
+        },
+        {
+          "stageId": "stage3",
+          "title": "芯片出口管制影响",
+          "choices": [
+            {
+              "id": "c1",
+              "text": "关注政策动态，及时调整职业规划",
+              "cost": {
+                "time": 2,
+                "energy": 2
+              },
+              "outcome": {
+                "tagsAdd": [
+                  "techie",
+                  "learner"
+                ],
+                "tagsRemove": [],
+                "rewards": {
+                  "experience": 30
+                },
+                "penalties": {}
+              }
+            },
+            {
+              "id": "c2",
+              "text": "对国际争端漠不关心，专注当前工作",
+              "cost": {
+                "time": 1,
+                "energy": 1
+              },
+              "outcome": {
+                "tagsAdd": [
+                  "workaholic"
+                ],
+                "tagsRemove": [],
+                "rewards": {},
+                "penalties": {
+                  "missed_opportunities": 1
+                }
+              }
+            }
+          ]
+        },
+        {
+          "stageId": "stage4",
+          "title": "AI替代岗位的未来",
+          "choices": [
+            {
+              "id": "c1",
+              "text": "拥抱AI，尝试与AI协作完成任务",
+              "cost": {
+                "time": 3,
+                "energy": 4
+              },
+              "outcome": {
+                "tagsAdd": [
+                  "techie",
+                  "work_life_balance"
+                ],
+                "tagsRemove": [],
+                "rewards": {
+                  "experience": 60,
+                  "item": [
+                    "AI助手"
+                  ]
+                },
+                "penalties": {}
+              }
+            },
+            {
+              "id": "c2",
+              "text": "抵制AI应用，维护传统工作方式",
+              "cost": {
+                "time": 2,
+                "energy": 3
+              },
+              "outcome": {
+                "tagsAdd": [
+                  "persistent"
+                ],
+                "tagsRemove": [],
+                "rewards": {},
+                "penalties": {
+                  "stress": 15
+                }
+              }
+            },
+            {
+              "id": "c3",
+              "text": "转向人文关怀和创造性工作，避免被替代",
+              "cost": {
+                "time": 4,
+                "energy": 5
+              },
+              "outcome": {
+                "tagsAdd": [
+                  "creative",
+                  "kindhearted",
+                  "warmhearted"
+                ],
+                "tagsRemove": [],
+                "rewards": {
+                  "reputation": 20
+                },
+                "penalties": {}
+              }
+            }
+          ]
+        }
+      ],
+      "participantCount": 14750,
+      "createdAt": 1736956800,
+      "source": {
+        "type": "aigc",
+        "newsTitle": "DeepSeek震撼AI行业",
+        "newsDate": "2025-01-20",
+        "region": "全球",
+        "urgency": "high"
+      }
+    },
+    {
+      "id": "aigc_event_001",
+      "title": "中东紧张局势升级",
+      "description": "2025年6月，以色列与伊朗爆发十二日战争，你作为一名普通中东居民，如何在动荡中保障自身安全与生活？你需要在冲突升级、资源短缺和信息混乱中做出选择，影响你的标签和资源。",
+      "cover": "🕊️",
+      "type": "challenge",
+      "status": "active",
+      "requirements": {},
+      "entryFee": {
+        "time": 10,
+        "energy": 5
+      },
+      "stages": [
+        {
+          "stageId": "stage1",
+          "description": "战争爆发，街区警报四起，你的第一反应是？",
+          "choices": [
+            {
+              "text": "寻找避难所，确保家人安全",
+              "cost": {
+                "time": 2,
+                "energy": 3
+              },
+              "outcome": {
+                "tags": {
+                  "kindhearted": 2,
+                  "persistent": 1
+                },
+                "items": [
+                  "避难包"
+                ]
+              }
+            },
+            {
+              "text": "获取最新新闻，了解局势发展",
+              "cost": {
+                "time": 1,
+                "energy": 2
+              },
+              "outcome": {
+                "tags": {
+                  "learner": 2,
+                  "techie": 1
+                }
+              }
+            },
+            {
+              "text": "联络朋友，共同制定应对计划",
+              "cost": {
+                "time": 2,
+                "energy": 2
+              },
+              "outcome": {
+                "tags": {
+                  "connector": 3,
+                  "social_butterfly": 1
+                }
+              }
+            }
+          ]
+        },
+        {
+          "stageId": "stage2",
+          "description": "物资短缺，市场供应不稳定，你选择如何应对？",
+          "choices": [
+            {
+              "text": "节省物资，采取极简生活方式",
+              "cost": {
+                "time": 1,
+                "energy": 1
+              },
+              "outcome": {
+                "tags": {
+                  "minimalist": 3,
+                  "persistent": 1
+                }
+              }
+            },
+            {
+              "text": "尝试探索备用货源和邻里互助",
+              "cost": {
+                "time": 3,
+                "energy": 3
+              },
+              "outcome": {
+                "tags": {
+                  "explorer": 2,
+                  "helpful": 2
+                },
+                "items": [
+                  "备用食物"
+                ]
+              }
+            },
+            {
+              "text": "寻找食品替代品，尝试新口味",
+              "cost": {
+                "time": 2,
+                "energy": 2
+              },
+              "outcome": {
+                "tags": {
+                  "foodie": 3,
+                  "creative": 1
+                }
+              }
+            }
+          ]
+        },
+        {
+          "stageId": "stage3",
+          "description": "信息混乱中，你收到邻居求助电话，你会？",
+          "choices": [
+            {
+              "text": "立即赶去支援，协助安全撤离",
+              "cost": {
+                "time": 3,
+                "energy": 4
+              },
+              "outcome": {
+                "tags": {
+                  "warmhearted": 3,
+                  "helpful": 3
+                }
+              }
+            },
+            {
+              "text": "提供远程信息和心理支持",
+              "cost": {
+                "time": 2,
+                "energy": 2
+              },
+              "outcome": {
+                "tags": {
+                  "kindhearted": 2,
+                  "connector": 2
+                }
+              }
+            }
+          ]
+        },
+        {
+          "stageId": "stage4",
+          "description": "停火达成，但未来仍不明朗，你如何调整心态？",
+          "choices": [
+            {
+              "text": "积极学习，准备应对可能的后续挑战",
+              "cost": {
+                "time": 3,
+                "energy": 2
+              },
+              "outcome": {
+                "tags": {
+                  "learner": 3,
+                  "persistent": 2
+                }
+              }
+            },
+            {
+              "text": "专注身体锻炼，保持健康和活力",
+              "cost": {
+                "time": 3,
+                "energy": 3
+              },
+              "outcome": {
+                "tags": {
+                  "fitness_lover": 3,
+                  "work_life_balance": 1
+                }
+              }
+            },
+            {
+              "text": "与朋友聚会，缓解紧张情绪",
+              "cost": {
+                "time": 2,
+                "energy": 3
+              },
+              "outcome": {
+                "tags": {
+                  "social_butterfly": 3,
+                  "warmhearted": 1
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "participantCount": 18320,
+      "createdAt": 1750195200,
+      "source": {
+        "type": "aigc",
+        "newsTitle": "以色列与伊朗爆发十二日战争",
+        "newsDate": "2025-06-12",
+        "region": "中东",
+        "urgency": "critical"
+      }
+    },
+    {
+      "id": "aigc_event_001",
+      "title": "克什米尔危机下的日常抉择",
+      "description": "作为南亚一名普通居民，突如其来的军事冲突影响了你的生活。水源短缺、物资紧张，你需要做出关键选择，平衡生活与安全，影响你的人生标签。",
+      "cover": "⚔️",
+      "type": "challenge",
+      "status": "active",
+      "requirements": {},
+      "entryFee": {
+        "time": 30,
+        "energy": 20
+      },
+      "stages": [
+        {
+          "title": "水资源紧张",
+          "description": "印度暂停河水条约，家里的灌溉水源变得紧缺。",
+          "choices": [
+            {
+              "text": "减少家中用水，尝试节约每一滴水",
+              "cost": {
+                "time": 5,
+                "energy": 10
+              },
+              "outcome": {
+                "tags": {
+                  "minimalist": 2,
+                  "persistent": 1
+                },
+                "items": [],
+                "experience": 10
+              }
+            },
+            {
+              "text": "购买贵价瓶装水，确保生活不受影响",
+              "cost": {
+                "time": 3,
+                "energy": 5
+              },
+              "outcome": {
+                "tags": {
+                  "workaholic": 1,
+                  "fitness_lover": -1
+                },
+                "items": [
+                  "瓶装水"
+                ],
+                "experience": 5
+              }
+            }
+          ]
+        },
+        {
+          "title": "物资供应受限",
+          "description": "市场上的食品和生活用品变得紧缺，价格上涨。",
+          "choices": [
+            {
+              "text": "自己动手种植蔬菜，减少依赖外部供应",
+              "cost": {
+                "time": 15,
+                "energy": 15
+              },
+              "outcome": {
+                "tags": {
+                  "creative": 2,
+                  "persistent": 2,
+                  "minimalist": 1
+                },
+                "items": [
+                  "家庭菜园"
+                ],
+                "experience": 20
+              }
+            },
+            {
+              "text": "社交平台上组织邻里共享资源",
+              "cost": {
+                "time": 10,
+                "energy": 20
+              },
+              "outcome": {
+                "tags": {
+                  "connector": 3,
+                  "social_butterfly": 2,
+                  "kindhearted": 2
+                },
+                "items": [],
+                "experience": 25
+              }
+            },
+            {
+              "text": "高价购买必需品，确保家人生活稳定",
+              "cost": {
+                "time": 5,
+                "energy": 5
+              },
+              "outcome": {
+                "tags": {
+                  "workaholic": 1,
+                  "minimalist": -1
+                },
+                "items": [
+                  "必需品"
+                ],
+                "experience": 8
+              }
+            }
+          ]
+        },
+        {
+          "title": "安全忧虑加剧",
+          "description": "军事冲突带来的安全压力让你感到焦虑和不安。",
+          "choices": [
+            {
+              "text": "积极学习自我保护知识，提升安全意识",
+              "cost": {
+                "time": 10,
+                "energy": 10
+              },
+              "outcome": {
+                "tags": {
+                  "learner": 3,
+                  "persistent": 1
+                },
+                "items": [
+                  "安全手册"
+                ],
+                "experience": 15
+              }
+            },
+            {
+              "text": "参与社区安全巡逻，守护邻里安全",
+              "cost": {
+                "time": 20,
+                "energy": 25
+              },
+              "outcome": {
+                "tags": {
+                  "helpful": 3,
+                  "kindhearted": 2,
+                  "persistent": 1
+                },
+                "items": [],
+                "experience": 30
+              }
+            },
+            {
+              "text": "减少外出，保持低调避免风险",
+              "cost": {
+                "time": 5,
+                "energy": 5
+              },
+              "outcome": {
+                "tags": {
+                  "minimalist": 1,
+                  "persistent": -1
+                },
+                "items": [],
+                "experience": 5
+              }
+            }
+          ]
+        },
+        {
+          "title": "和平呼声",
+          "description": "冲突暂告一段落，你可以选择为和平贡献自己的一份力量。",
+          "choices": [
+            {
+              "text": "参与线上和平倡议，传播和平理念",
+              "cost": {
+                "time": 10,
+                "energy": 10
+              },
+              "outcome": {
+                "tags": {
+                  "connector": 2,
+                  "warmhearted": 3,
+                  "learner": 1
+                },
+                "items": [],
+                "experience": 20
+              }
+            },
+            {
+              "text": "专注家庭和事业，暂时回避政治话题",
+              "cost": {
+                "time": 0,
+                "energy": 0
+              },
+              "outcome": {
+                "tags": {
+                  "work_life_balance": 2,
+                  "workaholic": -1
+                },
+                "items": [],
+                "experience": 10
+              }
+            }
+          ]
+        }
+      ],
+      "participantCount": 17500,
+      "createdAt": 1746854400,
+      "source": {
+        "type": "aigc",
+        "newsTitle": "印度与巴基斯坦军事冲突",
+        "newsDate": "2025-05-10",
+        "region": "南亚",
+        "urgency": "critical"
+      }
+    },
+    {
+      "id": "aigc_event_rare_earth_restriction",
+      "title": "稀土出口受限的个人挑战",
+      "description": "你是一名依赖进口稀土材料的小型电子企业主，面临突然的供应链中断。如何调整生产与市场策略，渡过这场稀土出口限制带来的危机？",
+      "cover": "⛏️",
+      "type": "challenge",
+      "status": "active",
+      "requirements": {},
+      "entryFee": {
+        "time": 2,
+        "energy": 3
+      },
+      "stages": [
+        {
+          "stageId": "stage_1",
+          "title": "评估影响",
+          "choices": [
+            {
+              "id": "choice_1_1",
+              "text": "寻找替代材料供应商",
+              "cost": {
+                "time": 3,
+                "energy": 2
+              },
+              "outcome": {
+                "items": [],
+                "tags": {
+                  "persistent": 2,
+                  "negotiator": 1
+                },
+                "description": "虽然耗费精力，但你找到部分替代材料，缓解供应压力。"
+              }
+            },
+            {
+              "id": "choice_1_2",
+              "text": "减少产品种类，集中优势产品生产",
+              "cost": {
+                "time": 2,
+                "energy": 1
+              },
+              "outcome": {
+                "items": [],
+                "tags": {
+                  "minimalist": 2,
+                  "work_life_balance": 1
+                },
+                "description": "专注核心产品，降低库存压力，保持稳定运营。"
+              }
+            },
+            {
+              "id": "choice_1_3",
+              "text": "暂时停产等待政策缓解",
+              "cost": {
+                "time": 1,
+                "energy": 1
+              },
+              "outcome": {
+                "items": [],
+                "tags": {
+                  "persistent": -1,
+                  "workaholic": -1
+                },
+                "description": "保守选择，但业务停滞，面临收入减少风险。"
+              }
+            }
+          ]
+        },
+        {
+          "stageId": "stage_2",
+          "title": "调整客户沟通",
+          "choices": [
+            {
+              "id": "choice_2_1",
+              "text": "主动向客户解释情况，争取理解与支持",
+              "cost": {
+                "time": 2,
+                "energy": 2
+              },
+              "outcome": {
+                "items": [],
+                "tags": {
+                  "connector": 2,
+                  "kindhearted": 1
+                },
+                "description": "客户反应积极，信任增强，合作关系稳固。"
+              }
+            },
+            {
+              "id": "choice_2_2",
+              "text": "保持沉默，等待局势明朗",
+              "cost": {
+                "time": 1,
+                "energy": 1
+              },
+              "outcome": {
+                "items": [],
+                "tags": {
+                  "persistent": -1,
+                  "social_butterfly": -1
+                },
+                "description": "客户疑虑加重，部分订单流失。"
+              }
+            },
+            {
+              "id": "choice_2_3",
+              "text": "主动涨价以应对成本上涨",
+              "cost": {
+                "time": 1,
+                "energy": 1
+              },
+              "outcome": {
+                "items": [],
+                "tags": {
+                  "workaholic": 1,
+                  "negotiator": 1
+                },
+                "description": "收入暂时提升，但客户满意度下降。"
+              }
+            }
+          ]
+        },
+        {
+          "stageId": "stage_3",
+          "title": "寻找长远对策",
+          "choices": [
+            {
+              "id": "choice_3_1",
+              "text": "投资研发，减少对稀土依赖",
+              "cost": {
+                "time": 4,
+                "energy": 4
+              },
+              "outcome": {
+                "items": [
+                  "研发报告"
+                ],
+                "tags": {
+                  "learner": 3,
+                  "creative": 2,
+                  "persistent": 2
+                },
+                "description": "技术创新启动，企业未来更具竞争力。"
+              }
+            },
+            {
+              "id": "choice_3_2",
+              "text": "扩大出口到其他国家分散风险",
+              "cost": {
+                "time": 3,
+                "energy": 3
+              },
+              "outcome": {
+                "items": [],
+                "tags": {
+                  "explorer": 2,
+                  "connector": 2
+                },
+                "description": "拓展新市场，减少对单一客户依赖。"
+              }
+            },
+            {
+              "id": "choice_3_3",
+              "text": "维持现状，观望市场变化",
+              "cost": {
+                "time": 1,
+                "energy": 1
+              },
+              "outcome": {
+                "items": [],
+                "tags": {
+                  "persistent": -1
+                },
+                "description": "缺乏主动调整，面临潜在风险。"
+              }
+            }
+          ]
+        }
+      ],
+      "participantCount": 13456,
+      "createdAt": 1749830400,
+      "source": {
+        "type": "aigc",
+        "newsTitle": "中国稀土武器化反制美国",
+        "newsDate": "2025-04-15",
+        "region": "中美",
+        "urgency": "high"
+      }
+    },
+    {
+      "id": "aigc_event_001",
+      "title": "加沙和平的微光",
+      "description": "你生活在加沙，一场停火协议带来短暂的宁静，但和平的道路充满挑战。你需要在三阶段的和平计划中做出选择，影响你的生活和社区的未来。",
+      "cover": "🕊️",
+      "type": "story",
+      "status": "active",
+      "requirements": {},
+      "entryFee": {
+        "time": 2,
+        "energy": 3
+      },
+      "stages": [
+        {
+          "title": "第一阶段：停火与人质交换",
+          "choices": [
+            {
+              "text": "支持停火，帮助组织社区守望互助",
+              "cost": {
+                "time": 2,
+                "energy": 4
+              },
+              "outcome": {
+                "tags": {
+                  "kindhearted": 2,
+                  "connector": 1
+                },
+                "items": [
+                  "社区信任"
+                ],
+                "description": "你积极参与停火支持活动，赢得邻里信任。"
+              }
+            },
+            {
+              "text": "保持中立，专注个人和家人安全",
+              "cost": {
+                "time": 1,
+                "energy": 1
+              },
+              "outcome": {
+                "tags": {
+                  "minimalist": 1,
+                  "persistent": 1
+                },
+                "description": "你选择保守应对，暂时避免卷入冲突。"
+              }
+            },
+            {
+              "text": "质疑停火成效，准备应对后续冲突",
+              "cost": {
+                "time": 2,
+                "energy": 3
+              },
+              "outcome": {
+                "tags": {
+                  "persistent": 2,
+                  "learner": 1
+                },
+                "description": "你保持警惕，学习提高自我保护能力。"
+              }
+            }
+          ]
+        },
+        {
+          "title": "第二阶段：武装解除与国际力量",
+          "choices": [
+            {
+              "text": "参与和平倡议，尝试与多方沟通",
+              "cost": {
+                "time": 3,
+                "energy": 5
+              },
+              "outcome": {
+                "tags": {
+                  "negotiator": 3,
+                  "connector": 2,
+                  "kindhearted": 1
+                },
+                "items": [
+                  "和平倡议信函"
+                ],
+                "description": "你积极推动对话，争取和平进展。"
+              }
+            },
+            {
+              "text": "对国际力量持怀疑态度，专注社区自救",
+              "cost": {
+                "time": 2,
+                "energy": 3
+              },
+              "outcome": {
+                "tags": {
+                  "persistent": 2,
+                  "work_life_balance": 1
+                },
+                "items": [
+                  "自救工具包"
+                ],
+                "description": "你增强社区的自我防护能力，准备应对风险。"
+              }
+            },
+            {
+              "text": "选择观望，等待局势明朗",
+              "cost": {
+                "time": 1,
+                "energy": 1
+              },
+              "outcome": {
+                "tags": {
+                  "minimalist": 1
+                },
+                "description": "你保持低调，避免卷入复杂局势。"
+              }
+            }
+          ]
+        },
+        {
+          "title": "第三阶段：重建与未来展望",
+          "choices": [
+            {
+              "text": "积极参与社区重建，恢复基础设施",
+              "cost": {
+                "time": 4,
+                "energy": 6
+              },
+              "outcome": {
+                "tags": {
+                  "creative": 3,
+                  "work_life_balance": 2,
+                  "kindhearted": 2
+                },
+                "items": [
+                  "重建工具包"
+                ],
+                "description": "你成为重建的中坚力量，赢得社区尊敬。"
+              }
+            },
+            {
+              "text": "关注家庭和个人生活，减少对外投入",
+              "cost": {
+                "time": 2,
+                "energy": 3
+              },
+              "outcome": {
+                "tags": {
+                  "minimalist": 3,
+                  "work_life_balance": 3
+                },
+                "description": "你优先照顾亲人，保持生活平衡。"
+              }
+            },
+            {
+              "text": "尝试通过网络宣传和平理念，吸引外界关注",
+              "cost": {
+                "time": 3,
+                "energy": 4
+              },
+              "outcome": {
+                "tags": {
+                  "techie": 2,
+                  "social_butterfly": 2,
+                  "learner": 1
+                },
+                "items": [
+                  "和平宣传材料"
+                ],
+                "description": "你利用网络扩大和平声音，连接更多人。"
+              }
+            }
+          ]
+        }
+      ],
+      "participantCount": 18500,
+      "createdAt": 1743628800,
+      "source": {
+        "type": "aigc",
+        "newsTitle": "加沙停火与三阶段和平计划",
+        "newsDate": "2025-10-01",
+        "region": "中东",
+        "urgency": "high"
+      }
+    },
+    {
+      "id": "aigc_event_001",
+      "title": "苏丹内战中的抉择",
+      "description": "你身处苏丹内战阴影下，目睹亲友流离失所，生活陷入困境。面对残酷现实，你必须做出选择，保护自己与家人，同时保持人性与希望。",
+      "cover": "🕊️",
+      "type": "story",
+      "status": "active",
+      "requirements": {},
+      "entryFee": {
+        "time": 5,
+        "energy": 10
+      },
+      "stages": [
+        {
+          "stageId": "1",
+          "title": "灾难初现",
+          "choices": [
+            {
+              "choiceId": "1a",
+              "text": "离开家园，寻找安全避难所",
+              "cost": {
+                "time": 10,
+                "energy": 15
+              },
+              "outcome": {
+                "tags": {
+                  "traveler": 2,
+                  "persistent": 1
+                },
+                "description": "你踏上漫长旅程，经历艰难困苦，但保持了生存的希望。"
+              }
+            },
+            {
+              "choiceId": "1b",
+              "text": "留在家中，守护亲人和家园",
+              "cost": {
+                "energy": 20
+              },
+              "outcome": {
+                "tags": {
+                  "kindhearted": 2,
+                  "persistent": 1
+                },
+                "description": "你尽力保护家人，承担更多责任，精神压力巨大。"
+              }
+            }
+          ]
+        },
+        {
+          "stageId": "2",
+          "title": "资源短缺",
+          "choices": [
+            {
+              "choiceId": "2a",
+              "text": "加入社区分配物资，帮助邻居",
+              "cost": {
+                "energy": 15
+              },
+              "outcome": {
+                "tags": {
+                  "helpful": 3,
+                  "kindhearted": 1
+                },
+                "description": "你的善举赢得了社区的信任与尊重。"
+              }
+            },
+            {
+              "choiceId": "2b",
+              "text": "优先保障自己和家人，减少援助他人",
+              "cost": {
+                "energy": 5
+              },
+              "outcome": {
+                "tags": {
+                  "minimalist": 1,
+                  "persistent": 1
+                },
+                "description": "你保护了亲人，但与邻居关系疏远。"
+              }
+            },
+            {
+              "choiceId": "2c",
+              "text": "尝试与冲突双方谈判，争取安全通道",
+              "cost": {
+                "time": 10,
+                "energy": 20
+              },
+              "outcome": {
+                "tags": {
+                  "negotiator": 3,
+                  "persistent": 1
+                },
+                "description": "虽然努力未必成功，但体现了你的勇气与智慧。"
+              }
+            }
+          ]
+        },
+        {
+          "stageId": "3",
+          "title": "精神考验",
+          "choices": [
+            {
+              "choiceId": "3a",
+              "text": "通过阅读和学习保持心灵平静",
+              "cost": {
+                "time": 8
+              },
+              "outcome": {
+                "tags": {
+                  "learner": 2,
+                  "work_life_balance": 1
+                },
+                "description": "你的内心获得力量，精神状态稳定。"
+              }
+            },
+            {
+              "choiceId": "3b",
+              "text": "参与社区支持小组，分享痛苦与希望",
+              "cost": {
+                "time": 6,
+                "energy": 10
+              },
+              "outcome": {
+                "tags": {
+                  "connector": 2,
+                  "warmhearted": 2
+                },
+                "description": "你成为社区中的温暖力量，彼此支持。"
+              }
+            },
+            {
+              "choiceId": "3c",
+              "text": "选择逃避现实，沉浸于电子设备中",
+              "cost": {
+                "energy": 5
+              },
+              "outcome": {
+                "tags": {
+                  "techie": 2
+                },
+                "description": "暂时逃离痛苦，但可能错失行动机会。"
+              }
+            }
+          ]
+        },
+        {
+          "stageId": "4",
+          "title": "未来抉择",
+          "choices": [
+            {
+              "choiceId": "4a",
+              "text": "积极参与国际援助组织，推动和平",
+              "cost": {
+                "time": 12,
+                "energy": 15
+              },
+              "outcome": {
+                "tags": {
+                  "persistent": 2,
+                  "kindhearted": 3,
+                  "connector": 1
+                },
+                "description": "你成为和平的推动者，努力改变未来。"
+              }
+            },
+            {
+              "choiceId": "4b",
+              "text": "选择移民他国，开始新的生活",
+              "cost": {
+                "time": 15,
+                "energy": 20
+              },
+              "outcome": {
+                "tags": {
+                  "traveler": 3,
+                  "explorer": 2
+                },
+                "description": "你迈出新步伐，开启未知旅程。"
+              }
+            },
+            {
+              "choiceId": "4c",
+              "text": "留在故土，重建家园",
+              "cost": {
+                "time": 20,
+                "energy": 25
+              },
+              "outcome": {
+                "tags": {
+                  "persistent": 3,
+                  "workaholic": 2
+                },
+                "description": "你选择肩负责任，努力振兴家乡。"
+              }
+            }
+          ]
+        }
+      ],
+      "participantCount": 13200,
+      "createdAt": 1750195200,
+      "source": {
+        "type": "aigc",
+        "newsTitle": "苏丹内战造成40万人死亡",
+        "newsDate": "2025-10-15",
+        "region": "非洲",
+        "urgency": "high"
+      }
+    },
+    {
+      "id": "aigc_event_001",
+      "title": "新教皇诞生，信仰新篇",
+      "description": "教皇方济各去世后，全球天主教界迎来第一位美国教皇利奥十四世。你作为普通信徒，感受到宗教变革带来的希望与挑战，开始思考信仰与现实的关系。",
+      "cover": "✝️",
+      "type": "story",
+      "status": "active",
+      "requirements": {},
+      "entryFee": {
+        "time": 10,
+        "energy": 5
+      },
+      "stages": [
+        {
+          "id": "stage1",
+          "title": "听闻教皇去世消息",
+          "choices": [
+            {
+              "id": "stage1_choice1",
+              "text": "深感悲痛，祈祷教皇灵魂安息",
+              "cost": {
+                "time": 5,
+                "energy": 3
+              },
+              "outcome": {
+                "tags": {
+                  "kindhearted": 2,
+                  "warmhearted": 1
+                },
+                "experience": 10
+              }
+            },
+            {
+              "id": "stage1_choice2",
+              "text": "理性思考宗教未来走向",
+              "cost": {
+                "time": 7,
+                "energy": 4
+              },
+              "outcome": {
+                "tags": {
+                  "learner": 2,
+                  "persistent": 1
+                },
+                "experience": 12
+              }
+            }
+          ]
+        },
+        {
+          "id": "stage2",
+          "title": "关注新教皇选举",
+          "choices": [
+            {
+              "id": "stage2_choice1",
+              "text": "积极参与教会讨论，表达期待",
+              "cost": {
+                "time": 8,
+                "energy": 5
+              },
+              "outcome": {
+                "tags": {
+                  "connector": 2,
+                  "social_butterfly": 1
+                },
+                "reputation": 5
+              }
+            },
+            {
+              "id": "stage2_choice2",
+              "text": "保持观望，关注新闻动态",
+              "cost": {
+                "time": 3,
+                "energy": 2
+              },
+              "outcome": {
+                "tags": {
+                  "learner": 1
+                },
+                "experience": 5
+              }
+            }
+          ]
+        },
+        {
+          "id": "stage3",
+          "title": "接受新教皇理念",
+          "choices": [
+            {
+              "id": "stage3_choice1",
+              "text": "支持利奥十四世关注工人阶级福祉",
+              "cost": {
+                "time": 6,
+                "energy": 4
+              },
+              "outcome": {
+                "tags": {
+                  "kindhearted": 2,
+                  "helpful": 2
+                },
+                "experience": 15
+              }
+            },
+            {
+              "id": "stage3_choice2",
+              "text": "保持个人信仰，独立思考",
+              "cost": {
+                "time": 5,
+                "energy": 3
+              },
+              "outcome": {
+                "tags": {
+                  "persistent": 2,
+                  "creative": 1
+                },
+                "experience": 10
+              }
+            }
+          ]
+        },
+        {
+          "id": "stage4",
+          "title": "参与社区活动",
+          "choices": [
+            {
+              "id": "stage4_choice1",
+              "text": "组织祷告会，凝聚信徒力量",
+              "cost": {
+                "time": 10,
+                "energy": 7
+              },
+              "outcome": {
+                "tags": {
+                  "connector": 3,
+                  "warmhearted": 2
+                },
+                "reputation": 10
+              }
+            },
+            {
+              "id": "stage4_choice2",
+              "text": "参与公益慈善，践行教皇精神",
+              "cost": {
+                "time": 12,
+                "energy": 8
+              },
+              "outcome": {
+                "tags": {
+                  "helpful": 3,
+                  "kindhearted": 3
+                },
+                "reputation": 15
+              }
+            }
+          ]
+        }
+      ],
+      "participantCount": 18500,
+      "createdAt": 1746758400,
+      "source": {
+        "type": "aigc",
+        "newsTitle": "教皇方济各去世，首位美国教皇诞生",
+        "newsDate": "2025-05-08",
+        "region": "全球",
+        "urgency": "medium"
+      }
+    },
+    {
+      "id": "aigc_event_001",
+      "title": "柬泰边境冲突升级",
+      "description": "你身处东南亚边境小镇，感受到了柬埔寨和泰国因古庙争端引发的冲突带来的紧张气氛。街头安保加强，物资短缺，家人和邻居的安全成为你的首要关注。你需要在这场局势动荡中做出选择，保护自己和家人。",
+      "cover": "⚔️",
+      "type": "story",
+      "status": "active",
+      "requirements": {},
+      "entryFee": {
+        "time": 10,
+        "energy": 5
+      },
+      "stages": [
+        {
+          "stageId": "stage1",
+          "title": "冲突初现",
+          "choices": [
+            {
+              "id": "c1_s1",
+              "text": "购买额外生活物资储备",
+              "cost": {
+                "time": 2,
+                "energy": 3
+              },
+              "outcome": {
+                "items": [
+                  "储备粮食",
+                  "饮用水"
+                ],
+                "tags": {
+                  "persistent": 1
+                },
+                "description": "你提前储备了生活必需品，准备应对可能的物资短缺。"
+              }
+            },
+            {
+              "id": "c2_s1",
+              "text": "关注新闻，保持信息灵通",
+              "cost": {
+                "time": 1,
+                "energy": 2
+              },
+              "outcome": {
+                "tags": {
+                  "learner": 2,
+                  "connector": 1
+                },
+                "description": "你时刻关注局势变化，确保自己掌握最新消息。"
+              }
+            },
+            {
+              "id": "c3_s1",
+              "text": "保持日常生活，避免恐慌",
+              "cost": {
+                "time": 0,
+                "energy": 1
+              },
+              "outcome": {
+                "tags": {
+                  "work_life_balance": 1
+                },
+                "description": "你尝试保持平静，专注于工作和家庭，避免过度焦虑。"
+              }
+            }
+          ]
+        },
+        {
+          "stageId": "stage2",
+          "title": "停火协议签署",
+          "choices": [
+            {
+              "id": "c1_s2",
+              "text": "参与社区和平倡议",
+              "cost": {
+                "time": 3,
+                "energy": 4
+              },
+              "outcome": {
+                "tags": {
+                  "kindhearted": 2,
+                  "connector": 2
+                },
+                "description": "你积极参与和平倡议，帮助邻里缓解紧张情绪。"
+              }
+            },
+            {
+              "id": "c2_s2",
+              "text": "继续保持警惕，准备应对突发事件",
+              "cost": {
+                "time": 2,
+                "energy": 3
+              },
+              "outcome": {
+                "tags": {
+                  "persistent": 2
+                },
+                "description": "你未放松警惕，随时准备面对可能的冲突升级。"
+              }
+            },
+            {
+              "id": "c3_s2",
+              "text": "选择离开边境地区，前往安全城市",
+              "cost": {
+                "time": 5,
+                "energy": 6
+              },
+              "outcome": {
+                "tags": {
+                  "traveler": 2,
+                  "minimalist": 1
+                },
+                "description": "你决定暂时离开危险地区，寻求安全环境。"
+              }
+            }
+          ]
+        },
+        {
+          "stageId": "stage3",
+          "title": "停火破裂，冲突升级",
+          "choices": [
+            {
+              "id": "c1_s3",
+              "text": "帮助受害者提供紧急援助",
+              "cost": {
+                "time": 4,
+                "energy": 5
+              },
+              "outcome": {
+                "tags": {
+                  "helpful": 3,
+                  "warmhearted": 2
+                },
+                "description": "你积极参与救助受冲突影响的人们，贡献自己的力量。"
+              }
+            },
+            {
+              "id": "c2_s3",
+              "text": "加强自我防护，强化家庭安全",
+              "cost": {
+                "time": 3,
+                "energy": 4
+              },
+              "outcome": {
+                "items": [
+                  "防护装备"
+                ],
+                "tags": {
+                  "persistent": 1
+                },
+                "description": "你购买防护装备，确保家人安全。"
+              }
+            },
+            {
+              "id": "c3_s3",
+              "text": "通过网络宣传，呼吁和平解决",
+              "cost": {
+                "time": 2,
+                "energy": 3
+              },
+              "outcome": {
+                "tags": {
+                  "creative": 2,
+                  "connector": 2
+                },
+                "description": "你用社交媒体发声，传播和平理念。"
+              }
+            }
+          ]
+        }
+      ],
+      "participantCount": 14000,
+      "createdAt": 1752201600,
+      "source": {
+        "type": "aigc",
+        "newsTitle": "柬泰边境冲突升级",
+        "newsDate": "2025-07-10",
+        "region": "东南亚",
+        "urgency": "medium"
+      }
+    }
+  ],
+  "items": [
+    {
+      "id": "aigc_item_tariff_wall",
+      "name": "迷你关税壁垒",
+      "description": "一面象征关税障碍的微型围墙模型，代表贸易摩擦。",
+      "icon": "🧱",
+      "rarity": "rare",
+      "category": "collectible",
+      "mintCost": {
+        "time": 120,
+        "energy": 50
+      },
+      "effects": [
+        {
+          "type": "trade_impact",
+          "value": -10,
+          "description": "增加贸易成本，降低收益"
+        },
+        {
+          "type": "negotiation_bonus",
+          "value": 5,
+          "description": "提升谈判中的策略优势"
+        }
+      ],
+      "tags": [
+        "negotiator",
+        "persistent",
+        "workaholic"
+      ],
+      "featureTags": [
+        "象征贸易阻碍",
+        "提升谈判能力",
+        "代表经济风险"
+      ],
+      "story": "2025年4月，特朗普宣布大规模关税，激起全球贸易震荡。这面迷你墙象征着加征关税构建的贸易壁垒，提醒着玩家贸易环境的复杂和不可预测。",
+      "visible": true,
+      "createdAt": 1710000000000,
+      "source": {
+        "type": "aigc",
+        "relatedEventId": "aigc_event_001",
+        "newsTitle": "特朗普打响全球关税战"
+      }
+    },
+    {
+      "id": "aigc_item_rare_earth_fragment",
+      "name": "稀土碎片",
+      "description": "从中国暂停出口的稀土中提炼出的神秘碎片。",
+      "icon": "🪨",
+      "rarity": "epic",
+      "category": "material",
+      "mintCost": {
+        "time": 200,
+        "energy": 80
+      },
+      "effects": [
+        {
+          "type": "resource_control",
+          "value": 15,
+          "description": "掌控关键资源，提升制造效率"
+        },
+        {
+          "type": "trade_leverage",
+          "value": 10,
+          "description": "增强谈判时的筹码"
+        }
+      ],
+      "tags": [
+        "persistent",
+        "techie",
+        "negotiator"
+      ],
+      "featureTags": [
+        "关键战略资源",
+        "制造核心材料",
+        "贸易谈判利器"
+      ],
+      "story": "中国暂停稀土出口作为反制措施，迫使全球供应链重组。这片稀土碎片承载着资源争夺的激烈博弈，是玩家掌握战略优势的象征。",
+      "visible": true,
+      "createdAt": 1710000000000,
+      "source": {
+        "type": "aigc",
+        "relatedEventId": "aigc_event_001",
+        "newsTitle": "特朗普打响全球关税战"
+      }
+    },
+    {
+      "id": "aigc_item_reduction_agreement",
+      "name": "90天减税协议文书",
+      "description": "记录中美暂时缓和贸易战的关键减税协议文档。",
+      "icon": "📜",
+      "rarity": "uncommon",
+      "category": "collectible",
+      "mintCost": {
+        "time": 60,
+        "energy": 30
+      },
+      "effects": [
+        {
+          "type": "trade_stability",
+          "value": 20,
+          "description": "短期内提升贸易稳定性"
+        },
+        {
+          "type": "conflict_decrease",
+          "value": 15,
+          "description": "缓和对抗，减少冲突风险"
+        }
+      ],
+      "tags": [
+        "negotiator",
+        "connector",
+        "persistent"
+      ],
+      "featureTags": [
+        "缓和贸易冲突",
+        "提升稳定性",
+        "短期协议文书"
+      ],
+      "story": "2025年5月，中美达成90天减税协议，暂时缓解关税战带来的紧张局势。这份协议文书象征着谈判与妥协的可能，为玩家带来贸易环境改善的契机。",
+      "visible": true,
+      "createdAt": 1710000000000,
+      "source": {
+        "type": "aigc",
+        "relatedEventId": "aigc_event_001",
+        "newsTitle": "特朗普打响全球关税战"
+      }
+    },
+    {
+      "id": "aigc_item_001",
+      "name": "库尔斯克战役微型模型",
+      "description": "一座微缩的库尔斯克战役前线模型，象征着战争中的阵地争夺。",
+      "icon": "🗺️",
+      "rarity": "rare",
+      "category": "collectible",
+      "mintCost": {
+        "time": 30,
+        "energy": 20
+      },
+      "effects": [
+        {
+          "type": "defenseBoost",
+          "value": 5,
+          "description": "提升队伍防御力5%"
+        }
+      ],
+      "tags": [
+        "persistent",
+        "negotiator",
+        "workaholic"
+      ],
+      "featureTags": [
+        "坚韧不拔",
+        "战略要地",
+        "历史象征"
+      ],
+      "story": "库尔斯克战役作为俄乌战争的关键战役之一，象征着激烈的阵地争夺和双方的顽强抵抗。这座微型模型让玩家感受到战争前线的紧张与坚守。",
+      "visible": true,
+      "createdAt": 1686825600000,
+      "source": {
+        "type": "aigc",
+        "relatedEventId": "aigc_event_001",
+        "newsTitle": "俄乌战争进入第四年"
+      }
+    },
+    {
+      "id": "aigc_item_002",
+      "name": "蜘蛛网无人机模型",
+      "description": "象征乌克兰‘蜘蛛网行动’的微型无人机模型，体现隐秘打击力量。",
+      "icon": "🕷️",
+      "rarity": "epic",
+      "category": "equipment",
+      "mintCost": {
+        "time": 45,
+        "energy": 40
+      },
+      "effects": [
+        {
+          "type": "attackBoost",
+          "value": 10,
+          "description": "提升远程攻击力10%"
+        },
+        {
+          "type": "stealth",
+          "value": 7,
+          "description": "增加隐蔽能力7%"
+        }
+      ],
+      "tags": [
+        "techie",
+        "persistent",
+        "creative"
+      ],
+      "featureTags": [
+        "隐秘打击",
+        "高科技",
+        "战略远程"
+      ],
+      "story": "‘蜘蛛网行动’利用无人机深入敌后精准打击，改变了战场格局。这款无人机模型象征着战场上的新兴科技和无人作战力量。",
+      "visible": true,
+      "createdAt": 1686825600000,
+      "source": {
+        "type": "aigc",
+        "relatedEventId": "aigc_event_001",
+        "newsTitle": "俄乌战争进入第四年"
+      }
+    },
+    {
+      "id": "aigc_item_003",
+      "name": "欧盟援助信物",
+      "description": "象征欧盟对乌克兰巨额贷款支持的纪念徽章，代表国际援助力量。",
+      "icon": "💶",
+      "rarity": "uncommon",
+      "category": "collectible",
+      "mintCost": {
+        "time": 20,
+        "energy": 10
+      },
+      "effects": [
+        {
+          "type": "resourceBoost",
+          "value": 15,
+          "description": "增加获取资源15%"
+        }
+      ],
+      "tags": [
+        "connector",
+        "kindhearted",
+        "persistent"
+      ],
+      "featureTags": [
+        "国际援助",
+        "资金支持",
+        "坚实后盾"
+      ],
+      "story": "欧盟向乌克兰提供了超过千亿美元的贷款支持，成为其坚实的国际后盾。这枚信物见证了国际社会的团结与援助。",
+      "visible": true,
+      "createdAt": 1686825600000,
+      "source": {
+        "type": "aigc",
+        "relatedEventId": "aigc_event_001",
+        "newsTitle": "俄乌战争进入第四年"
+      }
+    },
+    {
+      "id": "aigc_item_001",
+      "name": "深寻之芯",
+      "description": "一颗象征DeepSeek突破的AI芯片模型，代表技术自立与创新。",
+      "icon": "💡",
+      "rarity": "legendary",
+      "category": "collectible",
+      "mintCost": {
+        "time": 120,
+        "energy": 200
+      },
+      "effects": [
+        {
+          "type": "innovation_boost",
+          "value": 15,
+          "description": "提升AI模型训练速度15%"
+        },
+        {
+          "type": "resource_saving",
+          "value": 10,
+          "description": "减少硬件资源消耗10%"
+        }
+      ],
+      "tags": [
+        "techie",
+        "persistent",
+        "creative"
+      ],
+      "featureTags": [
+        "技术突破",
+        "自主创新",
+        "节能高效",
+        "行业震撼"
+      ],
+      "story": "2025年，DeepSeek发布了无需依赖顶级Nvidia芯片的AI系统，这颗象征其核心突破的‘深寻之芯’成为技术自立与创新的标志，激励无数开发者追求突破极限。",
+      "visible": true,
+      "createdAt": 1736985600,
+      "source": {
+        "type": "aigc",
+        "relatedEventId": "aigc_event_001",
+        "newsTitle": "DeepSeek震撼AI行业"
+      }
+    },
+    {
+      "id": "aigc_item_002",
+      "name": "出口管制围墙",
+      "description": "一面微型围墙模型，象征中美芯片出口管制的博弈壁垒。",
+      "icon": "🧱",
+      "rarity": "rare",
+      "category": "collectible",
+      "mintCost": {
+        "time": 60,
+        "energy": 80
+      },
+      "effects": [
+        {
+          "type": "trade_restriction",
+          "value": 20,
+          "description": "降低对手资源交换效率20%"
+        }
+      ],
+      "tags": [
+        "negotiator",
+        "persistent"
+      ],
+      "featureTags": [
+        "贸易壁垒",
+        "国际博弈",
+        "限制流通",
+        "战略防御"
+      ],
+      "story": "面对中美芯片出口管制，这面‘出口管制围墙’凝聚了贸易摩擦与政治博弈的紧张氛围，提醒玩家在资源争夺中须慎重策略布局。",
+      "visible": true,
+      "createdAt": 1736985600,
+      "source": {
+        "type": "aigc",
+        "relatedEventId": "aigc_event_001",
+        "newsTitle": "DeepSeek震撼AI行业"
+      }
+    },
+    {
+      "id": "aigc_item_003",
+      "name": "劳动力变革之匙",
+      "description": "象征AI取代岗位引发社会变革的钥匙，开启未来职业新篇章。",
+      "icon": "🔑",
+      "rarity": "epic",
+      "category": "collectible",
+      "mintCost": {
+        "time": 90,
+        "energy": 150
+      },
+      "effects": [
+        {
+          "type": "job_transition",
+          "value": 25,
+          "description": "加速职业适应与转型25%"
+        },
+        {
+          "type": "social_discussion",
+          "value": 10,
+          "description": "提升团队协作与沟通能力10%"
+        }
+      ],
+      "tags": [
+        "work_life_balance",
+        "learner",
+        "connector"
+      ],
+      "featureTags": [
+        "职业变革",
+        "社会讨论",
+        "适应转型",
+        "未来展望"
+      ],
+      "story": "随着AI大规模取代岗位，人们握紧这把‘劳动力变革之匙’，勇于面对新职业形态，开启社会与个人的全新未来。",
+      "visible": true,
+      "createdAt": 1736985600,
+      "source": {
+        "type": "aigc",
+        "relatedEventId": "aigc_event_001",
+        "newsTitle": "DeepSeek震撼AI行业"
+      }
+    },
+    {
+      "id": "aigc_item_001",
+      "name": "雄狮之爪",
+      "description": "象征以色列'雄狮崛起'行动的利爪模型，象征坚决打击与快速反应。",
+      "icon": "🦁",
+      "rarity": "epic",
+      "category": "collectible",
+      "mintCost": {
+        "time": 120,
+        "energy": 50
+      },
+      "effects": [
+        {
+          "type": "attack_boost",
+          "value": 15,
+          "description": "提升行动效率和攻击力"
+        },
+        {
+          "type": "speed",
+          "value": 10,
+          "description": "提高行动速度"
+        }
+      ],
+      "tags": [
+        "persistent",
+        "negotiator",
+        "workaholic"
+      ],
+      "featureTags": [
+        "坚决果断",
+        "快速反应",
+        "战略进攻"
+      ],
+      "story": "2025年6月，以色列发动的'雄狮崛起'行动如同猛兽的利爪，精准而致命地打击了伊朗的重要核设施和军事目标，象征着坚定的决心与强大的攻势力量。",
+      "visible": true,
+      "createdAt": 1718534400000,
+      "source": {
+        "type": "aigc",
+        "relatedEventId": "aigc_event_001",
+        "newsTitle": "以色列与伊朗爆发十二日战争"
+      }
+    },
+    {
+      "id": "aigc_item_002",
+      "name": "午夜之锤",
+      "description": "美国B2轰炸机'午夜之锤'行动的象征模型，代表隐秘精准的空袭打击。",
+      "icon": "🔨",
+      "rarity": "rare",
+      "category": "equipment",
+      "mintCost": {
+        "time": 100,
+        "energy": 40
+      },
+      "effects": [
+        {
+          "type": "stealth_attack",
+          "value": 20,
+          "description": "提升隐秘攻击力和打击效率"
+        }
+      ],
+      "tags": [
+        "techie",
+        "persistent",
+        "negotiator"
+      ],
+      "featureTags": [
+        "精准打击",
+        "隐秘行动",
+        "高科技装备"
+      ],
+      "story": "在这场战争中，美国B2轰炸机执行的'午夜之锤'行动，以隐秘而精准的空袭摧毁了伊朗的关键核设施，令敌军措手不及，体现了冷战时代的高科技优势。",
+      "visible": true,
+      "createdAt": 1718534400000,
+      "source": {
+        "type": "aigc",
+        "relatedEventId": "aigc_event_001",
+        "newsTitle": "以色列与伊朗爆发十二日战争"
+      }
+    },
+    {
+      "id": "aigc_item_003",
+      "name": "转移的浓缩铀",
+      "description": "象征伊朗秘密转移的浓缩铀样品，代表隐藏的核威胁与未来的不确定性。",
+      "icon": "⚛️",
+      "rarity": "legendary",
+      "category": "material",
+      "mintCost": {
+        "time": 150,
+        "energy": 70
+      },
+      "effects": [
+        {
+          "type": "nuclear_potential",
+          "value": 30,
+          "description": "提升未来爆发力和战略威胁"
+        },
+        {
+          "type": "concealment",
+          "value": 25,
+          "description": "增强隐藏能力与防侦察"
+        }
+      ],
+      "tags": [
+        "persistent",
+        "negotiator",
+        "techie"
+      ],
+      "featureTags": [
+        "隐秘转移",
+        "核威胁",
+        "战略筹码"
+      ],
+      "story": "尽管双方停火，伊朗秘密转移的浓缩铀象征着未消除的核威胁与未来的不确定局势，成为和平中的潜在火种，提醒玩家关注隐藏的战略风险。",
+      "visible": true,
+      "createdAt": 1718534400000,
+      "source": {
+        "type": "aigc",
+        "relatedEventId": "aigc_event_001",
+        "newsTitle": "以色列与伊朗爆发十二日战争"
+      }
+    },
+    {
+      "id": "aigc_item_001",
+      "name": "克什米尔之火",
+      "description": "象征克什米尔冲突的燃烧火焰标本，凝聚着悲痛与激烈对峙。",
+      "icon": "🔥",
+      "rarity": "epic",
+      "category": "collectible",
+      "mintCost": {
+        "time": 120,
+        "energy": 60
+      },
+      "effects": [
+        {
+          "type": "morale",
+          "value": -10,
+          "description": "触碰时会降低周围队友的士气，反映冲突带来的压抑感"
+        }
+      ],
+      "tags": [
+        "persistent",
+        "negotiator"
+      ],
+      "featureTags": [
+        "冲突象征",
+        "痛苦记忆",
+        "历史转折"
+      ],
+      "story": "2025年5月，克什米尔地区的恐怖袭击引爆了印巴之间半个世纪以来最激烈的军事冲突。此物品象征这场悲痛与激烈对峙，凝结着人们对和平的渴望与对战争的警醒。",
+      "visible": true,
+      "createdAt": 1712908800,
+      "source": {
+        "type": "aigc",
+        "relatedEventId": "aigc_event_001",
+        "newsTitle": "印度与巴基斯坦军事冲突"
+      }
+    },
+    {
+      "id": "aigc_item_002",
+      "name": "无人机残骸",
+      "description": "被击落的无人机碎片，见证了现代战争科技的残酷对抗。",
+      "icon": "🛸",
+      "rarity": "rare",
+      "category": "material",
+      "mintCost": {
+        "time": 80,
+        "energy": 40
+      },
+      "effects": [
+        {
+          "type": "tech_attack",
+          "value": 15,
+          "description": "提升科技武器攻击力，反映无人机在战场上的重要角色"
+        }
+      ],
+      "tags": [
+        "techie",
+        "persistent"
+      ],
+      "featureTags": [
+        "科技残骸",
+        "战争遗物",
+        "高科技象征"
+      ],
+      "story": "在印巴冲突中，无人机与导弹的反击使战斗进入新阶段。这段残骸记录了现代战争科技带来的生死较量与不断升级的军事手段。",
+      "visible": true,
+      "createdAt": 1712908800,
+      "source": {
+        "type": "aigc",
+        "relatedEventId": "aigc_event_001",
+        "newsTitle": "印度与巴基斯坦军事冲突"
+      }
+    },
+    {
+      "id": "aigc_item_003",
+      "name": "断流水阀",
+      "description": "象征印度暂停印度河水条约的水阀，威胁巴基斯坦农田灌溉。",
+      "icon": "🚰",
+      "rarity": "legendary",
+      "category": "equipment",
+      "mintCost": {
+        "time": 150,
+        "energy": 100
+      },
+      "effects": [
+        {
+          "type": "resource_block",
+          "value": 20,
+          "description": "限制对手资源恢复速度，象征水源断流的威胁"
+        }
+      ],
+      "tags": [
+        "negotiator",
+        "persistent"
+      ],
+      "featureTags": [
+        "资源控制",
+        "战略威胁",
+        "历史条约影响"
+      ],
+      "story": "印度暂停1960年印度河水条约，威胁巴基斯坦80%农田灌溉水源。此物品象征水资源在冲突中的战略价值与双方博弈的关键。",
+      "visible": true,
+      "createdAt": 1712908800,
+      "source": {
+        "type": "aigc",
+        "relatedEventId": "aigc_event_001",
+        "newsTitle": "印度与巴基斯坦军事冲突"
+      }
+    },
+    {
+      "id": "aigc_item_rare_earth_core",
+      "name": "稀土核心晶体",
+      "description": "集聚全球稀土能量的神秘晶体，代表中国掌控的关键资源。",
+      "icon": "🪨",
+      "rarity": "legendary",
+      "category": "collectible",
+      "mintCost": {
+        "time": 300,
+        "energy": 500
+      },
+      "effects": [
+        {
+          "type": "trade_power",
+          "value": 20,
+          "description": "提升与其他势力贸易谈判优势20%"
+        },
+        {
+          "type": "economic_warfare",
+          "value": 15,
+          "description": "在经济制裁中提高抵抗力15%"
+        }
+      ],
+      "tags": [
+        "negotiator",
+        "persistent",
+        "workaholic"
+      ],
+      "featureTags": [
+        "关键资源",
+        "经济武器",
+        "战略控制",
+        "全球影响力"
+      ],
+      "story": "2025年，中国稀土核心晶体象征着其对全球稀土市场的掌控。这块晶体凝聚了中国在磁铁及7种稀土矿物出口中断背后的决心，成为反制美国经济霸权的利器，左右着全球高科技产业的命脉。",
+      "visible": true,
+      "createdAt": 1710000000000,
+      "source": {
+        "type": "aigc",
+        "relatedEventId": "aigc_event_rare_earth_restriction",
+        "newsTitle": "中国稀土武器化反制美国"
+      }
+    },
+    {
+      "id": "aigc_item_trade_wall_model",
+      "name": "稀土贸易壁垒模型",
+      "description": "象征贸易壁垒的微型围墙，体现稀土出口限制的强硬姿态。",
+      "icon": "🧱",
+      "rarity": "rare",
+      "category": "equipment",
+      "mintCost": {
+        "time": 150,
+        "energy": 200
+      },
+      "effects": [
+        {
+          "type": "defense",
+          "value": 10,
+          "description": "提升经济制裁抵抗10%"
+        },
+        {
+          "type": "diplomacy",
+          "value": -5,
+          "description": "降低与部分势力的外交好感度5%"
+        }
+      ],
+      "tags": [
+        "negotiator",
+        "persistent"
+      ],
+      "featureTags": [
+        "贸易制约",
+        "战略防御",
+        "经济壁垒"
+      ],
+      "story": "这座微型贸易壁垒模型，灵感源自中国通过暂停稀土出口对美国施加的经济压力。它象征着复杂国际博弈中的防线，以及贸易政策的强硬执行，为持有者带来经济防护的力量。",
+      "visible": true,
+      "createdAt": 1710000000000,
+      "source": {
+        "type": "aigc",
+        "relatedEventId": "aigc_event_rare_earth_restriction",
+        "newsTitle": "中国稀土武器化反制美国"
+      }
+    },
+    {
+      "id": "aigc_item_magnetic_shield",
+      "name": "磁铁盾牌",
+      "description": "由稀土磁铁打造的盾牌，象征中国磁性材料出口的战略地位。",
+      "icon": "🛡️",
+      "rarity": "epic",
+      "category": "equipment",
+      "mintCost": {
+        "time": 200,
+        "energy": 300
+      },
+      "effects": [
+        {
+          "type": "shield",
+          "value": 25,
+          "description": "提升25点防御力，抵挡经济打击"
+        },
+        {
+          "type": "resource_control",
+          "value": 10,
+          "description": "增强对稀土资源的控制力10%"
+        }
+      ],
+      "tags": [
+        "persistent",
+        "workaholic",
+        "negotiator"
+      ],
+      "featureTags": [
+        "战略资源",
+        "防御力强",
+        "经济反制"
+      ],
+      "story": "磁铁盾牌象征着中国对磁性稀土材料的出口控制。这件装备不仅是防御的象征，也体现了通过关键资源形成的经济战略优势，坚定地抵御外部压力与挑战。",
+      "visible": true,
+      "createdAt": 1710000000000,
+      "source": {
+        "type": "aigc",
+        "relatedEventId": "aigc_event_rare_earth_restriction",
+        "newsTitle": "中国稀土武器化反制美国"
+      }
+    },
+    {
+      "id": "aigc_item_ceasefire_scroll",
+      "name": "停火卷轴",
+      "description": "象征加沙冲突双方达成的短暂停火协议，寄托和平希望。",
+      "icon": "🕊️",
+      "rarity": "rare",
+      "category": "collectible",
+      "mintCost": {
+        "time": 3
+      },
+      "effects": [
+        {
+          "type": "peace_duration",
+          "value": 5,
+          "description": "延长游戏中和平状态时间5回合"
+        }
+      ],
+      "tags": [
+        "negotiator",
+        "kindhearted",
+        "connector"
+      ],
+      "featureTags": [
+        "象征和平",
+        "缓解冲突",
+        "短暂宁静"
+      ],
+      "story": "这卷轴记载了2025年10月以色列与哈马斯达成的停火协议，虽然和平脆弱，却是多年战斗中的宝贵喘息机会。卷轴象征着双方短暂的和解与和平的渴望。",
+      "visible": true,
+      "createdAt": 1696156800000,
+      "source": {
+        "type": "aigc",
+        "relatedEventId": "aigc_event_001",
+        "newsTitle": "加沙停火与三阶段和平计划"
+      }
+    },
+    {
+      "id": "aigc_item_broken_weapon_fragment",
+      "name": "断裂武器碎片",
+      "description": "象征哈马斯拒绝解除武装的残骸，代表冲突的持续与无奈。",
+      "icon": "⚔️",
+      "rarity": "epic",
+      "category": "material",
+      "mintCost": {
+        "energy": 8
+      },
+      "effects": [
+        {
+          "type": "conflict_intensity",
+          "value": 3,
+          "description": "提升敌对势力的攻击强度3点"
+        }
+      ],
+      "tags": [
+        "persistent",
+        "workaholic"
+      ],
+      "featureTags": [
+        "冲突象征",
+        "武装抵抗",
+        "紧张氛围"
+      ],
+      "story": "这块断裂的武器碎片来自哈马斯装备，象征着他们拒绝解除武装的坚决态度，也反映了加沙地区持续的紧张与冲突局势。",
+      "visible": true,
+      "createdAt": 1696156800000,
+      "source": {
+        "type": "aigc",
+        "relatedEventId": "aigc_event_001",
+        "newsTitle": "加沙停火与三阶段和平计划"
+      }
+    },
+    {
+      "id": "aigc_item_reconstruction_blueprint",
+      "name": "重建蓝图",
+      "description": "描绘加沙未来基础设施与治理重建的规划蓝图，承载希望与挑战。",
+      "icon": "📐",
+      "rarity": "uncommon",
+      "category": "equipment",
+      "mintCost": {
+        "time": 5,
+        "energy": 5
+      },
+      "effects": [
+        {
+          "type": "infrastructure_recovery",
+          "value": 4,
+          "description": "加速区域基础设施恢复4个单位"
+        }
+      ],
+      "tags": [
+        "creative",
+        "learner",
+        "work_life_balance"
+      ],
+      "featureTags": [
+        "重建希望",
+        "规划蓝图",
+        "未来愿景"
+      ],
+      "story": "这张蓝图象征着加沙地区未来的重建计划，虽然现实充满阻碍，但它寄托着恢复治理和基础设施的愿望，是和平愿景的具象体现。",
+      "visible": true,
+      "createdAt": 1696156800000,
+      "source": {
+        "type": "aigc",
+        "relatedEventId": "aigc_event_001",
+        "newsTitle": "加沙停火与三阶段和平计划"
+      }
+    },
+    {
+      "id": "aigc_item_001",
+      "name": "断裂的和平鸽雕像",
+      "description": "象征苏丹内战撕裂和平的破碎雕像，承载沉重的历史记忆。",
+      "icon": "🕊️",
+      "rarity": "epic",
+      "category": "collectible",
+      "mintCost": {
+        "time": 120,
+        "energy": 30
+      },
+      "effects": [
+        {
+          "type": "morale",
+          "value": -10,
+          "description": "使用后降低周围单位的士气，反映战争的阴影"
+        }
+      ],
+      "tags": [
+        "kindhearted",
+        "learner"
+      ],
+      "featureTags": [
+        "和平象征",
+        "历史沉重",
+        "战争记忆",
+        "反思"
+      ],
+      "story": "这尊断裂的和平鸽雕像记录了苏丹内战的惨烈，40万生命逝去，和平被撕裂。它提醒人们珍惜安宁，也警醒未来避免重蹈覆辙。",
+      "visible": true,
+      "createdAt": 1686787200000,
+      "source": {
+        "type": "aigc",
+        "relatedEventId": "aigc_event_001",
+        "newsTitle": "苏丹内战造成40万人死亡"
+      }
+    },
+    {
+      "id": "aigc_item_002",
+      "name": "血迹染红的法希尔地图",
+      "description": "标记法希尔最后一战及屠杀地点的古旧地图，血迹隐约可见。",
+      "icon": "🗺️",
+      "rarity": "rare",
+      "category": "collectible",
+      "mintCost": {
+        "time": 90,
+        "energy": 20
+      },
+      "effects": [
+        {
+          "type": "awareness",
+          "value": 15,
+          "description": "提升对战场局势的洞察力，增加战略判断"
+        }
+      ],
+      "tags": [
+        "learner",
+        "persistent"
+      ],
+      "featureTags": [
+        "战场见证",
+        "历史记录",
+        "阴暗真相",
+        "战略洞察"
+      ],
+      "story": "这张法希尔地图被血迹染红，记录了RSF攻占苏丹达尔富尔最后据点时的惨烈屠杀。血的痕迹从太空都能看到，是战争的血腥证据。",
+      "visible": true,
+      "createdAt": 1686787200000,
+      "source": {
+        "type": "aigc",
+        "relatedEventId": "aigc_event_001",
+        "newsTitle": "苏丹内战造成40万人死亡"
+      }
+    },
+    {
+      "id": "aigc_item_003",
+      "name": "流离失所者的破旧行囊",
+      "description": "象征1200万流离失所者的简陋背包，饱含无数逃难故事。",
+      "icon": "🎒",
+      "rarity": "uncommon",
+      "category": "equipment",
+      "mintCost": {
+        "time": 60,
+        "energy": 15
+      },
+      "effects": [
+        {
+          "type": "endurance",
+          "value": 10,
+          "description": "提升角色耐力，象征坚韧的生存意志"
+        }
+      ],
+      "tags": [
+        "persistent",
+        "kindhearted"
+      ],
+      "featureTags": [
+        "生存象征",
+        "坚韧不拔",
+        "逃难故事",
+        "同情心"
+      ],
+      "story": "这只破旧的行囊代表苏丹内战中1200万流离失所者的苦难与坚韧。它承载着逃难者的希望与绝望，提醒世人战争带来的深刻伤痛。",
+      "visible": true,
+      "createdAt": 1686787200000,
+      "source": {
+        "type": "aigc",
+        "relatedEventId": "aigc_event_001",
+        "newsTitle": "苏丹内战造成40万人死亡"
+      }
+    },
+    {
+      "id": "aigc_item_001",
+      "name": "权杖之光",
+      "description": "象征教皇权威的权杖，刻有利奥十四世的徽章。",
+      "icon": "⚜️",
+      "rarity": "legendary",
+      "category": "equipment",
+      "mintCost": {
+        "time": 60,
+        "energy": 40
+      },
+      "effects": [
+        {
+          "type": "influence",
+          "value": 20,
+          "description": "提升交涉成功率20%"
+        },
+        {
+          "type": "leadership",
+          "value": 15,
+          "description": "增强团队凝聚力15%"
+        }
+      ],
+      "tags": [
+        "connector",
+        "negotiator",
+        "persistent"
+      ],
+      "featureTags": [
+        "权威象征",
+        "领导力提升",
+        "精神引导",
+        "历史传承"
+      ],
+      "story": "利奥十四世的权杖融汇了教皇的权威与责任，象征着他作为首位美国教皇领导全球教会的坚毅与智慧。这权杖记录了他关注工人阶级福祉的信念，激励信徒前行。",
+      "visible": true,
+      "createdAt": 1710000000000,
+      "source": {
+        "type": "aigc",
+        "relatedEventId": "aigc_event_001",
+        "newsTitle": "教皇方济各去世，首位美国教皇诞生"
+      }
+    },
+    {
+      "id": "aigc_item_002",
+      "name": "枢机主教徽章",
+      "description": "象征枢机主教身份的徽章，刻有芝加哥象征元素。",
+      "icon": "🛡️",
+      "rarity": "rare",
+      "category": "collectible",
+      "mintCost": {
+        "time": 30
+      },
+      "effects": [
+        {
+          "type": "diplomacy",
+          "value": 10,
+          "description": "提升外交关系10%"
+        }
+      ],
+      "tags": [
+        "negotiator",
+        "connector",
+        "learner"
+      ],
+      "featureTags": [
+        "身份象征",
+        "文化融合",
+        "威望提升"
+      ],
+      "story": "这枚徽章代表罗伯特·普雷沃斯特枢机的身份，融合了芝加哥的城市精神与教会传统，见证了他从枢机主教到教皇的历史性跃迁。",
+      "visible": true,
+      "createdAt": 1710000000000,
+      "source": {
+        "type": "aigc",
+        "relatedEventId": "aigc_event_001",
+        "newsTitle": "教皇方济各去世，首位美国教皇诞生"
+      }
+    },
+    {
+      "id": "aigc_item_003",
+      "name": "工人之心勋章",
+      "description": "象征利奥十四世关注工人阶级的勋章，刻有锤子和麦穗图案。",
+      "icon": "🏅",
+      "rarity": "epic",
+      "category": "collectible",
+      "mintCost": {
+        "energy": 50
+      },
+      "effects": [
+        {
+          "type": "morale",
+          "value": 15,
+          "description": "提升团队士气15%"
+        },
+        {
+          "type": "empathy",
+          "value": 12,
+          "description": "增强同理心12%"
+        }
+      ],
+      "tags": [
+        "kindhearted",
+        "warmhearted",
+        "helpful"
+      ],
+      "featureTags": [
+        "关怀工人",
+        "社会责任",
+        "激励人心",
+        "团结精神"
+      ],
+      "story": "这是利奥十四世为纪念他关注工人阶级福祉而设计的勋章，象征着他对社会公平的追求与慈悲心，激励玩家关怀身边的人。",
+      "visible": true,
+      "createdAt": 1710000000000,
+      "source": {
+        "type": "aigc",
+        "relatedEventId": "aigc_event_001",
+        "newsTitle": "教皇方济各去世，首位美国教皇诞生"
+      }
+    },
+    {
+      "id": "aigc_item_001",
+      "name": "百年古庙模型",
+      "description": "象征柬泰争端的古庙微缩模型，见证了边境纷争的历史。",
+      "icon": "🏯",
+      "rarity": "rare",
+      "category": "collectible",
+      "mintCost": {
+        "time": 120
+      },
+      "effects": [
+        {
+          "type": "diplomacy",
+          "value": 5,
+          "description": "提升谈判成功率"
+        },
+        {
+          "type": "awareness",
+          "value": 3,
+          "description": "增加冲突事件识别能力"
+        }
+      ],
+      "tags": [
+        "negotiator",
+        "learner",
+        "connector"
+      ],
+      "featureTags": [
+        "历史象征",
+        "文化遗产",
+        "边境冲突",
+        "和平希望"
+      ],
+      "story": "这座百年古庙模型代表了柬埔寨与泰国数十年边境古庙争端的核心，是双方文化和历史的交汇点。它见证了冲突与停火，并提醒人们和平的珍贵。",
+      "visible": true,
+      "createdAt": 1728758400,
+      "source": {
+        "type": "aigc",
+        "relatedEventId": "aigc_event_001",
+        "newsTitle": "柬泰边境冲突升级"
+      }
+    },
+    {
+      "id": "aigc_item_002",
+      "name": "地雷残片",
+      "description": "冲突遗留的地雷爆炸残片，警示战争的残酷和无辜伤亡。",
+      "icon": "💣",
+      "rarity": "epic",
+      "category": "material",
+      "mintCost": {
+        "energy": 50
+      },
+      "effects": [
+        {
+          "type": "danger",
+          "value": 7,
+          "description": "增加陷阱触发概率"
+        },
+        {
+          "type": "awareness",
+          "value": 4,
+          "description": "提升危机感知"
+        }
+      ],
+      "tags": [
+        "persistent",
+        "learner",
+        "kindhearted"
+      ],
+      "featureTags": [
+        "战争残酷",
+        "安全警示",
+        "生命价值"
+      ],
+      "story": "这块地雷残片来自致命的爆炸现场，象征战争对士兵和平民的威胁。它提醒玩家珍惜和平，关注和避免战区危险。",
+      "visible": true,
+      "createdAt": 1728758400,
+      "source": {
+        "type": "aigc",
+        "relatedEventId": "aigc_event_001",
+        "newsTitle": "柬泰边境冲突升级"
+      }
+    },
+    {
+      "id": "aigc_item_003",
+      "name": "停火协议文书",
+      "description": "记录吉隆坡停火协议的文书，象征脆弱的和平与谈判希望。",
+      "icon": "📄",
+      "rarity": "uncommon",
+      "category": "collectible",
+      "mintCost": {
+        "time": 60
+      },
+      "effects": [
+        {
+          "type": "negotiation",
+          "value": 6,
+          "description": "增强和平谈判能力"
+        },
+        {
+          "type": "stability",
+          "value": 3,
+          "description": "提升局势稳定性"
+        }
+      ],
+      "tags": [
+        "negotiator",
+        "connector",
+        "persistent"
+      ],
+      "featureTags": [
+        "和平象征",
+        "外交努力",
+        "协议精神"
+      ],
+      "story": "这份停火协议文书记录了柬泰双方在吉隆坡达成的和平共识，虽短暂但承载着双方对终结冲突的渴望与努力。",
+      "visible": true,
+      "createdAt": 1728758400,
+      "source": {
+        "type": "aigc",
+        "relatedEventId": "aigc_event_001",
+        "newsTitle": "柬泰边境冲突升级"
+      }
+    }
+  ],
+  "newTags": [
+    {
+      "id": "trade_war_aware",
+      "name": "贸易战关注者",
+      "icon": "🌐",
+      "description": "关注全球贸易战及其影响，理解国际经济形势变化",
+      "category": "growth"
+    },
+    {
+      "id": "ai_enthusiast",
+      "name": "人工智能爱好者",
+      "icon": "🤖",
+      "description": "对人工智能技术及其发展充满热情和关注",
+      "category": "work"
+    },
+    {
+      "id": "tech_innovator",
+      "name": "技术创新者",
+      "icon": "🚀",
+      "description": "积极推动和应用前沿技术创新",
+      "category": "work"
+    },
+    {
+      "id": "conflict_aware",
+      "name": "冲突关注者",
+      "icon": "⚔️",
+      "description": "关注战争冲突及其社会影响的用户",
+      "category": "social"
+    },
+    {
+      "id": "religious_leader",
+      "name": "宗教领袖",
+      "icon": "⛪",
+      "description": "关注宗教事务，具备宗教领袖特质的用户",
+      "category": "social"
+    },
+    {
+      "id": "conflict_affected",
+      "name": "冲突受影响者",
+      "icon": "⚔️",
+      "description": "经历或关注军事冲突和战争事件的用户",
+      "category": "social"
+    }
+  ],
+  "generatedAt": 1771928260235,
+  "newsCount": 10
+}

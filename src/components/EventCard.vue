@@ -3,6 +3,13 @@
     <!-- 顶部装饰条 -->
     <view class="card-accent" :class="event.type" />
     
+    <!-- AIGC来源标记 -->
+    <view class="aigc-source-badge" v-if="isAigcEvent">
+      <text class="aigc-icon">🌍</text>
+      <text class="aigc-label">现实事件</text>
+      <text class="aigc-urgency" :class="aigcUrgency">{{ aigcUrgencyText }}</text>
+    </view>
+    
     <!-- 内容区 -->
     <view class="card-content">
       <!-- 顶部信息 -->
@@ -238,6 +245,15 @@ const mode = ref<'preview' | 'playing' | 'result'>('preview')
 const currentStageIndex = ref(0)
 const lastResult = ref<EventOutcome | null>(null)
 const nextStageId = ref<string | null>(null)
+
+// ========== AIGC来源判断 ==========
+const isAigcEvent = computed(() => props.event.id.startsWith('aigc_'))
+const aigcSource = computed(() => (props.event as any).source || {})
+const aigcUrgency = computed(() => aigcSource.value.urgency || 'medium')
+const aigcUrgencyText = computed(() => {
+  const map: Record<string, string> = { critical: '紧急', high: '重要', medium: '关注', low: '了解' }
+  return map[aigcUrgency.value] || '关注'
+})
 
 // ========== 新增：计算事件深度信息 ==========
 const totalChoicesCount = computed(() => {
@@ -635,6 +651,53 @@ defineExpose({
   box-shadow: $shadow-lg;
   display: flex;
   flex-direction: column;
+}
+
+// AIGC来源标记
+.aigc-source-badge {
+  position: absolute;
+  top: 10rpx;
+  right: 12rpx;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 6rpx;
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  border-radius: 20rpx;
+  padding: 4rpx 14rpx;
+  
+  .aigc-icon {
+    font-size: 22rpx;
+  }
+  .aigc-label {
+    font-size: 20rpx;
+    color: #059669;
+    font-weight: 600;
+  }
+  .aigc-urgency {
+    font-size: 18rpx;
+    padding: 2rpx 8rpx;
+    border-radius: 8rpx;
+    font-weight: 700;
+    
+    &.critical {
+      background: #FEE2E2;
+      color: #DC2626;
+    }
+    &.high {
+      background: #FEF3C7;
+      color: #D97706;
+    }
+    &.medium {
+      background: #DBEAFE;
+      color: #2563EB;
+    }
+    &.low {
+      background: #F3F4F6;
+      color: #6B7280;
+    }
+  }
 }
 
 // 顶部装饰条
