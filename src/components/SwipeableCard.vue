@@ -1,37 +1,22 @@
 <template>
-  <view class="swipeable-card">
-    <!-- 主卡片内容 -->
-    <view class="card-main">
-      <slot></slot>
-    </view>
-
-    <!-- 底部操作栏：用按钮代替手势，彻底消除冲突 -->
-    <view class="card-actions-bar" v-if="!disabled">
-      <view class="action-btn detail-btn" @click.stop="toggleLeftPanel">
-        <text class="btn-icon">📋</text>
-        <text class="btn-label">详情</text>
-      </view>
-      <view class="action-btn more-btn" @click.stop="toggleRightPanel">
-        <text class="btn-icon">⚙️</text>
-        <text class="btn-label">更多</text>
-      </view>
-    </view>
-
-    <!-- 详情面板（底部弹出） -->
+  <view 
+    class="swipeable-card"
+    @touchstart="onTouchStart"
+    @touchmove="onTouchMove"
+    @touchend="onTouchEnd"
+  >
+    <!-- 左滑详情面板 -->
     <view 
-      class="panel-overlay"
+      class="detail-panel left-panel"
       :class="{ visible: showLeftPanel }"
-      @click.stop="closeLeftPanel"
+      :style="{ transform: `translateX(${leftPanelOffset}px)` }"
     >
-      <view class="panel-sheet left-sheet" :class="{ visible: showLeftPanel }" @click.stop>
-        <view class="sheet-handle" @click.stop="closeLeftPanel">
-          <view class="handle-bar"></view>
+      <view class="panel-content">
+        <view class="panel-header">
+          <text class="panel-title">📋 详细信息</text>
+          <text class="panel-close" @click="closeLeftPanel">✕</text>
         </view>
-        <view class="sheet-header">
-          <text class="sheet-title">📋 详细信息</text>
-          <text class="sheet-close" @click.stop="closeLeftPanel">✕</text>
-        </view>
-        <scroll-view class="sheet-body" scroll-y>
+        <scroll-view class="panel-body" scroll-y>
           <slot name="detail">
             <text class="placeholder-text">暂无详细信息</text>
           </slot>
@@ -39,36 +24,54 @@
       </view>
     </view>
 
-    <!-- 操作面板（底部弹出） -->
+    <!-- 主卡片内容 -->
     <view 
-      class="panel-overlay"
-      :class="{ visible: showRightPanel }"
-      @click.stop="closeRightPanel"
+      class="card-content"
+      :style="{ transform: `translateX(${cardOffset}px)` }"
+      @click="onCardClick"
     >
-      <view class="panel-sheet right-sheet" :class="{ visible: showRightPanel }" @click.stop>
-        <view class="sheet-handle" @click.stop="closeRightPanel">
-          <view class="handle-bar"></view>
+      <slot></slot>
+      
+      <!-- 左滑指示器 -->
+      <view class="swipe-indicator left" :class="{ active: swipeDirection === 'left' }">
+        <text class="indicator-icon">📋</text>
+        <text class="indicator-text">详情</text>
+      </view>
+      
+      <!-- 右滑指示器 -->
+      <view class="swipe-indicator right" :class="{ active: swipeDirection === 'right' }">
+        <text class="indicator-icon">⚙️</text>
+        <text class="indicator-text">操作</text>
+      </view>
+    </view>
+
+    <!-- 右滑操作面板 -->
+    <view 
+      class="action-panel right-panel"
+      :class="{ visible: showRightPanel }"
+      :style="{ transform: `translateX(${rightPanelOffset}px)` }"
+    >
+      <view class="panel-content">
+        <view class="panel-header">
+          <text class="panel-close" @click="closeRightPanel">✕</text>
+          <text class="panel-title">⚙️ 更多操作</text>
         </view>
-        <view class="sheet-header">
-          <text class="sheet-title">⚙️ 更多操作</text>
-          <text class="sheet-close" @click.stop="closeRightPanel">✕</text>
-        </view>
-        <scroll-view class="sheet-body" scroll-y>
+        <scroll-view class="panel-body" scroll-y>
           <slot name="actions">
-            <view class="default-actions">
-              <view class="action-item" @click.stop="emitAction('share')">
+            <view class="action-list">
+              <view class="action-item" @click="emitAction('share')">
                 <text class="action-icon">📤</text>
                 <text class="action-text">分享</text>
               </view>
-              <view class="action-item" @click.stop="emitAction('favorite')">
+              <view class="action-item" @click="emitAction('favorite')">
                 <text class="action-icon">⭐</text>
                 <text class="action-text">收藏</text>
               </view>
-              <view class="action-item" @click.stop="emitAction('report')">
+              <view class="action-item" @click="emitAction('report')">
                 <text class="action-icon">🚩</text>
                 <text class="action-text">举报</text>
               </view>
-              <view class="action-item" @click.stop="emitAction('hide')">
+              <view class="action-item" @click="emitAction('hide')">
                 <text class="action-icon">🙈</text>
                 <text class="action-text">不感兴趣</text>
               </view>
@@ -77,14 +80,22 @@
         </scroll-view>
       </view>
     </view>
+
+    <!-- 遮罩层 -->
+    <view 
+      class="overlay"
+      :class="{ visible: showLeftPanel || showRightPanel }"
+      @click="closeAllPanels"
+    ></view>
   </view>
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, computed } from 'vue'
 
 const props = defineProps<{
   disabled?: boolean
+  threshold?: number
 }>()
 
 const emit = defineEmits<{
@@ -94,49 +105,132 @@ const emit = defineEmits<{
   (e: 'panelChange', panel: 'left' | 'right' | null): void
 }>()
 
+// 滑动阈值
+const SWIPE_THRESHOLD = props.threshold || 80
+const PANEL_WIDTH = 280
+
+// 触摸状态
+const startX = ref(0)
+const startY = ref(0)
+const currentX = ref(0)
+const isSwiping = ref(false)
+const isHorizontalSwipe = ref(false)
+
 // 面板状态
 const showLeftPanel = ref(false)
 const showRightPanel = ref(false)
 
-// 切换详情面板
-function toggleLeftPanel() {
-  if (showLeftPanel.value) {
-    closeLeftPanel()
-  } else {
-    openLeftPanel()
-  }
+// 卡片偏移量
+const cardOffset = computed(() => {
+  if (showLeftPanel.value) return PANEL_WIDTH
+  if (showRightPanel.value) return -PANEL_WIDTH
+  if (!isSwiping.value || !isHorizontalSwipe.value) return 0
+  
+  const deltaX = currentX.value - startX.value
+  // 限制最大偏移量
+  return Math.max(-PANEL_WIDTH, Math.min(PANEL_WIDTH, deltaX))
+})
+
+// 左面板偏移量
+const leftPanelOffset = computed(() => {
+  if (showLeftPanel.value) return 0
+  return -PANEL_WIDTH + Math.max(0, cardOffset.value)
+})
+
+// 右面板偏移量
+const rightPanelOffset = computed(() => {
+  if (showRightPanel.value) return 0
+  return PANEL_WIDTH + Math.min(0, cardOffset.value)
+})
+
+// 滑动方向
+const swipeDirection = computed(() => {
+  if (!isSwiping.value || !isHorizontalSwipe.value) return null
+  const deltaX = currentX.value - startX.value
+  if (deltaX > 30) return 'right'
+  if (deltaX < -30) return 'left'
+  return null
+})
+
+// 触摸开始
+function onTouchStart(e: TouchEvent) {
+  if (props.disabled) return
+  
+  const touch = e.touches[0]
+  startX.value = touch.clientX
+  startY.value = touch.clientY
+  currentX.value = touch.clientX
+  isSwiping.value = true
+  isHorizontalSwipe.value = false
 }
 
-// 切换操作面板
-function toggleRightPanel() {
-  if (showRightPanel.value) {
-    closeRightPanel()
-  } else {
-    openRightPanel()
+// 触摸移动
+function onTouchMove(e: TouchEvent) {
+  if (!isSwiping.value || props.disabled) return
+  
+  const touch = e.touches[0]
+  currentX.value = touch.clientX
+  
+  const deltaX = Math.abs(currentX.value - startX.value)
+  const deltaY = Math.abs(touch.clientY - startY.value)
+  
+  // 判断是否为水平滑动 - 只有水平移动明显大于垂直移动时才认为是水平滑动
+  if (!isHorizontalSwipe.value && (deltaX > 15 || deltaY > 15)) {
+    // 只有水平移动距离是垂直移动的2倍以上时，才认为是水平滑动
+    isHorizontalSwipe.value = deltaX > deltaY * 2
   }
+  
+  // 只有确定是水平滑动时才阻止默认行为，让垂直滑动传递给swiper
+  if (isHorizontalSwipe.value && deltaX > 30) {
+    e.preventDefault?.()
+    e.stopPropagation?.()
+  }
+  // 如果是垂直滑动，不阻止事件，让swiper可以正常工作
 }
 
-// 打开详情面板
+// 触摸结束
+function onTouchEnd() {
+  if (!isSwiping.value || props.disabled) return
+  
+  const deltaX = currentX.value - startX.value
+  
+  if (isHorizontalSwipe.value) {
+    if (deltaX > SWIPE_THRESHOLD) {
+      // 右滑 - 显示详情
+      openLeftPanel()
+      emit('swipeRight')
+    } else if (deltaX < -SWIPE_THRESHOLD) {
+      // 左滑 - 显示操作
+      openRightPanel()
+      emit('swipeLeft')
+    }
+  }
+  
+  isSwiping.value = false
+  isHorizontalSwipe.value = false
+}
+
+// 打开左面板（详情）
 function openLeftPanel() {
   showLeftPanel.value = true
   showRightPanel.value = false
   emit('panelChange', 'left')
 }
 
-// 打开操作面板
+// 打开右面板（操作）
 function openRightPanel() {
   showRightPanel.value = true
   showLeftPanel.value = false
   emit('panelChange', 'right')
 }
 
-// 关闭详情面板
+// 关闭左面板
 function closeLeftPanel() {
   showLeftPanel.value = false
   emit('panelChange', null)
 }
 
-// 关闭操作面板
+// 关闭右面板
 function closeRightPanel() {
   showRightPanel.value = false
   emit('panelChange', null)
@@ -155,6 +249,15 @@ function emitAction(action: string) {
   closeRightPanel()
 }
 
+// 点击卡片内容区域
+function onCardClick(e: Event) {
+  // 如果有面板打开，则关闭面板并阻止事件冒泡
+  if (showLeftPanel.value || showRightPanel.value) {
+    e.stopPropagation()
+    closeAllPanels()
+  }
+}
+
 // 暴露方法给父组件
 defineExpose({
   openLeftPanel,
@@ -169,192 +272,142 @@ defineExpose({
   width: 100%;
   height: 100%;
   min-height: 0;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
 }
 
-// 主卡片内容区
-.card-main {
+.card-content {
+  position: relative;
+  width: 100%;
   flex: 1;
   min-height: 0;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  transition: transform 0.3s ease;
+  z-index: 10;
 }
 
-// 底部操作栏
-.card-actions-bar {
+// 滑动指示器
+.swipe-indicator {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
   display: flex;
-  justify-content: center;
-  gap: 32rpx;
-  padding: 12rpx 24rpx;
-  padding-bottom: calc(12rpx + env(safe-area-inset-bottom, 0px));
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(20rpx);
-  -webkit-backdrop-filter: blur(20rpx);
-  border-top: 1rpx solid rgba(0, 0, 0, 0.06);
-  flex-shrink: 0;
-}
-
-.action-btn {
-  display: flex;
+  flex-direction: column;
   align-items: center;
   gap: 8rpx;
-  padding: 14rpx 28rpx;
-  border-radius: 40rpx;
-  background: rgba(0, 0, 0, 0.04);
-  transition: all 0.2s ease;
-  
-  &:active {
-    transform: scale(0.95);
-    background: rgba(0, 0, 0, 0.08);
-  }
-  
-  .btn-icon {
-    font-size: 28rpx;
-  }
-  
-  .btn-label {
-    font-size: 24rpx;
-    color: #666;
-    font-weight: 500;
-  }
-}
-
-.detail-btn {
-  background: rgba(99, 102, 241, 0.08);
-  
-  .btn-label {
-    color: #6366f1;
-  }
-  
-  &:active {
-    background: rgba(99, 102, 241, 0.15);
-  }
-}
-
-.more-btn {
-  background: rgba(107, 114, 128, 0.08);
-  
-  .btn-label {
-    color: #6b7280;
-  }
-  
-  &:active {
-    background: rgba(107, 114, 128, 0.15);
-  }
-}
-
-// 面板遮罩
-.panel-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.4);
-  z-index: 1000;
+  padding: 20rpx;
+  background: rgba(0, 0, 0, 0.7);
+  border-radius: 16rpx;
   opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.3s ease;
+  transition: opacity 0.2s;
+  z-index: 20;
   
-  &.visible {
+  &.left {
+    right: 20rpx;
+  }
+  
+  &.right {
+    left: 20rpx;
+  }
+  
+  &.active {
     opacity: 1;
-    pointer-events: auto;
+  }
+  
+  .indicator-icon {
+    font-size: 40rpx;
+  }
+  
+  .indicator-text {
+    font-size: 22rpx;
+    color: #fff;
   }
 }
 
-// 底部弹出面板
-.panel-sheet {
+// 面板通用样式
+.detail-panel,
+.action-panel {
   position: absolute;
+  top: 0;
   bottom: 0;
-  left: 0;
-  right: 0;
-  max-height: 70vh;
-  background: #fff;
-  border-radius: 32rpx 32rpx 0 0;
-  transform: translateY(100%);
-  transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1);
-  display: flex;
-  flex-direction: column;
-  box-shadow: 0 -8rpx 40rpx rgba(0, 0, 0, 0.12);
+  width: 280px;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  transition: transform 0.3s ease;
+  z-index: 5;
   
-  &.visible {
-    transform: translateY(0);
-  }
-}
-
-// 拖动手柄
-.sheet-handle {
-  display: flex;
-  justify-content: center;
-  padding: 16rpx 0 8rpx;
-  flex-shrink: 0;
-  
-  .handle-bar {
-    width: 64rpx;
-    height: 8rpx;
-    background: #ddd;
-    border-radius: 4rpx;
-  }
-}
-
-// 面板头部
-.sheet-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 16rpx 32rpx 20rpx;
-  border-bottom: 1rpx solid rgba(0, 0, 0, 0.06);
-  flex-shrink: 0;
-  
-  .sheet-title {
-    font-size: 32rpx;
-    font-weight: 700;
-    color: #1a1a2e;
+  .panel-content {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
   }
   
-  .sheet-close {
-    font-size: 36rpx;
-    color: #999;
-    padding: 8rpx 16rpx;
-    border-radius: 50%;
+  .panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 60rpx 24rpx 24rpx;
+    border-bottom: 1rpx solid rgba(255, 255, 255, 0.1);
     
-    &:active {
-      background: rgba(0, 0, 0, 0.05);
+    .panel-title {
+      font-size: 32rpx;
+      font-weight: bold;
+      color: #fff;
+    }
+    
+    .panel-close {
+      font-size: 32rpx;
+      color: rgba(255, 255, 255, 0.6);
+      padding: 10rpx;
     }
   }
+  
+  .panel-body {
+    flex: 1;
+    padding: 24rpx;
+    overflow-y: auto;
+  }
 }
 
-// 面板内容区
-.sheet-body {
-  flex: 1;
-  padding: 24rpx 32rpx;
-  padding-bottom: calc(24rpx + env(safe-area-inset-bottom, 0px));
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
+.left-panel {
+  left: 0;
+  transform: translateX(-100%);
+  border-right: 1rpx solid rgba(255, 255, 255, 0.1);
+  
+  &.visible {
+    transform: translateX(0);
+  }
 }
 
-// 默认操作列表
-.default-actions {
+.right-panel {
+  right: 0;
+  transform: translateX(100%);
+  border-left: 1rpx solid rgba(255, 255, 255, 0.1);
+  
+  &.visible {
+    transform: translateX(0);
+  }
+}
+
+// 操作列表
+.action-list {
   display: flex;
   flex-direction: column;
-  gap: 12rpx;
+  gap: 16rpx;
 }
 
 .action-item {
   display: flex;
   align-items: center;
-  gap: 24rpx;
-  padding: 28rpx 24rpx;
-  background: rgba(0, 0, 0, 0.02);
-  border-radius: 20rpx;
-  transition: all 0.2s;
+  gap: 20rpx;
+  padding: 24rpx;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 16rpx;
+  transition: background 0.2s;
   
   &:active {
-    background: rgba(0, 0, 0, 0.06);
-    transform: scale(0.98);
+    background: rgba(255, 255, 255, 0.2);
   }
   
   .action-icon {
@@ -362,17 +415,35 @@ defineExpose({
   }
   
   .action-text {
-    font-size: 30rpx;
-    color: #333;
-    font-weight: 500;
+    font-size: 28rpx;
+    color: #fff;
   }
 }
 
 // 占位文本
 .placeholder-text {
   font-size: 28rpx;
-  color: #999;
+  color: rgba(255, 255, 255, 0.5);
   text-align: center;
-  padding: 60rpx 0;
+  padding: 40rpx;
+}
+
+// 遮罩层
+.overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s;
+  z-index: 8;
+  
+  &.visible {
+    opacity: 1;
+    pointer-events: auto;
+  }
 }
 </style>
