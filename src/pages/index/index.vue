@@ -11,11 +11,11 @@
       <view class="status-center">
         <view class="wallet-item" v-if="!isChainWorld">
           <text class="wallet-icon">⏰</text>
-          <text class="wallet-value">{{ userStore.wallet.time }}</text>
+          <text class="wallet-value">{{ formatNum(userStore.wallet.time) }}</text>
         </view>
         <view class="wallet-item" v-if="!isChainWorld">
           <text class="wallet-icon">⚡</text>
-          <text class="wallet-value">{{ userStore.wallet.energy }}</text>
+          <text class="wallet-value">{{ formatNum(userStore.wallet.energy) }}</text>
         </view>
         <view class="wallet-item chain-currency" v-if="isChainWorld">
           <text class="wallet-icon">🦋</text>
@@ -331,6 +331,13 @@ const itemStore = useItemStore()
 
 const isPanelOpen = ref(false)
 const isCardActive = ref(false)
+
+// 数字格式化（大数字缩写）
+const formatNum = (n: number): string => {
+  if (n >= 9950_0000) return (n / 1e8).toFixed(1).replace(/\.0$/, '') + '亿'
+  if (n >= 1e4) return (n / 1e4).toFixed(n >= 1e7 ? 0 : 1).replace(/\.0$/, '') + '万'
+  return n.toString()
+}
 
 // 链世界钱包
 const chainWallet = computed(() => ({

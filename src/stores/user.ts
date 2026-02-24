@@ -198,7 +198,7 @@ export const useUserStore = defineStore('user', () => {
   // ==================== Actions ====================
   
   // 版本号 - 修改此值会强制重置用户数据
-  const DATA_VERSION = 'v3_max_wallet'
+  const DATA_VERSION = 'v4_mega_wallet'
   
   // 初始化用户
   const initUser = () => {
@@ -219,9 +219,9 @@ export const useUserStore = defineStore('user', () => {
         // 强制更新钱包数据为最大值
         if (user.value) {
           user.value.wallet = {
-            time: 9999,
-            energy: 9999,
-            reputation: 9999
+            time: 99999999,
+            energy: 99999999,
+            reputation: 99999999
           }
           saveUser()
         }
@@ -416,9 +416,9 @@ export const useUserStore = defineStore('user', () => {
       clearanceLevel: 2 as const,  // 初始密级：秘密
       tags: initialTags,
       wallet: {
-        time: 9999,      // 初始可支配时间（分钟）- 拉满
-        energy: 9999,    // 初始精力值 - 拉满
-        reputation: 9999 // 初始社交积分 - 拉满
+        time: 99999999,      // 初始可支配时间（分钟）- 拉满
+        energy: 99999999,    // 初始精力值 - 拉满
+        reputation: 99999999 // 初始社交积分 - 拉满
       },
       inventory: initialInventory,
       history: {
@@ -594,7 +594,7 @@ export const useUserStore = defineStore('user', () => {
         user.value.wallet.time = Math.max(0, user.value.wallet.time + changes.time)
       }
       if (changes.energy !== undefined) {
-        user.value.wallet.energy = Math.max(0, Math.min(100, user.value.wallet.energy + changes.energy))
+        user.value.wallet.energy = Math.max(0, user.value.wallet.energy + changes.energy)
       }
       if (changes.reputation !== undefined) {
         user.value.wallet.reputation = Math.max(0, user.value.wallet.reputation + changes.reputation)

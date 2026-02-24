@@ -3,12 +3,6 @@
     <!-- 顶部装饰条 -->
     <view class="card-accent" :class="event.type" />
     
-    <!-- AIGC来源标记 -->
-    <view class="aigc-source-badge" v-if="isAigcEvent">
-      <text class="aigc-icon">🌍</text>
-      <text class="aigc-label">现实事件</text>
-      <text class="aigc-urgency" :class="aigcUrgency">{{ aigcUrgencyText }}</text>
-    </view>
     
     <!-- 内容区 -->
     <view class="card-content">
@@ -18,8 +12,19 @@
           <text class="type-icon">{{ getTypeIcon(event.type) }}</text>
           <text class="type-text">{{ getTypeName(event.type) }}</text>
         </view>
-        <view class="event-status" :class="event.status">
-          {{ getStatusText(event.status) }}
+        <view class="header-right">
+          <view class="header-badges-row" v-if="isAigcEvent">
+            <view class="aigc-source-badge">
+              <text class="aigc-icon">🌍</text>
+              <text class="aigc-label">现实事件</text>
+            </view>
+            <view class="aigc-urgency-badge" :class="aigcUrgency">
+              <text class="urgency-text">{{ aigcUrgencyText }}</text>
+            </view>
+          </view>
+          <view class="event-status" :class="event.status">
+            {{ getStatusText(event.status) }}
+          </view>
         </view>
       </view>
       
@@ -654,49 +659,68 @@ defineExpose({
 }
 
 // AIGC来源标记
-.aigc-source-badge {
-  position: absolute;
-  top: 10rpx;
-  right: 12rpx;
-  z-index: 10;
+.header-badges-row {
   display: flex;
+  align-items: center;
+  gap: 8rpx;
+  flex-wrap: nowrap;
+}
+
+.aigc-source-badge {
+  display: inline-flex;
   align-items: center;
   gap: 6rpx;
   background: rgba(16, 185, 129, 0.12);
   border: 1px solid rgba(16, 185, 129, 0.3);
   border-radius: 20rpx;
-  padding: 4rpx 14rpx;
+  padding: 6rpx 14rpx;
+  white-space: nowrap;
   
   .aigc-icon {
-    font-size: 22rpx;
+    font-size: 20rpx;
+    line-height: 1;
   }
   .aigc-label {
     font-size: 20rpx;
     color: #059669;
     font-weight: 600;
+    line-height: 1.2;
   }
-  .aigc-urgency {
-    font-size: 18rpx;
-    padding: 2rpx 8rpx;
-    border-radius: 8rpx;
+}
+
+.aigc-urgency-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6rpx 14rpx;
+  border-radius: 20rpx;
+  white-space: nowrap;
+  
+  .urgency-text {
+    font-size: 20rpx;
     font-weight: 700;
-    
-    &.critical {
-      background: #FEE2E2;
-      color: #DC2626;
-    }
-    &.high {
-      background: #FEF3C7;
-      color: #D97706;
-    }
-    &.medium {
-      background: #DBEAFE;
-      color: #2563EB;
-    }
-    &.low {
-      background: #F3F4F6;
-      color: #6B7280;
-    }
+    line-height: 1.2;
+  }
+  
+  &.critical {
+    background: #FEE2E2;
+    border: 1px solid rgba(220, 38, 38, 0.3);
+    .urgency-text { color: #DC2626; }
+  }
+  &.high {
+    background: #FEF3C7;
+    border: 1px solid rgba(217, 119, 6, 0.3);
+    .urgency-text { color: #D97706; }
+  }
+  &.medium {
+    background: #DBEAFE;
+    border: 1px solid rgba(37, 99, 235, 0.3);
+    .urgency-text { color: #2563EB; }
+  }
+  &.low {
+    background: #F3F4F6;
+    border: 1px solid rgba(107, 114, 128, 0.3);
+    .urgency-text { color: #6B7280; }
   }
 }
 
@@ -729,8 +753,17 @@ defineExpose({
 .card-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   margin-bottom: 24rpx;
+  flex-shrink: 0;
+  gap: 12rpx;
+}
+
+.header-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8rpx;
   flex-shrink: 0;
 }
 
