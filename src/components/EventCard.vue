@@ -58,8 +58,43 @@
             </view>
           </view>
 
-          <!-- 可能获得的标签预览 -->
-          <view class="reward-preview" v-if="possibleTags.length > 0">
+          <!-- 已完成：历史抉择摘要 -->
+          <view class="history-summary" v-if="isEventCompleted">
+            <view class="history-badge completed">
+              <text class="history-badge-icon">✅</text>
+              <text class="history-badge-text">已完成</text>
+            </view>
+            <view class="history-choices" v-if="eventBranch && eventBranch.choices.length">
+              <view class="history-choice" v-for="(choice, idx) in eventBranch.choices.slice(0, 2)" :key="choice.id">
+                <text class="choice-index">{{ idx + 1 }}</text>
+                <text class="choice-text">{{ choice.text }}</text>
+              </view>
+              <text class="history-more" v-if="eventBranch.choices.length > 2">
+                还有 {{ eventBranch.choices.length - 2 }} 个抉择...
+              </text>
+            </view>
+            <text class="history-ending" v-if="eventBranch?.endingSummary">
+              {{ eventBranch.endingSummary }}
+            </text>
+          </view>
+
+          <!-- 进行中：当前进度提示 -->
+          <view class="history-summary" v-else-if="isEventInProgress">
+            <view class="history-badge in-progress">
+              <text class="history-badge-icon">⏳</text>
+              <text class="history-badge-text">进行中</text>
+            </view>
+            <view class="history-choices" v-if="eventBranch && eventBranch.choices.length">
+              <view class="history-choice" v-for="(choice, idx) in eventBranch.choices.slice(-2)" :key="choice.id">
+                <text class="choice-index">{{ idx + 1 }}</text>
+                <text class="choice-text">{{ choice.text }}</text>
+              </view>
+            </view>
+            <text class="history-hint">你已做出 {{ eventBranch?.choices.length || 0 }} 个抉择，继续探索吧</text>
+          </view>
+
+          <!-- 未参与：可能获得的标签预览 -->
+          <view class="reward-preview" v-else-if="possibleTags.length > 0">
             <text class="reward-label">可能获得</text>
             <view class="reward-tags">
               <view 
@@ -97,63 +132,86 @@
       <!-- 底部操作区 -->
       <view class="card-footer">
         <template v-if="mode === 'preview'">
-          <view class="footer-info">
-            <view class="entry-fee" v-if="hasEntryFee">
-              <view class="fee-label">额定消耗</view>
-              <view class="fee-items">
-                <view v-if="event.entryFee?.time" class="fee-item time">
-                  <text class="fee-icon">⏰</text>
-                  <text class="fee-value">{{ event.entryFee.time }}分钟</text>
-                </view>
-                <view v-if="event.entryFee?.energy" class="fee-item energy">
-                  <text class="fee-icon">⚡</text>
-                  <text class="fee-value">{{ event.entryFee.energy }}</text>
+          <!-- 已完成状态：查看历史抉择按钮 -->
+          <template v-if="isEventCompleted">
+            <button 
+              class="action-btn history-btn"
+              @click.stop="handleViewHistory"
+            >
+              <text class="btn-text-default">📜 查看历史抉择</text>
+            </button>
+          </template>
+
+          <!-- 进行中状态：继续事件按钮 -->
+          <template v-else-if="isEventInProgress">
+            <button 
+              class="action-btn continue-btn"
+              @click.stop="handleContinueEvent"
+            >
+              <text class="btn-text-default">▶️ 继续事件</text>
+            </button>
+          </template>
+
+          <!-- 未参与状态：原有参与按钮 -->
+          <template v-else>
+            <view class="footer-info">
+              <view class="entry-fee" v-if="hasEntryFee">
+                <view class="fee-label">额定消耗</view>
+                <view class="fee-items">
+                  <view v-if="event.entryFee?.time" class="fee-item time">
+                    <text class="fee-icon">⏰</text>
+                    <text class="fee-value">{{ event.entryFee.time }}分钟</text>
+                  </view>
+                  <view v-if="event.entryFee?.energy" class="fee-item energy">
+                    <text class="fee-icon">⚡</text>
+                    <text class="fee-value">{{ event.entryFee.energy }}</text>
+                  </view>
                 </view>
               </view>
-            </view>
-            <view v-else class="entry-fee free">
-              <text class="free-label">随时参与</text>
-            </view>
-          </view>
-          
-          <button 
-            class="action-btn" 
-            :class="btnClasses"
-            :disabled="!canJoin || !canAffordCurrent"
-            @click.stop="handleTapJoin"
-          >
-            <!-- 涟漪效果层 -->
-            <view class="ripple-container">
-              <view 
-                v-for="ripple in ripples" 
-                :key="ripple.id" 
-                class="ripple"
-                :style="{ left: ripple.x + 'px', top: ripple.y + 'px' }"
-              />
+              <view v-else class="entry-fee free">
+                <text class="free-label">随时参与</text>
+              </view>
             </view>
             
-            <!-- 按钮内容 -->
-            <template v-if="!canJoin">条件不足</template>
-            <template v-else-if="!canAffordCurrent">资源不足</template>
-            <template v-else-if="hasEntryFee && multiplier > 0">
-              <view class="btn-content">
-                <view class="btn-multiplier-row">
-                  <text class="btn-multiplier" :class="'level-' + Math.min(multiplier, 5)">×{{ multiplier }}</text>
-                  <text class="btn-label">倍投入</text>
+            <button 
+              class="action-btn" 
+              :class="btnClasses"
+              :disabled="!canJoin || !canAffordCurrent"
+              @click.stop="handleTapJoin"
+            >
+              <!-- 涟漪效果层 -->
+              <view class="ripple-container">
+                <view 
+                  v-for="ripple in ripples" 
+                  :key="ripple.id" 
+                  class="ripple"
+                  :style="{ left: ripple.x + 'px', top: ripple.y + 'px' }"
+                />
+              </view>
+              
+              <!-- 按钮内容 -->
+              <template v-if="!canJoin">条件不足</template>
+              <template v-else-if="!canAffordCurrent">资源不足</template>
+              <template v-else-if="hasEntryFee && multiplier > 0">
+                <view class="btn-content">
+                  <view class="btn-multiplier-row">
+                    <text class="btn-multiplier" :class="'level-' + Math.min(multiplier, 5)">×{{ multiplier }}</text>
+                    <text class="btn-label">倍投入</text>
+                  </view>
+                  <text class="btn-cost-text">
+                    {{ costSummary }}
+                  </text>
                 </view>
-                <text class="btn-cost-text">
-                  {{ costSummary }}
-                </text>
-              </view>
-              <!-- 倒计时进度条 -->
-              <view class="btn-timer-bar" v-if="isCountingDown">
-                <view class="timer-fill" :style="{ width: timerProgress + '%' }" />
-              </view>
-            </template>
-            <template v-else>
-              <text class="btn-text-default">参与事件</text>
-            </template>
-          </button>
+                <!-- 倒计时进度条 -->
+                <view class="btn-timer-bar" v-if="isCountingDown">
+                  <view class="timer-fill" :style="{ width: timerProgress + '%' }" />
+                </view>
+              </template>
+              <template v-else>
+                <text class="btn-text-default">参与事件</text>
+              </template>
+            </button>
+          </template>
         </template>
         
         <template v-else-if="mode === 'playing'">
@@ -250,6 +308,13 @@ const mode = ref<'preview' | 'playing' | 'result'>('preview')
 const currentStageIndex = ref(0)
 const lastResult = ref<EventOutcome | null>(null)
 const nextStageId = ref<string | null>(null)
+
+// ========== 事件参与状态判断 ==========
+const isEventCompleted = computed(() => eventStore.isEventCompleted(props.event.id))
+const isEventInProgress = computed(() => eventStore.isEventActive(props.event.id))
+const eventBranch = computed(() => {
+  return worldStore.worldlineBranches.find(b => b.eventId === props.event.id) || null
+})
 
 // ========== AIGC来源判断 ==========
 const isAigcEvent = computed(() => props.event.id.startsWith('aigc_'))
@@ -469,6 +534,21 @@ const confirmJoin = () => {
   currentStageIndex.value = 0
   multiplier.value = 0
   
+  emit('stateChange', 'playing')
+}
+
+// ========== 已参与状态处理 ==========
+const handleViewHistory = () => {
+  // 切换到世界线页面查看详细历史
+  uni.switchTab({ url: '/pages/worldline/worldline' })
+}
+
+const handleContinueEvent = () => {
+  // 继续进行中的事件，进入playing模式
+  mode.value = 'playing'
+  // 尝试恢复到上次的阶段（根据已做选择数量推断）
+  const choicesMade = eventBranch.value?.choices.length || 0
+  currentStageIndex.value = Math.min(choicesMade, props.event.stages.length - 1)
   emit('stateChange', 'playing')
 }
 
@@ -1298,5 +1378,103 @@ defineExpose({
   border-radius: $radius-lg;
   box-shadow: $shadow-xs;
   .tag-name { color: #DC2626; }
+}
+
+// ==================== 历史抉择摘要 ====================
+.history-summary {
+  padding: 20rpx;
+  background: rgba(99, 102, 241, 0.04);
+  border-radius: $radius-xl;
+  border: 2rpx solid rgba(99, 102, 241, 0.12);
+}
+
+.history-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8rpx;
+  padding: 6rpx 16rpx;
+  border-radius: $radius-full;
+  margin-bottom: 12rpx;
+  
+  &.completed {
+    background: rgba(16, 185, 129, 0.1);
+    .history-badge-text { color: #059669; }
+  }
+  &.in-progress {
+    background: rgba(245, 158, 11, 0.1);
+    .history-badge-text { color: #D97706; }
+  }
+}
+
+.history-badge-icon { font-size: 22rpx; }
+.history-badge-text { font-size: 22rpx; font-weight: 600; }
+
+.history-choices {
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+  margin-bottom: 8rpx;
+}
+
+.history-choice {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  padding: 10rpx 16rpx;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: $radius-lg;
+  
+  .choice-index {
+    width: 36rpx;
+    height: 36rpx;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(99, 102, 241, 0.1);
+    border-radius: 50%;
+    font-size: 20rpx;
+    font-weight: 700;
+    color: #4F46E5;
+    flex-shrink: 0;
+  }
+  
+  .choice-text {
+    font-size: 24rpx;
+    color: $text-secondary;
+    @include text-ellipsis(1);
+  }
+}
+
+.history-more {
+  font-size: 22rpx;
+  color: $text-tertiary;
+  padding-left: 48rpx;
+}
+
+.history-ending {
+  display: block;
+  font-size: 22rpx;
+  color: $text-secondary;
+  font-style: italic;
+  line-height: 1.5;
+  @include text-ellipsis(2);
+}
+
+.history-hint {
+  display: block;
+  font-size: 22rpx;
+  color: #D97706;
+  font-weight: 500;
+}
+
+// ==================== 状态按钮 ====================
+.history-btn {
+  background: linear-gradient(135deg, #6366F1 0%, #4F46E5 100%) !important;
+  box-shadow: 0 4rpx 16rpx rgba(99, 102, 241, 0.3) !important;
+}
+
+.continue-btn {
+  background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%) !important;
+  box-shadow: 0 4rpx 16rpx rgba(245, 158, 11, 0.3) !important;
 }
 </style>

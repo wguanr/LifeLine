@@ -143,6 +143,16 @@
                 
                 <!-- 物品详情 -->
                 <view v-else-if="card.type === 'item'" class="detail-content">
+                  <!-- 已购入提示 -->
+                  <view class="detail-section owned-notice" v-if="isItemOwned(card.data as Item)">
+                    <view class="owned-notice-box">
+                      <text class="owned-notice-icon">✅</text>
+                      <view class="owned-notice-info">
+                        <text class="owned-notice-title">你已拥有此物品</text>
+                        <text class="owned-notice-desc">持有 {{ getItemOwnedCount(card.data as Item) }} 件</text>
+                      </view>
+                    </view>
+                  </view>
                   <view class="detail-section">
                     <text class="section-title">📦 物品简介</text>
                     <text class="section-text">{{ (card.data as Item).description }}</text>
@@ -262,9 +272,13 @@
                 </view>
                 
                 <view v-else-if="card.type === 'item'" class="action-list">
-                  <view class="action-item" @click="onCardAction(card, 'buy')">
+                  <view class="action-item" v-if="!isItemOwned(card.data as Item)" @click="onCardAction(card, 'buy')">
                     <text class="action-icon">🛒</text>
                     <text class="action-text">买入物品</text>
+                  </view>
+                  <view class="action-item owned-action-hint" v-else>
+                    <text class="action-icon">✅</text>
+                    <text class="action-text" style="color: #059669;">已拥有 {{ getItemOwnedCount(card.data as Item) }} 件</text>
                   </view>
                   <view class="action-item" @click="onCardAction(card, 'save')">
                     <text class="action-icon">📌</text>
@@ -411,6 +425,16 @@ const getRarityLabel = (rarity: string): string => {
     'legendary': '传说'
   }
   return labels[rarity] || rarity
+}
+
+// 物品拥有状态检查
+const isItemOwned = (item: Item): boolean => {
+  return userStore.hasItem(item.id)
+}
+
+const getItemOwnedCount = (item: Item): number => {
+  const inv = userStore.inventory.find(i => i.itemId === item.id)
+  return inv?.quantity ?? 0
 }
 
 // 面板状态变化
@@ -924,6 +948,41 @@ $safe-area-bottom: env(safe-area-inset-bottom, 0px);
     .activity-text {
       font-size: 26rpx;
       color: $text-primary;
+    }
+  }
+  
+  // 已购入提示框 - 白色系
+  .owned-notice {
+    .owned-notice-box {
+      display: flex;
+      align-items: center;
+      gap: 16rpx;
+      padding: 20rpx 24rpx;
+      background: rgba(16, 185, 129, 0.08);
+      border: 2rpx solid rgba(16, 185, 129, 0.2);
+      border-radius: $radius-xl;
+    }
+    
+    .owned-notice-icon {
+      font-size: 36rpx;
+    }
+    
+    .owned-notice-info {
+      flex: 1;
+    }
+    
+    .owned-notice-title {
+      display: block;
+      font-size: 28rpx;
+      font-weight: 600;
+      color: #059669;
+      margin-bottom: 4rpx;
+    }
+    
+    .owned-notice-desc {
+      display: block;
+      font-size: 24rpx;
+      color: #10B981;
     }
   }
 }

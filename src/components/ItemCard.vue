@@ -50,31 +50,72 @@
         </view>
       </view>
 
-      <!-- 底部操作区 -->
-      <view class="card-footer">
-        <!-- 价格 + 库存 -->
-        <view class="price-row">
-          <view class="price-info">
-            <view class="price-values">
-              <text class="price-tag" v-if="item.mintCost.time">⏰ {{ item.mintCost.time }}</text>
-              <text class="price-tag" v-if="item.mintCost.energy">⚡ {{ item.mintCost.energy }}</text>
-            </view>
-            <text class="stock-info" v-if="item.maxMint">
-              {{ item.mintedCount || 0 }}/{{ item.maxMint }} 已售
-            </text>
+      <!-- 已购入提示面板 -->
+      <view class="owned-info-panel" v-if="ownedQuantity > 0">
+        <view class="owned-info-header">
+          <text class="owned-info-icon">✅</text>
+          <text class="owned-info-title">已拥有此物品</text>
+        </view>
+        <view class="owned-info-body">
+          <view class="owned-stat">
+            <text class="owned-stat-label">持有数量</text>
+            <text class="owned-stat-value">{{ ownedQuantity }} 件</text>
+          </view>
+          <view class="owned-stat" v-if="acquiredInfo">
+            <text class="owned-stat-label">获取时间</text>
+            <text class="owned-stat-value">{{ acquiredInfo }}</text>
           </view>
         </view>
+      </view>
 
-        <!-- 买入按钮 -->
-        <view
-          class="buy-btn"
-          :class="{ disabled: !canBuy, 'just-bought': justBought, [item.rarity]: true }"
-          @click.stop="onBuy"
-        >
-          <text class="btn-text" v-if="justBought">✓ 已买入</text>
-          <text class="btn-text" v-else-if="!canBuy">余额不足</text>
-          <text class="btn-text" v-else>🛒 买入</text>
-        </view>
+      <!-- 底部操作区 -->
+      <view class="card-footer">
+        <!-- 已购入状态：不显示购买按钮 -->
+        <template v-if="ownedQuantity > 0">
+          <view class="price-row">
+            <view class="price-info">
+              <view class="price-values">
+                <text class="price-tag" v-if="item.mintCost.time">⏰ {{ item.mintCost.time }}</text>
+                <text class="price-tag" v-if="item.mintCost.energy">⚡ {{ item.mintCost.energy }}</text>
+              </view>
+              <text class="stock-info" v-if="item.maxMint">
+                {{ item.mintedCount || 0 }}/{{ item.maxMint }} 已售
+              </text>
+            </view>
+          </view>
+          <!-- 已拥有状态的底部提示 -->
+          <view class="owned-footer-hint">
+            <text class="owned-hint-icon">🎒</text>
+            <text class="owned-hint-text">物品已在你的背包中</text>
+          </view>
+        </template>
+
+        <!-- 未购入状态：显示价格和购买按钮 -->
+        <template v-else>
+          <!-- 价格 + 库存 -->
+          <view class="price-row">
+            <view class="price-info">
+              <view class="price-values">
+                <text class="price-tag" v-if="item.mintCost.time">⏰ {{ item.mintCost.time }}</text>
+                <text class="price-tag" v-if="item.mintCost.energy">⚡ {{ item.mintCost.energy }}</text>
+              </view>
+              <text class="stock-info" v-if="item.maxMint">
+                {{ item.mintedCount || 0 }}/{{ item.maxMint }} 已售
+              </text>
+            </view>
+          </view>
+
+          <!-- 买入按钮 -->
+          <view
+            class="buy-btn"
+            :class="{ disabled: !canBuy, 'just-bought': justBought, [item.rarity]: true }"
+            @click.stop="onBuy"
+          >
+            <text class="btn-text" v-if="justBought">✓ 已买入</text>
+            <text class="btn-text" v-else-if="!canBuy">余额不足</text>
+            <text class="btn-text" v-else>🛒 买入</text>
+          </view>
+        </template>
       </view>
     </view>
   </view>
@@ -98,6 +139,21 @@ const userStore = useUserStore()
 const ownedQuantity = computed(() => {
   const inv = userStore.inventory.find(i => i.itemId === props.item.id)
   return inv?.quantity ?? 0
+})
+
+const acquiredInfo = computed(() => {
+  const inv = userStore.inventory.find(i => i.itemId === props.item.id)
+  if (!inv?.acquiredAt) return ''
+  const date = new Date(inv.acquiredAt)
+  const now = new Date()
+  const diffMs = now.getTime() - date.getTime()
+  const diffMin = Math.floor(diffMs / 60000)
+  if (diffMin < 1) return '刚刚'
+  if (diffMin < 60) return `${diffMin} 分钟前`
+  const diffHour = Math.floor(diffMin / 60)
+  if (diffHour < 24) return `${diffHour} 小时前`
+  const diffDay = Math.floor(diffHour / 24)
+  return `${diffDay} 天前`
 })
 
 const canBuy = computed(() => userStore.canAfford(props.item.mintCost))
@@ -372,6 +428,73 @@ const getEffectIcon = (type: string): string => {
   font-size: 24rpx;
   color: $color-success;
   font-weight: 500;
+}
+
+// ==================== 已购入提示面板 ====================
+.owned-info-panel {
+  padding: 20rpx;
+  background: rgba(16, 185, 129, 0.04);
+  border-radius: $radius-xl;
+  border: 2rpx solid rgba(16, 185, 129, 0.15);
+  margin-bottom: 16rpx;
+}
+
+.owned-info-header {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  margin-bottom: 12rpx;
+}
+
+.owned-info-icon { font-size: 24rpx; }
+
+.owned-info-title {
+  font-size: 26rpx;
+  font-weight: 600;
+  color: #059669;
+}
+
+.owned-info-body {
+  display: flex;
+  gap: 24rpx;
+}
+
+.owned-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+}
+
+.owned-stat-label {
+  font-size: 20rpx;
+  color: $text-tertiary;
+}
+
+.owned-stat-value {
+  font-size: 24rpx;
+  font-weight: 600;
+  color: $text-primary;
+}
+
+// ==================== 已拥有底部提示 ====================
+.owned-footer-hint {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10rpx;
+  padding: 24rpx;
+  background: rgba(16, 185, 129, 0.06);
+  border-radius: $radius-xl;
+  border: 2rpx dashed rgba(16, 185, 129, 0.2);
+}
+
+.owned-hint-icon { font-size: 28rpx; }
+
+.owned-hint-text {
+  font-size: 28rpx;
+  font-weight: 500;
+  color: #059669;
+  letter-spacing: 2rpx;
 }
 
 // ==================== 底部 ====================
