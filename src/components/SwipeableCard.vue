@@ -1,23 +1,37 @@
 <template>
-  <view 
-    class="swipeable-card"
-    @touchstart.passive="onTouchStart"
-    @touchmove="onTouchMove"
-    @touchend.passive="onTouchEnd"
-    @touchcancel.passive="onTouchCancel"
-  >
-    <!-- 左滑详情面板 -->
+  <view class="swipeable-card">
+    <!-- 主卡片内容 -->
+    <view class="card-main">
+      <slot></slot>
+    </view>
+
+    <!-- 底部操作栏：用按钮代替手势，彻底消除冲突 -->
+    <view class="card-actions-bar" v-if="!disabled">
+      <view class="action-btn detail-btn" @click.stop="toggleLeftPanel">
+        <text class="btn-icon">📋</text>
+        <text class="btn-label">详情</text>
+      </view>
+      <view class="action-btn more-btn" @click.stop="toggleRightPanel">
+        <text class="btn-icon">⚙️</text>
+        <text class="btn-label">更多</text>
+      </view>
+    </view>
+
+    <!-- 详情面板（底部弹出） -->
     <view 
-      class="detail-panel left-panel"
+      class="panel-overlay"
       :class="{ visible: showLeftPanel }"
-      :style="{ transform: `translateX(${leftPanelOffset}px)` }"
+      @click.stop="closeLeftPanel"
     >
-      <view class="panel-content">
-        <view class="panel-header">
-          <text class="panel-title">📋 详细信息</text>
-          <text class="panel-close" @click="closeLeftPanel">✕</text>
+      <view class="panel-sheet left-sheet" :class="{ visible: showLeftPanel }" @click.stop>
+        <view class="sheet-handle" @click.stop="closeLeftPanel">
+          <view class="handle-bar"></view>
         </view>
-        <scroll-view class="panel-body" scroll-y>
+        <view class="sheet-header">
+          <text class="sheet-title">📋 详细信息</text>
+          <text class="sheet-close" @click.stop="closeLeftPanel">✕</text>
+        </view>
+        <scroll-view class="sheet-body" scroll-y>
           <slot name="detail">
             <text class="placeholder-text">暂无详细信息</text>
           </slot>
@@ -25,54 +39,36 @@
       </view>
     </view>
 
-    <!-- 主卡片内容 -->
+    <!-- 操作面板（底部弹出） -->
     <view 
-      class="card-content"
-      :style="cardStyle"
-      @click="onCardClick"
-    >
-      <slot></slot>
-      
-      <!-- 左滑指示器 -->
-      <view class="swipe-indicator left" :class="{ active: swipeHint === 'left' }">
-        <text class="indicator-icon">📋</text>
-        <text class="indicator-text">详情</text>
-      </view>
-      
-      <!-- 右滑指示器 -->
-      <view class="swipe-indicator right" :class="{ active: swipeHint === 'right' }">
-        <text class="indicator-icon">⚙️</text>
-        <text class="indicator-text">操作</text>
-      </view>
-    </view>
-
-    <!-- 右滑操作面板 -->
-    <view 
-      class="action-panel right-panel"
+      class="panel-overlay"
       :class="{ visible: showRightPanel }"
-      :style="{ transform: `translateX(${rightPanelOffset}px)` }"
+      @click.stop="closeRightPanel"
     >
-      <view class="panel-content">
-        <view class="panel-header">
-          <text class="panel-close" @click="closeRightPanel">✕</text>
-          <text class="panel-title">⚙️ 更多操作</text>
+      <view class="panel-sheet right-sheet" :class="{ visible: showRightPanel }" @click.stop>
+        <view class="sheet-handle" @click.stop="closeRightPanel">
+          <view class="handle-bar"></view>
         </view>
-        <scroll-view class="panel-body" scroll-y>
+        <view class="sheet-header">
+          <text class="sheet-title">⚙️ 更多操作</text>
+          <text class="sheet-close" @click.stop="closeRightPanel">✕</text>
+        </view>
+        <scroll-view class="sheet-body" scroll-y>
           <slot name="actions">
-            <view class="action-list">
-              <view class="action-item" @click="emitAction('share')">
+            <view class="default-actions">
+              <view class="action-item" @click.stop="emitAction('share')">
                 <text class="action-icon">📤</text>
                 <text class="action-text">分享</text>
               </view>
-              <view class="action-item" @click="emitAction('favorite')">
+              <view class="action-item" @click.stop="emitAction('favorite')">
                 <text class="action-icon">⭐</text>
                 <text class="action-text">收藏</text>
               </view>
-              <view class="action-item" @click="emitAction('report')">
+              <view class="action-item" @click.stop="emitAction('report')">
                 <text class="action-icon">🚩</text>
                 <text class="action-text">举报</text>
               </view>
-              <view class="action-item" @click="emitAction('hide')">
+              <view class="action-item" @click.stop="emitAction('hide')">
                 <text class="action-icon">🙈</text>
                 <text class="action-text">不感兴趣</text>
               </view>
@@ -81,22 +77,14 @@
         </scroll-view>
       </view>
     </view>
-
-    <!-- 遮罩层 -->
-    <view 
-      class="overlay"
-      :class="{ visible: showLeftPanel || showRightPanel }"
-      @click="closeAllPanels"
-    ></view>
   </view>
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, watch } from 'vue'
 
 const props = defineProps<{
   disabled?: boolean
-  threshold?: number
 }>()
 
 const emit = defineEmits<{
@@ -106,184 +94,49 @@ const emit = defineEmits<{
   (e: 'panelChange', panel: 'left' | 'right' | null): void
 }>()
 
-// 常量
-const SWIPE_THRESHOLD = props.threshold || 80
-const PANEL_WIDTH = 280
-// 方向判定的最小移动距离（越小越灵敏，但太小容易误判）
-const DIRECTION_LOCK_THRESHOLD = 8
-// 水平/垂直比率阈值：水平距离需要大于垂直距离的这个倍数才判定为水平
-const DIRECTION_RATIO = 1.2
-
-// 触摸状态
-const startX = ref(0)
-const startY = ref(0)
-const currentX = ref(0)
-const isSwiping = ref(false)
-
-// 方向锁定状态：null=未确定, 'horizontal'=水平, 'vertical'=垂直
-const lockedDirection = ref<'horizontal' | 'vertical' | null>(null)
-
 // 面板状态
 const showLeftPanel = ref(false)
 const showRightPanel = ref(false)
 
-// 是否处于水平滑动中
-const isHorizontalLocked = computed(() => lockedDirection.value === 'horizontal')
-
-// 卡片偏移量
-const cardOffset = computed(() => {
-  if (showLeftPanel.value) return PANEL_WIDTH
-  if (showRightPanel.value) return -PANEL_WIDTH
-  if (!isSwiping.value || !isHorizontalLocked.value) return 0
-  
-  const deltaX = currentX.value - startX.value
-  // 添加阻尼效果：超过面板宽度后减速
-  const clamped = Math.max(-PANEL_WIDTH, Math.min(PANEL_WIDTH, deltaX))
-  return clamped
-})
-
-// 卡片样式（滑动中不使用transition避免延迟感）
-const cardStyle = computed(() => {
-  const offset = cardOffset.value
-  const isAnimating = isSwiping.value && isHorizontalLocked.value
-  return {
-    transform: `translateX(${offset}px)`,
-    transition: isAnimating ? 'none' : 'transform 0.3s ease'
+// 切换详情面板
+function toggleLeftPanel() {
+  if (showLeftPanel.value) {
+    closeLeftPanel()
+  } else {
+    openLeftPanel()
   }
-})
-
-// 左面板偏移量
-const leftPanelOffset = computed(() => {
-  if (showLeftPanel.value) return 0
-  return -PANEL_WIDTH + Math.max(0, cardOffset.value)
-})
-
-// 右面板偏移量
-const rightPanelOffset = computed(() => {
-  if (showRightPanel.value) return 0
-  return PANEL_WIDTH + Math.min(0, cardOffset.value)
-})
-
-// 滑动方向提示
-const swipeHint = computed(() => {
-  if (!isSwiping.value || !isHorizontalLocked.value) return null
-  const deltaX = currentX.value - startX.value
-  if (deltaX > 30) return 'right'
-  if (deltaX < -30) return 'left'
-  return null
-})
-
-// 重置所有触摸状态
-function resetTouchState() {
-  isSwiping.value = false
-  lockedDirection.value = null
-  currentX.value = 0
-  startX.value = 0
-  startY.value = 0
 }
 
-// 触摸开始
-function onTouchStart(e: TouchEvent) {
-  if (props.disabled) return
-  // 如果面板已打开，不处理新的滑动
-  if (showLeftPanel.value || showRightPanel.value) return
-  
-  const touch = e.touches[0]
-  startX.value = touch.clientX
-  startY.value = touch.clientY
-  currentX.value = touch.clientX
-  isSwiping.value = true
-  lockedDirection.value = null
+// 切换操作面板
+function toggleRightPanel() {
+  if (showRightPanel.value) {
+    closeRightPanel()
+  } else {
+    openRightPanel()
+  }
 }
 
-// 触摸移动 - 核心手势判定逻辑
-function onTouchMove(e: TouchEvent) {
-  if (!isSwiping.value || props.disabled) return
-  
-  const touch = e.touches[0]
-  const deltaX = touch.clientX - startX.value
-  const deltaY = touch.clientY - startY.value
-  const absDeltaX = Math.abs(deltaX)
-  const absDeltaY = Math.abs(deltaY)
-  
-  // 阶段1：方向未锁定，尝试判定方向
-  if (lockedDirection.value === null) {
-    const totalMove = absDeltaX + absDeltaY
-    
-    // 移动距离不够，还不能判定方向
-    if (totalMove < DIRECTION_LOCK_THRESHOLD) return
-    
-    // 判定方向：水平移动明显大于垂直移动 → 水平滑动
-    if (absDeltaX > absDeltaY * DIRECTION_RATIO) {
-      lockedDirection.value = 'horizontal'
-    } else {
-      // 垂直或斜向 → 锁定为垂直，让swiper处理
-      lockedDirection.value = 'vertical'
-    }
-  }
-  
-  // 阶段2：已锁定方向
-  if (lockedDirection.value === 'horizontal') {
-    // 水平滑动：更新偏移量，阻止事件传播给swiper
-    currentX.value = touch.clientX
-    // 阻止默认行为和事件冒泡，防止swiper响应
-    e.preventDefault()
-    e.stopPropagation()
-  }
-  // 垂直滑动：什么都不做，让事件自然传播给swiper
-}
-
-// 触摸结束
-function onTouchEnd() {
-  if (!isSwiping.value || props.disabled) {
-    resetTouchState()
-    return
-  }
-  
-  // 只有水平锁定时才处理面板打开
-  if (lockedDirection.value === 'horizontal') {
-    const deltaX = currentX.value - startX.value
-    
-    if (deltaX > SWIPE_THRESHOLD) {
-      // 右滑 → 显示左侧详情面板
-      openLeftPanel()
-      emit('swipeRight')
-    } else if (deltaX < -SWIPE_THRESHOLD) {
-      // 左滑 → 显示右侧操作面板
-      openRightPanel()
-      emit('swipeLeft')
-    }
-  }
-  
-  resetTouchState()
-}
-
-// 触摸取消（如来电中断等）
-function onTouchCancel() {
-  resetTouchState()
-}
-
-// 打开左面板（详情）
+// 打开详情面板
 function openLeftPanel() {
   showLeftPanel.value = true
   showRightPanel.value = false
   emit('panelChange', 'left')
 }
 
-// 打开右面板（操作）
+// 打开操作面板
 function openRightPanel() {
   showRightPanel.value = true
   showLeftPanel.value = false
   emit('panelChange', 'right')
 }
 
-// 关闭左面板
+// 关闭详情面板
 function closeLeftPanel() {
   showLeftPanel.value = false
   emit('panelChange', null)
 }
 
-// 关闭右面板
+// 关闭操作面板
 function closeRightPanel() {
   showRightPanel.value = false
   emit('panelChange', null)
@@ -302,14 +155,6 @@ function emitAction(action: string) {
   closeRightPanel()
 }
 
-// 点击卡片内容区域
-function onCardClick(e: Event) {
-  if (showLeftPanel.value || showRightPanel.value) {
-    e.stopPropagation()
-    closeAllPanels()
-  }
-}
-
 // 暴露方法给父组件
 defineExpose({
   openLeftPanel,
@@ -324,146 +169,192 @@ defineExpose({
   width: 100%;
   height: 100%;
   min-height: 0;
-  overflow: hidden;
   display: flex;
   flex-direction: column;
-  // 告诉浏览器这个元素主要处理水平方向的触摸
-  // 让浏览器优先将垂直滑动传递给swiper
-  touch-action: pan-y;
+  overflow: hidden;
 }
 
-.card-content {
-  position: relative;
-  width: 100%;
+// 主卡片内容区
+.card-main {
   flex: 1;
   min-height: 0;
   display: flex;
   flex-direction: column;
-  z-index: 10;
-  // 默认有transition，滑动中通过内联样式覆盖为none
+  overflow: hidden;
 }
 
-// 滑动指示器
-.swipe-indicator {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
+// 底部操作栏
+.card-actions-bar {
   display: flex;
-  flex-direction: column;
+  justify-content: center;
+  gap: 32rpx;
+  padding: 12rpx 24rpx;
+  padding-bottom: calc(12rpx + env(safe-area-inset-bottom, 0px));
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20rpx);
+  -webkit-backdrop-filter: blur(20rpx);
+  border-top: 1rpx solid rgba(0, 0, 0, 0.06);
+  flex-shrink: 0;
+}
+
+.action-btn {
+  display: flex;
   align-items: center;
   gap: 8rpx;
-  padding: 20rpx;
-  background: rgba(0, 0, 0, 0.7);
-  border-radius: 16rpx;
-  opacity: 0;
-  transition: opacity 0.2s;
-  z-index: 20;
-  pointer-events: none;
+  padding: 14rpx 28rpx;
+  border-radius: 40rpx;
+  background: rgba(0, 0, 0, 0.04);
+  transition: all 0.2s ease;
   
-  &.left {
-    right: 20rpx;
+  &:active {
+    transform: scale(0.95);
+    background: rgba(0, 0, 0, 0.08);
   }
   
-  &.right {
-    left: 20rpx;
+  .btn-icon {
+    font-size: 28rpx;
   }
   
-  &.active {
-    opacity: 1;
-  }
-  
-  .indicator-icon {
-    font-size: 40rpx;
-  }
-  
-  .indicator-text {
-    font-size: 22rpx;
-    color: #fff;
+  .btn-label {
+    font-size: 24rpx;
+    color: #666;
+    font-weight: 500;
   }
 }
 
-// 面板通用样式
-.detail-panel,
-.action-panel {
-  position: absolute;
+.detail-btn {
+  background: rgba(99, 102, 241, 0.08);
+  
+  .btn-label {
+    color: #6366f1;
+  }
+  
+  &:active {
+    background: rgba(99, 102, 241, 0.15);
+  }
+}
+
+.more-btn {
+  background: rgba(107, 114, 128, 0.08);
+  
+  .btn-label {
+    color: #6b7280;
+  }
+  
+  &:active {
+    background: rgba(107, 114, 128, 0.15);
+  }
+}
+
+// 面板遮罩
+.panel-overlay {
+  position: fixed;
   top: 0;
-  bottom: 0;
-  width: 280px;
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-  transition: transform 0.3s ease;
-  z-index: 5;
-  
-  .panel-content {
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-  }
-  
-  .panel-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 60rpx 24rpx 24rpx;
-    border-bottom: 1rpx solid rgba(255, 255, 255, 0.1);
-    
-    .panel-title {
-      font-size: 32rpx;
-      font-weight: bold;
-      color: #fff;
-    }
-    
-    .panel-close {
-      font-size: 32rpx;
-      color: rgba(255, 255, 255, 0.6);
-      padding: 10rpx;
-    }
-  }
-  
-  .panel-body {
-    flex: 1;
-    padding: 24rpx;
-    overflow-y: auto;
-  }
-}
-
-.left-panel {
   left: 0;
-  transform: translateX(-100%);
-  border-right: 1rpx solid rgba(255, 255, 255, 0.1);
-  
-  &.visible {
-    transform: translateX(0);
-  }
-}
-
-.right-panel {
   right: 0;
-  transform: translateX(100%);
-  border-left: 1rpx solid rgba(255, 255, 255, 0.1);
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 1000;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
   
   &.visible {
-    transform: translateX(0);
+    opacity: 1;
+    pointer-events: auto;
   }
 }
 
-// 操作列表
-.action-list {
+// 底部弹出面板
+.panel-sheet {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  max-height: 70vh;
+  background: #fff;
+  border-radius: 32rpx 32rpx 0 0;
+  transform: translateY(100%);
+  transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1);
   display: flex;
   flex-direction: column;
-  gap: 16rpx;
+  box-shadow: 0 -8rpx 40rpx rgba(0, 0, 0, 0.12);
+  
+  &.visible {
+    transform: translateY(0);
+  }
+}
+
+// 拖动手柄
+.sheet-handle {
+  display: flex;
+  justify-content: center;
+  padding: 16rpx 0 8rpx;
+  flex-shrink: 0;
+  
+  .handle-bar {
+    width: 64rpx;
+    height: 8rpx;
+    background: #ddd;
+    border-radius: 4rpx;
+  }
+}
+
+// 面板头部
+.sheet-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16rpx 32rpx 20rpx;
+  border-bottom: 1rpx solid rgba(0, 0, 0, 0.06);
+  flex-shrink: 0;
+  
+  .sheet-title {
+    font-size: 32rpx;
+    font-weight: 700;
+    color: #1a1a2e;
+  }
+  
+  .sheet-close {
+    font-size: 36rpx;
+    color: #999;
+    padding: 8rpx 16rpx;
+    border-radius: 50%;
+    
+    &:active {
+      background: rgba(0, 0, 0, 0.05);
+    }
+  }
+}
+
+// 面板内容区
+.sheet-body {
+  flex: 1;
+  padding: 24rpx 32rpx;
+  padding-bottom: calc(24rpx + env(safe-area-inset-bottom, 0px));
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+// 默认操作列表
+.default-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
 }
 
 .action-item {
   display: flex;
   align-items: center;
-  gap: 20rpx;
-  padding: 24rpx;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 16rpx;
-  transition: background 0.2s;
+  gap: 24rpx;
+  padding: 28rpx 24rpx;
+  background: rgba(0, 0, 0, 0.02);
+  border-radius: 20rpx;
+  transition: all 0.2s;
   
   &:active {
-    background: rgba(255, 255, 255, 0.2);
+    background: rgba(0, 0, 0, 0.06);
+    transform: scale(0.98);
   }
   
   .action-icon {
@@ -471,35 +362,17 @@ defineExpose({
   }
   
   .action-text {
-    font-size: 28rpx;
-    color: #fff;
+    font-size: 30rpx;
+    color: #333;
+    font-weight: 500;
   }
 }
 
 // 占位文本
 .placeholder-text {
   font-size: 28rpx;
-  color: rgba(255, 255, 255, 0.5);
+  color: #999;
   text-align: center;
-  padding: 40rpx;
-}
-
-// 遮罩层
-.overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.3s;
-  z-index: 8;
-  
-  &.visible {
-    opacity: 1;
-    pointer-events: auto;
-  }
+  padding: 60rpx 0;
 }
 </style>
