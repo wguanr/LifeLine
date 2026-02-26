@@ -180,6 +180,67 @@ export interface TagDefinition {
   category: 'life' | 'social' | 'work' | 'growth'
 }
 
+// ==================== Influencer 相关 ====================
+
+/** 用户在某个事件上的单次投入记录 */
+export interface InvestmentRecord {
+  type: 'entry_fee' | 'choice_cost' | 'item_purchase' | 'boost'
+  value: number
+  timestamp: number
+  stageId?: string
+  description?: string
+}
+
+/** Influencer 在事件中的选择记录 */
+export interface InfluencerChoice {
+  stageId: string
+  choiceId: string
+  choiceText: string
+  resultText?: string
+  timestamp: number
+}
+
+/** 某个用户在某个事件上的投入汇总 */
+export interface UserEventInvestment {
+  userId: string
+  nickname: string
+  avatar: string
+  bio?: string
+  totalValue: number
+  investments: InvestmentRecord[]
+  choices: InfluencerChoice[]
+  currentStageId?: string
+  /** 用户的标签画像（前3个标签） */
+  topTags: Array<{ tagId: string; name: string; icon: string }>
+}
+
+/** 被识别为 Influencer 的用户信息 */
+export interface InfluencerInfo {
+  userId: string
+  nickname: string
+  avatar: string
+  bio?: string
+  /** 投入占比（>= 0.02 即 2%） */
+  investmentPercent: number
+  totalInvested: number
+  topTags: Array<{ tagId: string; name: string; icon: string }>
+  /** 选择主张摘要 */
+  stance: string
+  /** 具体选择记录 */
+  choices: InfluencerChoice[]
+  /** 最新一次选择 */
+  latestChoice?: InfluencerChoice
+  /** 被关注次数 */
+  followCount: number
+}
+
+/** 事件资源池 */
+export interface EventResourcePool {
+  eventId: string
+  totalInvested: number
+  participants: Record<string, UserEventInvestment>
+}
+
 // ==================== 世界相关 ====================
 
 export type EventOutcome = EventChoice['outcome']

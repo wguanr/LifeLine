@@ -220,6 +220,78 @@
         </template>
         
         <template v-else-if="mode === 'playing'">
+          <!-- Influencer 推荐区域（横向滚动 + 折叠） -->
+          <view class="influencer-section" v-if="stageInfluencers.length > 0">
+            <view class="influencer-header" @click="influencerExpanded = !influencerExpanded">
+              <view class="influencer-header-left">
+                <text class="influencer-section-title">🔥 影响力玩家</text>
+                <text class="influencer-count">{{ stageInfluencers.length }}人</text>
+              </view>
+              <text class="influencer-toggle">{{ influencerExpanded ? '▲ 收起' : '▼ 展开' }}</text>
+            </view>
+            
+            <!-- 收起状态：横向滚动头像列表 -->
+            <scroll-view v-if="!influencerExpanded" scroll-x class="influencer-scroll-row">
+              <view class="influencer-avatar-list">
+                <view 
+                  v-for="inf in stageInfluencers" 
+                  :key="inf.userId"
+                  class="inf-avatar-chip"
+                  :class="{ followed: influencerStore.isFollowing(inf.userId) }"
+                  @click="influencerExpanded = true"
+                >
+                  <text class="inf-chip-avatar">{{ inf.avatar }}</text>
+                  <text class="inf-chip-name">{{ inf.nickname.substring(0, 4) }}</text>
+                  <text class="inf-chip-percent">{{ inf.investmentPercent.toFixed(1) }}%</text>
+                </view>
+              </view>
+            </scroll-view>
+            
+            <!-- 展开状态：完整卡片列表（最多显示3个） -->
+            <view v-if="influencerExpanded" class="influencer-list">
+              <view 
+                v-for="inf in stageInfluencers.slice(0, 3)" 
+                :key="inf.userId"
+                class="influencer-card"
+                :class="{ followed: influencerStore.isFollowing(inf.userId) }"
+              >
+                <view class="inf-profile">
+                  <text class="inf-avatar">{{ inf.avatar }}</text>
+                  <view class="inf-info">
+                    <view class="inf-name-row">
+                      <text class="inf-name">{{ inf.nickname }}</text>
+                      <text class="inf-percent">投入占比 {{ inf.investmentPercent.toFixed(1) }}%</text>
+                    </view>
+                    <text class="inf-bio" v-if="inf.bio">{{ inf.bio }}</text>
+                  </view>
+                </view>
+                <view class="inf-stance" v-if="inf.latestChoice">
+                  <text class="inf-stance-label">💬 主张：</text>
+                  <text class="inf-stance-text">「{{ inf.latestChoice.choiceText }}」</text>
+                </view>
+                <button 
+                  class="follow-btn"
+                  :class="{ 'is-following': influencerStore.isFollowing(inf.userId) }"
+                  @click.stop="handleToggleFollow(inf)"
+                >
+                  {{ influencerStore.isFollowing(inf.userId) ? '✅ 已关注' : '+ 关注' }}
+                </button>
+              </view>
+              <text v-if="stageInfluencers.length > 3" class="inf-more-hint">还有 {{ stageInfluencers.length - 3 }} 位影响力玩家...</text>
+            </view>
+          </view>
+          
+          <!-- 已关注 Influencer 的选择提示 -->
+          <view class="followed-choices-hint" v-if="followedChoices.length > 0">
+            <text class="followed-hint-title">👥 你关注的玩家的选择</text>
+            <view class="followed-choice" v-for="fc in followedChoices" :key="fc.influencer.userId">
+              <text class="fc-avatar">{{ fc.influencer.avatar }}</text>
+              <text class="fc-name">{{ fc.influencer.nickname }}</text>
+              <text class="fc-chose">选择了</text>
+              <text class="fc-choice">「{{ fc.latestChoice.choiceText }}」</text>
+            </view>
+          </view>
+          
           <view class="options-list">
             <!-- 普通选项 -->
             <view 
@@ -347,8 +419,10 @@ import { useEventStore } from '@/stores/event'
 import { useUserStore } from '@/stores/user'
 import { useItemStore } from '@/stores/item'
 import { useWorldStore } from '@/stores/world'
+import { useInfluencerStore, costToValue } from '@/stores/influencer'
+import { generateSimulatedParticipation } from '@/data/simulated_users'
 import { getTagDefinition } from '@/data/tags'
-import type { GameEvent, EventStage, EventChoice, EventOutcome, ClaimableItem } from '@/types'
+import type { GameEvent, EventStage, EventChoice, EventOutcome, ClaimableItem, InfluencerInfo } from '@/types'
 
 const props = defineProps<{
   event: GameEvent
@@ -362,6 +436,10 @@ const eventStore = useEventStore()
 const userStore = useUserStore()
 const itemStore = useItemStore()
 const worldStore = useWorldStore()
+const influencerStore = useInfluencerStore()
+
+/** Influencer 推荐区域是否展开（默认收起，显示横向滚动头像） */
+const influencerExpanded = ref(false)
 
 const mode = ref<'preview' | 'playing' | 'result'>('preview')
 const currentStageIndex = ref(0)
@@ -371,6 +449,93 @@ const nextStageId = ref<string | null>(null)
 // ========== ClaimItem 状态 ==========
 const claimedItemIds = ref(new Set<string>())
 const skippedItemIds = ref(new Set<string>())
+
+// ========== Influencer 系统 ==========
+/** 是否已初始化过虚拟用户数据 */
+const simDataInjected = ref(new Set<string>())
+
+/** 当前阶段的 Influencer 列表 */
+const stageInfluencers = computed<InfluencerInfo[]>(() => {
+  if (mode.value !== 'playing' || !currentStage.value) return []
+  const userId = userStore.user?.id || ''
+  return influencerStore.getStageInfluencers(props.event.id, currentStage.value.id, userId)
+})
+
+/** 已关注的 Influencer 在当前事件中的最新选择 */
+const followedChoices = computed(() => {
+  if (mode.value !== 'playing') return []
+  return influencerStore.getFollowedInfluencerChoices(props.event.id)
+})
+
+/** 当前用户在该事件中的投入占比 */
+const myInvestmentPercent = computed(() => {
+  const userId = userStore.user?.id || ''
+  return influencerStore.getUserInvestmentPercent(props.event.id, userId)
+})
+
+/** 事件资源池统计 */
+const poolStats = computed(() => {
+  return influencerStore.getPoolStats(props.event.id)
+})
+
+/** 初始化虚拟用户数据（在参与事件时触发） */
+const initSimulatedUsers = () => {
+  if (simDataInjected.value.has(props.event.id)) return
+  
+  const simData = generateSimulatedParticipation(
+    props.event.id,
+    props.event.stages as any,
+    currentStageIndex.value,
+    props.event.entryFee
+  )
+  
+  influencerStore.injectSimulatedData(props.event.id, simData)
+  simDataInjected.value.add(props.event.id)
+}
+
+/** 记录当前用户的投入 */
+const recordMyInvestment = (type: 'entry_fee' | 'choice_cost' | 'item_purchase' | 'boost', cost: { time?: number; energy?: number; reputation?: number }, stageId?: string, description?: string) => {
+  const userId = userStore.user?.id || ''
+  const profile = {
+    nickname: userStore.user?.nickname || '未知',
+    avatar: userStore.user?.avatar || '',
+    bio: userStore.user?.bio,
+    topTags: (userStore.topTags.slice(0, 3) || []).map(t => {
+      const def = getTagDefinition(t.tagId)
+      return { tagId: t.tagId, name: def?.name || t.tagId, icon: def?.icon || '🏷️' }
+    })
+  }
+  
+  influencerStore.recordInvestment(props.event.id, userId, profile, {
+    type,
+    value: costToValue(cost),
+    timestamp: Date.now(),
+    stageId,
+    description
+  })
+}
+
+/** 记录当前用户的选择 */
+const recordMyChoice = (stageId: string, choiceId: string, choiceText: string, resultText?: string) => {
+  const userId = userStore.user?.id || ''
+  const profile = {
+    nickname: userStore.user?.nickname || '未知',
+    avatar: userStore.user?.avatar || '',
+    bio: userStore.user?.bio,
+    topTags: (userStore.topTags.slice(0, 3) || []).map(t => {
+      const def = getTagDefinition(t.tagId)
+      return { tagId: t.tagId, name: def?.name || t.tagId, icon: def?.icon || '🏷️' }
+    })
+  }
+  
+  influencerStore.recordParticipantChoice(props.event.id, userId, profile, {
+    stageId,
+    choiceId,
+    choiceText,
+    resultText,
+    timestamp: Date.now()
+  })
+}
 
 // ========== 事件参与状态判断 ==========
 const isEventCompleted = computed(() => eventStore.isEventCompleted(props.event.id))
@@ -619,6 +784,18 @@ const confirmJoin = () => {
     userStore.pay(totalCost.value)
   }
   
+  // Influencer系统：初始化虚拟用户数据
+  initSimulatedUsers()
+  
+  // Influencer系统：记录当前用户的入场费投入
+  if (props.event.entryFee && hasEntryFee.value) {
+    const fee = {
+      time: (props.event.entryFee.time || 0) * finalMultiplier,
+      energy: (props.event.entryFee.energy || 0) * finalMultiplier
+    }
+    recordMyInvestment('entry_fee', fee, undefined, `参与事件入场费${finalMultiplier > 1 ? ` (${finalMultiplier}倍)` : ''}`)
+  }
+  
   eventStore.startEvent(props.event.id)
   
   worldStore.recordEvent(
@@ -646,6 +823,17 @@ const handleContinueEvent = () => {
   const choicesMade = eventBranch.value?.choices.length || 0
   currentStageIndex.value = Math.min(choicesMade, props.event.stages.length - 1)
   emit('stateChange', 'playing')
+}
+
+// ========== Influencer 交互 ==========
+const handleToggleFollow = (inf: InfluencerInfo) => {
+  if (influencerStore.isFollowing(inf.userId)) {
+    influencerStore.unfollowInfluencer(inf.userId)
+    uni.showToast({ title: `已取消关注 ${inf.nickname}`, icon: 'none' })
+  } else {
+    influencerStore.followInfluencer(inf.userId, inf.nickname, inf.avatar)
+    uni.showToast({ title: `已关注 ${inf.nickname}，后续阶段将提示其选择`, icon: 'none' })
+  }
 }
 
 // ========== 辅助函数 ==========
@@ -744,6 +932,13 @@ const handleSelectChoice = (choice: EventChoice) => {
   
   if (choice.cost) {
     userStore.pay(choice.cost)
+    // Influencer系统：记录选择消耗
+    recordMyInvestment('choice_cost', choice.cost, currentStage.value?.id, `选择“${choice.text}”的消耗`)
+  }
+  
+  // Influencer系统：记录用户选择
+  if (currentStage.value) {
+    recordMyChoice(currentStage.value.id, choice.id, choice.text, choice.outcome.resultText)
   }
   
   const result = choice.outcome
@@ -821,6 +1016,15 @@ const handleContinue = () => {
       currentStageIndex.value++
     }
     
+    // Influencer系统：更新虚拟用户数据到新阶段
+    const simData = generateSimulatedParticipation(
+      props.event.id,
+      props.event.stages as any,
+      currentStageIndex.value,
+      props.event.entryFee
+    )
+    influencerStore.injectSimulatedData(props.event.id, simData)
+    
     mode.value = 'playing'
     lastResult.value = null
     nextStageId.value = null
@@ -865,6 +1069,7 @@ const resetCardState = () => {
   ripples.splice(0)
   claimedItemIds.value.clear()
   skippedItemIds.value.clear()
+  influencerExpanded.value = false
   emit('stateChange', 'preview')
 }
 
@@ -1866,5 +2071,284 @@ defineExpose({
   font-size: 24rpx;
   color: #059669;
   font-weight: 600;
+}
+
+// ========== Influencer 系统样式 ==========
+.influencer-section {
+  margin-bottom: 20rpx;
+  padding: 20rpx;
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.06), rgba(239, 68, 68, 0.04));
+  border-radius: $radius-lg;
+  border: 2rpx solid rgba(245, 158, 11, 0.15);
+}
+
+.influencer-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12rpx;
+  cursor: pointer;
+}
+
+.influencer-header-left {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.influencer-section-title {
+  font-size: 26rpx;
+  font-weight: 700;
+  color: $text-primary;
+}
+
+.influencer-count {
+  font-size: 20rpx;
+  color: #f59e0b;
+  background: rgba(245, 158, 11, 0.1);
+  padding: 2rpx 12rpx;
+  border-radius: 20rpx;
+  font-weight: 600;
+}
+
+.influencer-toggle {
+  font-size: 22rpx;
+  color: $text-tertiary;
+}
+
+// 横向滚动头像列表（收起状态）
+.influencer-scroll-row {
+  white-space: nowrap;
+  ::-webkit-scrollbar { display: none; }
+}
+
+.influencer-avatar-list {
+  display: inline-flex;
+  gap: 16rpx;
+  padding: 4rpx 0;
+}
+
+.inf-avatar-chip {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4rpx;
+  padding: 8rpx 12rpx;
+  background: $white;
+  border-radius: $radius-lg;
+  border: 2rpx solid rgba(0, 0, 0, 0.06);
+  min-width: 100rpx;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  
+  &.followed {
+    border-color: rgba(59, 130, 246, 0.3);
+    background: rgba(59, 130, 246, 0.03);
+  }
+}
+
+.inf-chip-avatar {
+  font-size: 40rpx;
+}
+
+.inf-chip-name {
+  font-size: 20rpx;
+  color: $text-secondary;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100rpx;
+}
+
+.inf-chip-percent {
+  font-size: 18rpx;
+  color: #f59e0b;
+  font-weight: 600;
+}
+
+.inf-more-hint {
+  font-size: 22rpx;
+  color: $text-tertiary;
+  text-align: center;
+  display: block;
+  padding: 8rpx 0;
+}
+
+.influencer-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.influencer-card {
+  background: $white;
+  border-radius: $radius-lg;
+  padding: 20rpx;
+  border: 2rpx solid rgba(0, 0, 0, 0.06);
+  transition: all 0.3s ease;
+  
+  &.followed {
+    border-color: rgba(59, 130, 246, 0.3);
+    background: rgba(59, 130, 246, 0.03);
+  }
+}
+
+.inf-profile {
+  display: flex;
+  gap: 16rpx;
+  align-items: flex-start;
+}
+
+.inf-avatar {
+  font-size: 48rpx;
+  width: 64rpx;
+  height: 64rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(245, 158, 11, 0.1);
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.inf-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.inf-name-row {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  flex-wrap: wrap;
+}
+
+.inf-name {
+  font-size: 26rpx;
+  font-weight: 600;
+  color: $text-primary;
+}
+
+.inf-percent {
+  font-size: 20rpx;
+  color: #f59e0b;
+  background: rgba(245, 158, 11, 0.1);
+  padding: 2rpx 12rpx;
+  border-radius: 20rpx;
+  font-weight: 600;
+}
+
+.inf-bio {
+  font-size: 22rpx;
+  color: $text-secondary;
+  margin-top: 6rpx;
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.inf-tags {
+  display: flex;
+  gap: 8rpx;
+  margin-top: 8rpx;
+  flex-wrap: wrap;
+}
+
+.inf-tag {
+  font-size: 20rpx;
+  color: $text-tertiary;
+  background: $gray-100;
+  padding: 2rpx 10rpx;
+  border-radius: 12rpx;
+}
+
+.inf-stance {
+  margin-top: 12rpx;
+  padding: 12rpx 16rpx;
+  background: rgba(245, 158, 11, 0.06);
+  border-radius: $radius-md;
+  border-left: 4rpx solid #f59e0b;
+  display: flex;
+  align-items: flex-start;
+  gap: 8rpx;
+}
+
+.inf-stance-label {
+  font-size: 22rpx;
+  color: $text-tertiary;
+  flex-shrink: 0;
+}
+
+.inf-stance-text {
+  font-size: 22rpx;
+  color: $text-primary;
+  font-weight: 500;
+}
+
+.follow-btn {
+  margin-top: 12rpx;
+  padding: 8rpx 24rpx !important;
+  font-size: 24rpx !important;
+  font-weight: 600 !important;
+  color: #3b82f6 !important;
+  background: rgba(59, 130, 246, 0.08) !important;
+  border: 2rpx solid rgba(59, 130, 246, 0.2) !important;
+  border-radius: $radius-lg !important;
+  line-height: 1.4 !important;
+  min-height: 0 !important;
+  transition: all 0.3s ease;
+  
+  &.is-following {
+    color: $text-tertiary !important;
+    background: $gray-100 !important;
+    border-color: transparent !important;
+  }
+}
+
+.followed-choices-hint {
+  margin-bottom: 16rpx;
+  padding: 16rpx 20rpx;
+  background: rgba(59, 130, 246, 0.05);
+  border-radius: $radius-lg;
+  border: 2rpx solid rgba(59, 130, 246, 0.12);
+}
+
+.followed-hint-title {
+  font-size: 24rpx;
+  font-weight: 600;
+  color: #3b82f6;
+  display: block;
+  margin-bottom: 12rpx;
+}
+
+.followed-choice {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  padding: 8rpx 0;
+  flex-wrap: wrap;
+}
+
+.fc-avatar {
+  font-size: 28rpx;
+}
+
+.fc-name {
+  font-size: 22rpx;
+  font-weight: 600;
+  color: $text-primary;
+}
+
+.fc-chose {
+  font-size: 22rpx;
+  color: $text-tertiary;
+}
+
+.fc-choice {
+  font-size: 22rpx;
+  color: #f59e0b;
+  font-weight: 500;
 }
 </style>
