@@ -250,7 +250,7 @@
               <text class="rewards-title">✨ 获得奖励</text>
             </view>
             <view class="rewards-grid">
-              <view v-if="lastResult.rewards.tags && typeof lastResult.rewards.tags === 'object' && !Array.isArray(lastResult.rewards.tags)" class="reward-tag" v-for="tag in Object.keys(lastResult.rewards.tags)" :key="tag">
+              <view v-if="lastResult.rewards.tags" class="reward-tag" v-for="tag in normalizeTagIds(lastResult.rewards.tags)" :key="tag">
                 <text class="tag-icon">{{ getTagIcon(tag) }}</text>
                 <text class="tag-name">{{ getTagDisplayName(tag) }}</text>
               </view>
@@ -266,7 +266,7 @@
               <text class="penalties-title">⚠️ 代价</text>
             </view>
             <view class="penalties-grid">
-              <view v-if="lastResult.penalties.tags" class="penalty-tag" v-for="tag in Object.keys(lastResult.penalties.tags)" :key="tag">
+              <view v-if="lastResult.penalties.tags" class="penalty-tag" v-for="tag in normalizeTagIds(lastResult.penalties.tags)" :key="tag">
                 <text class="tag-icon">{{ getTagIcon(tag) }}</text>
                 <text class="tag-name">{{ getTagDisplayName(tag) }}</text>
               </view>
@@ -342,8 +342,8 @@ const possibleTags = computed(() => {
     stage.choices.forEach(choice => {
       if (choice.outcome.rewards?.tags) {
         if (Array.isArray(choice.outcome.rewards.tags)) {
-          choice.outcome.rewards.tags.forEach(t => tagIds.add(t))
-        } else {
+          choice.outcome.rewards.tags.forEach((t: any) => tagIds.add(typeof t === 'string' ? t : t.id))
+        } else if (typeof choice.outcome.rewards.tags === 'object') {
           Object.keys(choice.outcome.rewards.tags).forEach(t => tagIds.add(t))
         }
       }
@@ -585,6 +585,18 @@ const getItemName = (itemId: string): string => {
   return item?.name || itemId
 }
 
+// 统一标签格式：兼容 string[], {id,value}[], {tagId: weight} 三种格式
+const normalizeTagIds = (tags: any): string[] => {
+  if (!tags) return []
+  if (Array.isArray(tags)) {
+    return tags.map((t: any) => typeof t === 'string' ? t : t.id).filter(Boolean)
+  }
+  if (typeof tags === 'object') {
+    return Object.keys(tags)
+  }
+  return []
+}
+
 const getTagDisplayName = (tagId: string): string => {
   const def = getTagDefinition(tagId)
   return def?.name || tagId
@@ -620,13 +632,17 @@ const handleSelectChoice = (choice: EventChoice) => {
         time: (props.event.entryFee?.time || 0) + (choice.cost?.time || 0),
         energy: (props.event.entryFee?.energy || 0) + (choice.cost?.energy || 0)
       }
-      if (typeof result.rewards.tags === 'object' && !Array.isArray(result.rewards.tags)) {
+      if (Array.isArray(result.rewards.tags)) {
+        result.rewards.tags.forEach((t: any) => {
+          if (typeof t === 'string') {
+            userStore.updateTagWeight(t, 5, 'event', props.event.id, props.event.title, totalCostVal)
+          } else if (t && typeof t === 'object' && t.id) {
+            userStore.updateTagWeight(t.id, t.value || 5, 'event', props.event.id, props.event.title, totalCostVal)
+          }
+        })
+      } else if (typeof result.rewards.tags === 'object') {
         Object.entries(result.rewards.tags).forEach(([tagId, weight]) => {
           userStore.updateTagWeight(tagId, weight as number, 'event', props.event.id, props.event.title, totalCostVal)
-        })
-      } else if (Array.isArray(result.rewards.tags)) {
-        ;(result.rewards.tags as string[]).forEach((tagId: string) => {
-          userStore.updateTagWeight(tagId, 5, 'event', props.event.id, props.event.title, totalCostVal)
         })
       }
     }
@@ -723,7 +739,6 @@ defineExpose({
 </script>
 
 <style lang="scss" scoped>
-@import '@/styles/theme.scss';
 
 .event-card {
   position: relative;

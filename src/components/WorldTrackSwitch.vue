@@ -20,7 +20,6 @@ const toggleWorld = () => {
 </script>
 
 <style lang="scss" scoped>
-@import '@/styles/theme.scss';
 
 .world-switch {
   display: flex;

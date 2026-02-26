@@ -503,29 +503,26 @@ const onUserStateChange = (state: string) => {
 
 // Swiper切换
 const onSwiperChange = (e: any) => {
-  console.log('Swiper change:', e.detail)
   cardStore.currentIndex = e.detail.current
 }
 
 // Swiper过渡
 const onSwiperTransition = (e: any) => {
-  console.log('Swiper transition:', e.detail)
+  // transition
 }
 
 // Swiper动画结束
 const onSwiperAnimationFinish = (e: any) => {
-  console.log('Swiper animation finish:', e.detail)
+  // animation finish
 }
 
 // 左滑操作
 const onSwipeLeft = (card: Card) => {
-  console.log('Swipe left:', card)
   cardStore.nextCard()
 }
 
 // 右滑操作
 const onSwipeRight = (card: Card) => {
-  console.log('Swipe right:', card)
   if (card.type === 'event') {
     // 收藏事件
   } else if (card.type === 'user') {
@@ -536,8 +533,6 @@ const onSwipeRight = (card: Card) => {
 
 // 卡片操作
 const onCardAction = (card: Card, action: string) => {
-  console.log('Card action:', card, action)
-  
   switch (action) {
     case 'join':
       if (card.type === 'event') {
@@ -584,27 +579,27 @@ const onCardAction = (card: Card, action: string) => {
 
 // 物品点击
 const onItemClick = (item: Item) => {
-  console.log('Item click:', item)
+  // item click
 }
 
 // 物品买入
 const onItemBuy = (item: Item) => {
-  console.log('Item buy:', item)
+  // item buy
 }
 
 // 用户点击
 const onUserClick = (user: User) => {
-  console.log('User click:', user)
+  // user click
 }
 
 // 用户关注
 const onUserFollow = (user: User) => {
-  console.log('User follow:', user)
+  // user follow
 }
 
 // 查看用户主页
 const onUserViewProfile = (user: User) => {
-  console.log('User view profile:', user)
+  // user view profile
 }
 
 // 跳转到个人中心
@@ -619,12 +614,11 @@ onMounted(async () => {
   await eventStore.loadEvents()
   await itemStore.loadItems()
   await cardStore.initCardQueue()
-  console.log('Card queue initialized:', cardStore.cardQueue.length, 'cards')
+  // Card queue ready
 })
 </script>
 
 <style lang="scss" scoped>
-@import '@/styles/theme.scss';
 
 // 移动端安全区域适配
 $safe-area-top: env(safe-area-inset-top, 0px);

@@ -10,6 +10,25 @@ export const useEventStore = defineStore('event', () => {
   const activeEventIds = ref<Set<string>>(new Set())
   const completedEventIds = ref<Set<string>>(new Set())
 
+  // 持久化事件状态
+  const saveEventState = () => {
+    uni.setStorageSync('choser_active_events', JSON.stringify([...activeEventIds.value]))
+    uni.setStorageSync('choser_completed_events', JSON.stringify([...completedEventIds.value]))
+  }
+
+  const loadEventState = () => {
+    try {
+      const active = uni.getStorageSync('choser_active_events')
+      const completed = uni.getStorageSync('choser_completed_events')
+      if (active) activeEventIds.value = new Set(JSON.parse(active))
+      if (completed) completedEventIds.value = new Set(JSON.parse(completed))
+    } catch (e) {
+      // ignore
+    }
+  }
+
+  loadEventState()
+
   const availableEvents = computed(() => {
     return events.value.filter(e => e.status === 'active')
   })
@@ -91,11 +110,13 @@ export const useEventStore = defineStore('event', () => {
 
   const startEvent = (eventId: string) => {
     activeEventIds.value.add(eventId)
+    saveEventState()
   }
 
   const completeEvent = (eventId: string) => {
     activeEventIds.value.delete(eventId)
     completedEventIds.value.add(eventId)
+    saveEventState()
   }
 
   const isEventActive = (eventId: string) => {

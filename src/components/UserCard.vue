@@ -130,7 +130,6 @@ const reputationIcon = computed(() => {
 </script>
 
 <style lang="scss" scoped>
-@import '@/styles/theme.scss';
 
 .user-card {
   position: relative;

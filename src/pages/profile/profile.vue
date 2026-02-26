@@ -21,15 +21,15 @@
       <view class="resource-row">
         <view class="resource-chip">
           <text class="resource-icon">⏰</text>
-          <text class="resource-val">{{ userStore.wallet.time }}</text>
+          <text class="resource-val">{{ formatNum(userStore.wallet.time) }}</text>
         </view>
         <view class="resource-chip">
           <text class="resource-icon">⚡</text>
-          <text class="resource-val">{{ userStore.wallet.energy }}</text>
+          <text class="resource-val">{{ formatNum(userStore.wallet.energy) }}</text>
         </view>
         <view class="resource-chip">
           <text class="resource-icon">💫</text>
-          <text class="resource-val">{{ userStore.wallet.reputation }}</text>
+          <text class="resource-val">{{ formatNum(userStore.wallet.reputation) }}</text>
         </view>
       </view>
 
@@ -218,10 +218,21 @@ import { ref, computed, onMounted } from 'vue'
 import { useUserStore } from '@/stores/user'
 import { useWorldStore } from '@/stores/world'
 import { mockItems } from '@/data/items'
+import { aigcItems } from '@/data/aigc_items'
 import type { Item } from '@/types'
+
+// 合并所有物品定义
+const allItemDefs = [...mockItems, ...(aigcItems as any[])]
 
 const userStore = useUserStore()
 const worldStore = useWorldStore()
+
+// 数字格式化
+const formatNum = (n: number): string => {
+  if (n >= 100000000) return `约${Math.round(n / 100000000)}亿`
+  if (n >= 10000) return `${(n / 10000).toFixed(n >= 100000 ? 0 : 1)}万`
+  return String(n)
+}
 
 onMounted(() => {
   worldStore.seedDemoData()
@@ -286,7 +297,7 @@ interface CollectionItem {
 
 const collectionItems = computed<CollectionItem[]>(() => {
   return userStore.inventory.map(inv => {
-    const def = mockItems.find(i => i.id === inv.itemId)
+    const def = allItemDefs.find(i => i.id === inv.itemId)
     return {
       itemId: inv.itemId,
       name: def?.name || inv.itemId,
@@ -331,7 +342,6 @@ const formatTime = (timestamp: number): string => {
 </script>
 
 <style lang="scss" scoped>
-@import '@/styles/theme.scss';
 
 .profile-page {
   width: 100%;

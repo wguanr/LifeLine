@@ -3,18 +3,16 @@ import { onLaunch, onShow, onHide } from '@dcloudio/uni-app'
 import { useUserStore } from '@/stores/user'
 
 onLaunch(() => {
-  console.log('App Launch')
-  // 初始化用户信息
   const userStore = useUserStore()
   userStore.initUser()
 })
 
 onShow(() => {
-  console.log('App Show')
+  // App visible
 })
 
 onHide(() => {
-  console.log('App Hide')
+  // App hidden
 })
 </script>
 

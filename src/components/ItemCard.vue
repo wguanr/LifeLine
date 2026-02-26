@@ -217,7 +217,6 @@ const getEffectIcon = (type: string): string => {
 </script>
 
 <style lang="scss" scoped>
-@import '@/styles/theme.scss';
 
 .item-card {
   position: relative;

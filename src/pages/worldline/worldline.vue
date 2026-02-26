@@ -204,7 +204,6 @@ onMounted(() => {
 </script>
 
 <style lang="scss" scoped>
-@import '@/styles/theme.scss';
 
 .worldline-page {
   width: 100%;
@@ -273,7 +272,7 @@ onMounted(() => {
 
 .tree-wrapper {
   position: relative;
-  padding: 40rpx 24rpx 0;
+  padding: 40rpx 24rpx calc(120rpx + env(safe-area-inset-bottom, 0px));
   min-height: 100%;
 }
 

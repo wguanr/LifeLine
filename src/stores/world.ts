@@ -48,6 +48,25 @@ export const useWorldStore = defineStore('world', () => {
   // 世界线事件记录（原始记录）
   const worldlineRecords = ref<WorldlineRecord[]>([])
 
+  // 持久化
+  const saveWorldline = () => {
+    uni.setStorageSync('choser_worldline', JSON.stringify(worldlineRecords.value))
+  }
+
+  const loadWorldline = () => {
+    const stored = uni.getStorageSync('choser_worldline')
+    if (stored) {
+      try {
+        worldlineRecords.value = JSON.parse(stored)
+      } catch (e) {
+        worldlineRecords.value = []
+      }
+    }
+  }
+
+  // 初始化时加载
+  loadWorldline()
+
   // 兼容旧API
   const worldlineEvents = computed(() => worldlineRecords.value.filter(r => r.type === 'event_start'))
 
@@ -59,6 +78,7 @@ export const useWorldStore = defineStore('world', () => {
       title,
       timestamp: Date.now()
     })
+    saveWorldline()
   }
 
   const recordChoice = (eventId: string, eventTitle: string, choiceText: string, resultText?: string) => {
@@ -71,6 +91,7 @@ export const useWorldStore = defineStore('world', () => {
       meta: resultText ? { resultText } : undefined,
       timestamp: Date.now()
     })
+    saveWorldline()
   }
 
   const recordEventComplete = (eventId: string, eventTitle: string, meta?: Record<string, any>) => {
@@ -82,6 +103,7 @@ export const useWorldStore = defineStore('world', () => {
       meta,
       timestamp: Date.now()
     })
+    saveWorldline()
   }
 
   /**

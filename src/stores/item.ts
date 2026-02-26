@@ -28,7 +28,7 @@ export const useItemStore = defineStore('item', () => {
   }
 
   const getItemById = (id: string) => {
-    return items.value.find(i => i.id === id)
+    return items.value.find(i => i.id === id) || items.value.find(i => i.name === id)
   }
 
   const getItem = getItemById
