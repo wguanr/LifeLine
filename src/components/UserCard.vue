@@ -1,24 +1,26 @@
 <template>
   <view class="user-card">
     <view class="card-content">
-      <!-- 头像区域 -->
+      <!-- 顶部区域：头像 + 基本信息 -->
       <view class="user-header">
         <view class="avatar-wrapper">
           <view class="user-avatar-large" :class="'level-' + Math.min(user.clearanceLevel, 5)">
-            <text class="avatar-initial">{{ user.nickname.charAt(0) }}</text>
+            <text class="avatar-emoji" v-if="user.avatar">{{ user.avatar }}</text>
+            <text class="avatar-initial" v-else>{{ user.nickname.charAt(0) }}</text>
           </view>
-          <!-- 等级徽章 -->
           <view class="level-badge" :class="'level-' + Math.min(user.clearanceLevel, 5)">
             <text class="level-text">L{{ user.clearanceLevel }}</text>
           </view>
+          <view class="online-indicator" v-if="isRecentlyActive" />
         </view>
         <view class="user-info">
           <view class="name-row">
             <text class="user-name">{{ user.nickname }}</text>
-            <text class="active-dot" :class="{ online: isRecentlyActive }" />
           </view>
           <text class="user-bio">{{ user.bio || '这个人很懒，什么都没写~' }}</text>
-          <text class="active-time">{{ activeTimeText }}</text>
+          <view class="active-row">
+            <text class="active-time">{{ activeTimeText }}</text>
+          </view>
         </view>
       </view>
 
@@ -65,13 +67,36 @@
         </view>
       </view>
 
+      <!-- 最近选择记录 -->
+      <view class="recent-choices" v-if="recentChoices.length > 0">
+        <text class="section-label">📜 最近选择</text>
+        <view class="choice-list">
+          <view class="choice-item" v-for="(ch, idx) in recentChoices" :key="idx">
+            <view class="choice-dot" :class="'dot-color-' + (idx % 3)" />
+            <text class="choice-text">{{ ch.choiceId }}</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 共同参与的事件 -->
+      <view class="shared-events" v-if="sharedEventCount > 0">
+        <view class="shared-badge">
+          <text class="shared-icon">🤝</text>
+          <text class="shared-text">你们共同参与了 {{ sharedEventCount }} 个事件</text>
+        </view>
+      </view>
+
       <!-- 操作按钮 -->
       <view class="action-buttons">
-        <view class="action-btn primary" @click="$emit('follow', user)">
-          <text class="btn-text">👋 关注</text>
+        <view 
+          class="action-btn" 
+          :class="isFollowed ? 'followed' : 'primary'"
+          @click.stop="handleFollow"
+        >
+          <text class="btn-text">{{ isFollowed ? '✅ 已关注' : '👋 关注' }}</text>
         </view>
-        <view class="action-btn secondary" @click="$emit('viewProfile', user)">
-          <text class="btn-text">查看主页</text>
+        <view class="swipe-hint">
+          <text class="hint-text">← 左滑查看主页</text>
         </view>
       </view>
     </view>
@@ -82,17 +107,22 @@
 import { computed } from 'vue'
 import type { User } from '@/types'
 import { getTagDefinition } from '@/data/tags'
+import { useInfluencerStore } from '@/stores/influencer'
+import { useUserStore } from '@/stores/user'
 
 const props = defineProps<{
   user: User
 }>()
 
-defineEmits<{
+const emit = defineEmits<{
   (e: 'click', user: User): void
   (e: 'follow', user: User): void
   (e: 'viewProfile', user: User): void
   (e: 'stateChange', state: string): void
 }>()
+
+const influencerStore = useInfluencerStore()
+const userStore = useUserStore()
 
 const getTagName = (tagId: string): string => {
   const def = getTagDefinition(tagId)
@@ -107,7 +137,7 @@ const getTagIcon = (tagId: string): string => {
 const isRecentlyActive = computed(() => {
   const lastActive = props.user.lastActive || props.user.lastActiveAt
   if (!lastActive) return false
-  return Date.now() - lastActive < 3600000 // 1小时内
+  return Date.now() - lastActive < 3600000
 })
 
 const activeTimeText = computed(() => {
@@ -127,6 +157,42 @@ const reputationIcon = computed(() => {
   if (rep >= 100) return '🌟'
   return '💫'
 })
+
+/** 是否已关注 */
+const isFollowed = computed(() => {
+  return influencerStore.isFollowing(props.user.id)
+})
+
+/** 最近选择记录（展示3条） */
+const recentChoices = computed(() => {
+  return (props.user.history?.choiceHistory || []).slice(-3).reverse()
+})
+
+/** 共同参与的事件数 */
+const sharedEventCount = computed(() => {
+  const myEvents = new Set([
+    ...(userStore.user?.history?.completedEvents || []),
+    ...(userStore.user?.history?.currentEvents || [])
+  ])
+  const theirEvents = [
+    ...(props.user.history?.completedEvents || []),
+    ...(props.user.history?.currentEvents || [])
+  ]
+  return theirEvents.filter(e => myEvents.has(e)).length
+})
+
+/** 关注/取关 */
+const handleFollow = () => {
+  if (isFollowed.value) {
+    influencerStore.unfollowInfluencer(props.user.id)
+    uni.showToast({ title: `已取消关注`, icon: 'none' })
+  } else {
+    influencerStore.followInfluencer(props.user.id, props.user.nickname, props.user.avatar)
+    uni.showToast({ title: `已关注 ${props.user.nickname}`, icon: 'none' })
+  }
+  emit('follow', props.user)
+}
+
 </script>
 
 <style lang="scss" scoped>
@@ -135,21 +201,17 @@ const reputationIcon = computed(() => {
   position: relative;
   width: 100%;
   height: 100%;
-  display: flex;
-  flex-direction: column;
-  background: $white;
-  border-radius: $radius-2xl;
-  overflow: hidden;
-  box-shadow: $shadow-lg;
 }
 
+// ==================== 内容区域 ====================
 .card-content {
   flex: 1;
   min-height: 0;
+  height: 100%;
   display: flex;
   flex-direction: column;
   padding: 36rpx 32rpx 28rpx;
-  gap: 24rpx;
+  gap: 20rpx;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
 }
@@ -174,89 +236,93 @@ const reputationIcon = computed(() => {
   display: flex;
   align-items: center;
   justify-content: center;
+  font-size: 48rpx;
+  border: 4rpx solid rgba(0,0,0,0.06);
   
-  &.level-0 { background: $gradient-secondary; }
-  &.level-1 { background: $gradient-primary; }
-  &.level-2 { background: linear-gradient(135deg, #3B82F6, #2563EB); }
-  &.level-3 { background: linear-gradient(135deg, #8B5CF6, #7C3AED); }
-  &.level-4 { background: linear-gradient(135deg, #F59E0B, #D97706); }
-  &.level-5 { 
-    background: linear-gradient(135deg, #EF4444, #DC2626);
-    box-shadow: 0 0 16rpx rgba(#EF4444, 0.3);
-  }
+  &.level-1 { background: linear-gradient(135deg, #e8f5e9, #c8e6c9); }
+  &.level-2 { background: linear-gradient(135deg, #e3f2fd, #bbdefb); }
+  &.level-3 { background: linear-gradient(135deg, #f3e5f5, #ce93d8); }
+  &.level-4 { background: linear-gradient(135deg, #fff3e0, #ffcc80); }
+  &.level-5 { background: linear-gradient(135deg, #fce4ec, #f48fb1); }
 }
 
-.avatar-initial {
-  font-size: 48rpx;
-  font-weight: bold;
-  color: $white;
-}
+.avatar-emoji { font-size: 52rpx; }
+.avatar-initial { font-size: 44rpx; font-weight: 700; color: rgba(0,0,0,0.5); }
 
 .level-badge {
   position: absolute;
   bottom: -4rpx;
   right: -4rpx;
-  min-width: 40rpx;
-  height: 40rpx;
-  padding: 0 10rpx;
-  border-radius: $radius-full;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  padding: 2rpx 10rpx;
+  border-radius: 16rpx;
   border: 3rpx solid $white;
   
-  &.level-0 { background: $gray-400; }
-  &.level-1 { background: $primary-color; }
-  &.level-2 { background: #2563EB; }
-  &.level-3 { background: #7C3AED; }
-  &.level-4 { background: #D97706; }
-  &.level-5 { background: #DC2626; }
+  &.level-1 { background: #66bb6a; }
+  &.level-2 { background: #42a5f5; }
+  &.level-3 { background: #ab47bc; }
+  &.level-4 { background: #ffa726; }
+  &.level-5 { background: #ef5350; }
+  
+  .level-text {
+    font-size: 20rpx;
+    font-weight: 700;
+    color: $white;
+  }
 }
 
-.level-text {
-  font-size: 20rpx;
-  color: $white;
-  font-weight: 700;
+.online-indicator {
+  position: absolute;
+  top: 4rpx;
+  right: 4rpx;
+  width: 20rpx;
+  height: 20rpx;
+  border-radius: 50%;
+  background: #4caf50;
+  border: 3rpx solid $white;
+  animation: pulse-online 2s infinite;
+}
+
+@keyframes pulse-online {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.4); }
+  50% { box-shadow: 0 0 0 6rpx rgba(76, 175, 80, 0); }
 }
 
 .user-info {
   flex: 1;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
 }
 
 .name-row {
   display: flex;
   align-items: center;
-  gap: 10rpx;
-  margin-bottom: 8rpx;
+  gap: 12rpx;
 }
 
 .user-name {
   font-size: 36rpx;
   font-weight: 700;
   color: $text-primary;
-  @include text-ellipsis(1);
-}
-
-.active-dot {
-  width: 14rpx;
-  height: 14rpx;
-  border-radius: 50%;
-  background: $gray-300;
-  flex-shrink: 0;
-  
-  &.online {
-    background: $color-success;
-    box-shadow: 0 0 8rpx rgba($color-success, 0.5);
-  }
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .user-bio {
-  font-size: 26rpx;
+  font-size: 24rpx;
   color: $text-secondary;
   line-height: 1.5;
-  margin-bottom: 6rpx;
-  @include text-ellipsis(2);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.active-row {
+  display: flex;
+  align-items: center;
 }
 
 .active-time {
@@ -264,56 +330,52 @@ const reputationIcon = computed(() => {
   color: $text-tertiary;
 }
 
-// ==================== 彩色标签 ====================
+// ==================== 标签区域 ====================
 .user-tags {
   display: flex;
   flex-wrap: wrap;
-  gap: 10rpx;
+  gap: 12rpx;
   flex-shrink: 0;
   
   &.empty {
-    padding: 16rpx;
-    justify-content: center;
+    padding: 12rpx 0;
   }
 }
 
 .empty-tag-text {
   font-size: 24rpx;
   color: $text-tertiary;
+  font-style: italic;
 }
 
 .tag-chip {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   gap: 6rpx;
   padding: 8rpx 16rpx;
-  border-radius: $radius-full;
-  
-  &.tag-color-0 { background: rgba(#6366F1, 0.08); border: 1rpx solid rgba(#6366F1, 0.12); }
-  &.tag-color-1 { background: rgba(#10B981, 0.08); border: 1rpx solid rgba(#10B981, 0.12); }
-  &.tag-color-2 { background: rgba(#F59E0B, 0.08); border: 1rpx solid rgba(#F59E0B, 0.12); }
-  &.tag-color-3 { background: rgba(#EF4444, 0.08); border: 1rpx solid rgba(#EF4444, 0.12); }
-  &.tag-color-4 { background: rgba(#8B5CF6, 0.08); border: 1rpx solid rgba(#8B5CF6, 0.12); }
-}
-
-.tag-icon { font-size: 22rpx; }
-
-.tag-name {
+  border-radius: 24rpx;
   font-size: 22rpx;
-  font-weight: 500;
-  color: $text-primary;
+  
+  &.tag-color-0 { background: #e8f5e9; color: #2e7d32; }
+  &.tag-color-1 { background: #e3f2fd; color: #1565c0; }
+  &.tag-color-2 { background: #fce4ec; color: #c62828; }
+  &.tag-color-3 { background: #fff3e0; color: #e65100; }
+  &.tag-color-4 { background: #f3e5f5; color: #6a1b9a; }
 }
+
+.tag-icon { font-size: 24rpx; }
+.tag-name { font-weight: 600; }
 
 .tag-weight {
+  background: rgba(0,0,0,0.08);
   padding: 2rpx 8rpx;
-  background: rgba(0, 0, 0, 0.06);
-  border-radius: $radius-full;
-}
-
-.weight-text {
-  font-size: 18rpx;
-  color: $text-tertiary;
-  font-weight: 600;
+  border-radius: 10rpx;
+  
+  .weight-text {
+    font-size: 18rpx;
+    font-weight: 700;
+    opacity: 0.7;
+  }
 }
 
 // ==================== 统计区域 ====================
@@ -328,30 +390,87 @@ const reputationIcon = computed(() => {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6rpx;
+  gap: 4rpx;
   padding: 16rpx 8rpx;
   background: $gray-50;
   border-radius: $radius-lg;
 }
 
-.stat-icon { font-size: 24rpx; }
+.stat-icon { font-size: 28rpx; }
+.stat-value { font-size: 32rpx; font-weight: 700; color: $text-primary; }
+.stat-label { font-size: 20rpx; color: $text-tertiary; }
 
-.stat-value {
-  font-size: 32rpx;
-  font-weight: 700;
+// ==================== 最近选择 ====================
+.recent-choices {
+  flex-shrink: 0;
+}
+
+.section-label {
+  font-size: 24rpx;
+  font-weight: 600;
+  color: $text-secondary;
+  margin-bottom: 12rpx;
+  display: block;
+}
+
+.choice-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10rpx;
+}
+
+.choice-item {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  padding: 10rpx 16rpx;
+  background: $gray-50;
+  border-radius: $radius-md;
+}
+
+.choice-dot {
+  width: 12rpx;
+  height: 12rpx;
+  border-radius: 50%;
+  flex-shrink: 0;
+  
+  &.dot-color-0 { background: #42a5f5; }
+  &.dot-color-1 { background: #66bb6a; }
+  &.dot-color-2 { background: #ffa726; }
+}
+
+.choice-text {
+  font-size: 24rpx;
   color: $text-primary;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.stat-label {
-  font-size: 20rpx;
-  color: $text-tertiary;
+// ==================== 共同事件 ====================
+.shared-events {
+  flex-shrink: 0;
 }
+
+.shared-badge {
+  display: flex;
+  align-items: center;
+  gap: 10rpx;
+  padding: 14rpx 20rpx;
+  background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
+  border-radius: $radius-lg;
+  border: 1rpx solid rgba(76, 175, 80, 0.2);
+}
+
+.shared-icon { font-size: 28rpx; }
+.shared-text { font-size: 24rpx; color: #2e7d32; font-weight: 500; }
 
 // ==================== 操作按钮 ====================
 .action-buttons {
   display: flex;
   gap: 16rpx;
   margin-top: auto;
+  padding-top: 12rpx;
   flex-shrink: 0;
 }
 
@@ -360,29 +479,57 @@ const reputationIcon = computed(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 24rpx;
+  padding: 20rpx 0;
   border-radius: $radius-xl;
-  min-height: $touch-target-min;
-  transition: all 0.15s ease;
-  touch-action: manipulation;
-  -webkit-tap-highlight-color: transparent;
-
+  cursor: pointer;
+  transition: all 0.2s ease;
+  
   &.primary {
-    background: $gradient-primary;
-    box-shadow: $shadow-primary;
-    .btn-text { color: $white; font-weight: 600; }
-    &:active { transform: scale(0.96); }
+    background: linear-gradient(135deg, $primary-color, $primary-dark);
+    box-shadow: 0 4rpx 12rpx rgba($primary-color, 0.3);
+    
+    .btn-text { color: $white; }
+    
+    &:active {
+      transform: scale(0.97);
+      box-shadow: 0 2rpx 6rpx rgba($primary-color, 0.2);
+    }
   }
-
-  &.secondary {
-    background: $gray-50;
+  
+  &.followed {
+    background: $gray-100;
     border: 1rpx solid $gray-200;
-    .btn-text { color: $text-primary; }
-    &:active { transform: scale(0.96); background: $gray-100; }
+    
+    .btn-text { color: $text-secondary; }
+    
+    &:active { background: $gray-200; }
   }
+  
 }
 
 .btn-text {
   font-size: 28rpx;
+  font-weight: 600;
 }
+
+.swipe-hint {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20rpx 0;
+  flex: 1;
+  
+  .hint-text {
+    font-size: 24rpx;
+    color: $text-tertiary;
+    letter-spacing: 1rpx;
+    animation: swipeHintPulse 2s ease-in-out infinite;
+  }
+}
+
+@keyframes swipeHintPulse {
+  0%, 100% { opacity: 0.5; transform: translateX(0); }
+  50% { opacity: 1; transform: translateX(-8rpx); }
+}
+
 </style>

@@ -59,6 +59,7 @@
         >
           <view class="card-wrapper">
             <SwipeableCard
+              :ref="(el: any) => setSwipeableCardRef(index, el)"
               :disabled="isCardActive"
               @swipeLeft="onSwipeLeft(card)"
               @swipeRight="onSwipeRight(card)"
@@ -208,19 +209,26 @@
                     <text class="section-text">{{ (card.data as User).bio || '这个人很懒，什么都没写~' }}</text>
                   </view>
                   
-                  <!-- 标签展示 - 核心信息 -->
-                  <view class="detail-section" v-if="(card.data as User).profile?.tags?.length">
+                  <!-- 标签展示 - 带权重进度条 -->
+                  <view class="detail-section" v-if="(card.data as User).tags?.length">
                     <text class="section-title">🏷️ TA 的标签</text>
                     <view class="user-tag-list">
                       <view 
                         class="user-tag-item" 
-                        v-for="tag in (card.data as User).profile.tags" 
-                        :key="tag.id"
+                        v-for="(tag, idx) in (card.data as User).tags" 
+                        :key="tag.tagId"
                       >
-                        <text class="tag-icon">{{ tag.icon }}</text>
+                        <view class="tag-icon-wrap" :class="'tag-bg-' + (idx % 5)">
+                          <text class="tag-icon">{{ getTagIcon(tag.tagId) }}</text>
+                        </view>
                         <view class="tag-info">
-                          <text class="tag-name">{{ tag.name }}</text>
-                          <text class="tag-desc">{{ tag.description }}</text>
+                          <view class="tag-name-row">
+                            <text class="tag-name">{{ getTagName(tag.tagId) }}</text>
+                            <text class="tag-weight">{{ tag.weight }}</text>
+                          </view>
+                          <view class="tag-bar">
+                            <view class="tag-bar-fill" :class="'bar-color-' + (idx % 5)" :style="{ width: Math.min(tag.weight, 100) + '%' }" />
+                          </view>
                         </view>
                       </view>
                     </view>
@@ -255,6 +263,36 @@
                       <view class="stat-item">
                         <text class="stat-value">{{ (card.data as User).inventory?.length || 0 }}</text>
                         <text class="stat-label">物品数</text>
+                      </view>
+                    </view>
+                  </view>
+                  
+                  <!-- 历史选择记录 -->
+                  <view class="detail-section" v-if="(card.data as User).history?.choiceHistory?.length">
+                    <text class="section-title">📜 历史选择</text>
+                    <view class="choice-timeline">
+                      <view 
+                        class="timeline-item" 
+                        v-for="(ch, idx) in (card.data as User).history.choiceHistory.slice(-6).reverse()" 
+                        :key="idx"
+                      >
+                        <view class="timeline-dot" :class="'dot-color-' + (idx % 3)" />
+                        <view class="timeline-line" v-if="idx < Math.min((card.data as User).history.choiceHistory.length, 6) - 1" />
+                        <view class="timeline-content">
+                          <text class="timeline-choice">{{ ch.choiceId }}</text>
+                          <text class="timeline-time" v-if="ch.timestamp">{{ formatChoiceTime(ch.timestamp) }}</text>
+                        </view>
+                      </view>
+                    </view>
+                  </view>
+                  
+                  <!-- 物品收藏 -->
+                  <view class="detail-section" v-if="(card.data as User).inventory?.length">
+                    <text class="section-title">🎒 物品收藏</text>
+                    <view class="inventory-grid">
+                      <view class="inventory-item" v-for="item in (card.data as User).inventory.slice(0, 6)" :key="item.itemId">
+                        <text class="inventory-icon">{{ item.icon || '📦' }}</text>
+                        <text class="inventory-name">{{ item.name || item.itemId }}</text>
                       </view>
                     </view>
                   </view>
@@ -380,6 +418,7 @@ import EventCard from '@/components/EventCard.vue'
 import ItemCard from '@/components/ItemCard.vue'
 import UserCard from '@/components/UserCard.vue'
 import type { GameEvent, Item, User, Card } from '@/types'
+import { getTagDefinition } from '@/data/tags'
 
 const cardStore = useCardStore()
 const userStore = useUserStore()
@@ -389,6 +428,27 @@ const itemStore = useItemStore()
 
 const isPanelOpen = ref(false)
 const isCardActive = ref(false)
+
+// SwipeableCard 实例引用
+const swipeableCardRefs = ref<Record<number, any>>({})
+const setSwipeableCardRef = (index: number, el: any) => {
+  if (el) {
+    swipeableCardRefs.value[index] = el
+  } else {
+    delete swipeableCardRefs.value[index]
+  }
+}
+
+// 标签工具方法
+const getTagName = (tagId: string): string => {
+  const def = getTagDefinition(tagId)
+  return def?.name || tagId
+}
+
+const getTagIcon = (tagId: string): string => {
+  const def = getTagDefinition(tagId)
+  return def?.icon || '🏷️'
+}
 
 // 数字格式化（大数字缩写）
 const formatNum = (n: number): string => {
@@ -434,6 +494,18 @@ const getLastActiveText = (user: User): string => {
   if (hours < 24) return `${hours}小时前`
   if (days < 7) return `${days}天前`
   return '一周前'
+}
+
+// 格式化选择时间
+const formatChoiceTime = (timestamp: number): string => {
+  if (!timestamp) return ''
+  const d = new Date(timestamp)
+  const now = new Date()
+  const diff = now.getTime() - d.getTime()
+  if (diff < 3600000) return `${Math.floor(diff / 60000)}分钟前`
+  if (diff < 86400000) return `${Math.floor(diff / 3600000)}小时前`
+  if (diff < 604800000) return `${Math.floor(diff / 86400000)}天前`
+  return `${d.getMonth() + 1}/${d.getDate()}`
 }
 
 // 事件类型标签
@@ -589,17 +661,41 @@ const onItemBuy = (item: Item) => {
 
 // 用户点击
 const onUserClick = (user: User) => {
-  // user click
+  // 用户卡片内部已处理点击
 }
 
-// 用户关注
+// 用户关注（UserCard 内部已处理 influencerStore 逻辑）
 const onUserFollow = (user: User) => {
-  // user follow
+  console.log('[Index] User follow/unfollow:', user.nickname)
 }
 
-// 查看用户主页
+// 查看用户主页 - 打开 SwipeableCard 的详情面板
 const onUserViewProfile = (user: User) => {
-  // user view profile
+  console.log('[Index] View profile:', user.nickname)
+  // 遍历所有 ref，找到包含用户卡片的 SwipeableCard
+  for (const key of Object.keys(swipeableCardRefs.value)) {
+    const ref = swipeableCardRefs.value[Number(key)]
+    if (ref?.$el) {
+      const userCard = ref.$el.querySelector('.user-card')
+      if (userCard && userCard.offsetParent !== null) {
+        ref.openLeftPanel()
+        return
+      }
+    }
+  }
+  // 备用方案：通过 DOM 找到包含可见 user-card 的 swipeable-card
+  const userCardEl = document.querySelector('.user-card')
+  if (userCardEl) {
+    const swipeCard = userCardEl.closest('.swipeable-card')
+    const detailPanel = swipeCard?.querySelector('.detail-panel')
+    if (detailPanel) {
+      detailPanel.classList.add('visible')
+      const overlay = swipeCard?.querySelector('.overlay')
+      overlay?.classList.add('visible')
+      const cardContent = swipeCard?.querySelector('.card-content')
+      cardContent?.classList.add('panel-open')
+    }
+  }
 }
 
 // 跳转到个人中心
@@ -895,40 +991,80 @@ $safe-area-bottom: env(safe-area-inset-bottom, 0px);
     }
   }
   
-  // 用户标签列表 - 白色系
+  // 用户标签列表 - 带权重进度条
   .user-tag-list {
     display: flex;
     flex-direction: column;
-    gap: 16rpx;
+    gap: 14rpx;
     
     .user-tag-item {
       display: flex;
-      align-items: flex-start;
+      align-items: center;
       gap: 16rpx;
-      padding: 20rpx;
+      padding: 16rpx 20rpx;
       @include glass-effect(0.7);
       border-radius: $radius-lg;
       
-      .tag-icon {
-        font-size: 36rpx;
+      .tag-icon-wrap {
+        width: 52rpx;
+        height: 52rpx;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
         flex-shrink: 0;
+        
+        &.tag-bg-0 { background: rgba(#4caf50, 0.15); }
+        &.tag-bg-1 { background: rgba(#2196f3, 0.15); }
+        &.tag-bg-2 { background: rgba(#e91e63, 0.15); }
+        &.tag-bg-3 { background: rgba(#ff9800, 0.15); }
+        &.tag-bg-4 { background: rgba(#9c27b0, 0.15); }
+      }
+      
+      .tag-icon {
+        font-size: 28rpx;
       }
       
       .tag-info {
         flex: 1;
+        min-width: 0;
         
-        .tag-name {
-          font-size: 28rpx;
-          font-weight: 600;
-          color: $text-primary;
-          display: block;
-          margin-bottom: 6rpx;
+        .tag-name-row {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          margin-bottom: 8rpx;
         }
         
-        .tag-desc {
+        .tag-name {
+          font-size: 26rpx;
+          font-weight: 600;
+          color: $text-primary;
+        }
+        
+        .tag-weight {
           font-size: 24rpx;
+          font-weight: 700;
           color: $text-secondary;
-          line-height: 1.4;
+        }
+        
+        .tag-bar {
+          height: 8rpx;
+          background: rgba(255,255,255,0.3);
+          border-radius: 4rpx;
+          overflow: hidden;
+        }
+        
+        .tag-bar-fill {
+          height: 100%;
+          border-radius: 4rpx;
+          transition: width 0.3s ease;
+          
+          &.bar-color-0 { background: linear-gradient(90deg, #66bb6a, #4caf50); }
+          &.bar-color-1 { background: linear-gradient(90deg, #42a5f5, #2196f3); }
+          &.bar-color-2 { background: linear-gradient(90deg, #f06292, #e91e63); }
+          &.bar-color-3 { background: linear-gradient(90deg, #ffb74d, #ff9800); }
+          &.bar-color-4 { background: linear-gradient(90deg, #ba68c8, #9c27b0); }
         }
       }
     }
@@ -995,6 +1131,93 @@ $safe-area-bottom: env(safe-area-inset-bottom, 0px);
     .activity-text {
       font-size: 26rpx;
       color: $text-primary;
+    }
+  }
+  
+  // 历史选择时间线
+  .choice-timeline {
+    display: flex;
+    flex-direction: column;
+    padding-left: 8rpx;
+    
+    .timeline-item {
+      display: flex;
+      gap: 16rpx;
+      position: relative;
+      min-height: 60rpx;
+    }
+    
+    .timeline-dot {
+      width: 16rpx;
+      height: 16rpx;
+      border-radius: 50%;
+      flex-shrink: 0;
+      margin-top: 8rpx;
+      z-index: 1;
+      
+      &.dot-color-0 { background: #42a5f5; box-shadow: 0 0 8rpx rgba(#42a5f5, 0.4); }
+      &.dot-color-1 { background: #66bb6a; box-shadow: 0 0 8rpx rgba(#66bb6a, 0.4); }
+      &.dot-color-2 { background: #ffa726; box-shadow: 0 0 8rpx rgba(#ffa726, 0.4); }
+    }
+    
+    .timeline-line {
+      position: absolute;
+      left: 7rpx;
+      top: 28rpx;
+      bottom: 0;
+      width: 3rpx;
+      background: rgba(255,255,255,0.2);
+    }
+    
+    .timeline-content {
+      flex: 1;
+      min-width: 0;
+      padding-bottom: 20rpx;
+    }
+    
+    .timeline-choice {
+      font-size: 26rpx;
+      color: $text-primary;
+      display: block;
+      line-height: 1.4;
+    }
+    
+    .timeline-time {
+      font-size: 22rpx;
+      color: $text-tertiary;
+      margin-top: 4rpx;
+      display: block;
+    }
+  }
+  
+  // 物品收藏网格
+  .inventory-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12rpx;
+    
+    .inventory-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8rpx;
+      padding: 16rpx 8rpx;
+      @include glass-effect(0.6);
+      border-radius: $radius-lg;
+    }
+    
+    .inventory-icon {
+      font-size: 36rpx;
+    }
+    
+    .inventory-name {
+      font-size: 20rpx;
+      color: $text-secondary;
+      text-align: center;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      max-width: 100%;
     }
   }
   
