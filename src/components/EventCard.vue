@@ -226,70 +226,11 @@
         </template>
         
         <template v-else-if="mode === 'playing'">
-          <!-- Influencer 推荐区域（卡片式横向滚动） -->
-          <view class="influencer-section" v-if="stageInfluencers.length > 0">
-            <view class="influencer-header">
-              <view class="influencer-header-left">
-                <text class="influencer-section-title">🔥 影响力玩家</text>
-                <text class="influencer-count">{{ stageInfluencers.length }}人</text>
-              </view>
-              <text class="influencer-swipe-hint" v-if="stageInfluencers.length > 2">← 滑动查看 →</text>
-            </view>
-            
-            <!-- 卡片式横向滚动列表 -->
-            <scroll-view scroll-x class="influencer-card-scroll">
-              <view class="influencer-card-row">
-                <view 
-                  v-for="inf in stageInfluencers" 
-                  :key="inf.userId"
-                  class="influencer-card"
-                  :class="{ followed: influencerStore.isFollowing(inf.userId) }"
-                >
-                  <!-- 卡片头部：头像 + 名称 + 占比 -->
-                  <view class="inf-card-top">
-                    <text class="inf-avatar">{{ inf.avatar }}</text>
-                    <view class="inf-card-info">
-                      <text class="inf-name">{{ inf.nickname }}</text>
-                      <text class="inf-percent-badge">{{ inf.investmentPercent.toFixed(1) }}%</text>
-                    </view>
-                  </view>
-                  
-                  <!-- 简介 -->
-                  <text class="inf-bio" v-if="inf.bio">{{ inf.bio }}</text>
-                  
-                  <!-- 主张 -->
-                  <view class="inf-stance" v-if="inf.latestChoice">
-                    <text class="inf-stance-text">💬「{{ inf.latestChoice.choiceText }}」</text>
-                  </view>
-                  
-                  <!-- 关注按钮 -->
-                  <button 
-                    class="follow-btn"
-                    :class="{ 'is-following': influencerStore.isFollowing(inf.userId) }"
-                    @click.stop="handleToggleFollow(inf)"
-                  >
-                    {{ influencerStore.isFollowing(inf.userId) ? '✅ 已关注' : '+ 关注' }}
-                  </button>
-                </view>
-              </view>
-            </scroll-view>
-          </view>
-          
-          <!-- 已关注 Influencer 的选择提示（内嵌卡片） -->
-          <view class="followed-choices-section" v-if="followedChoices.length > 0">
-            <text class="followed-section-title">👥 你关注的玩家</text>
-            <view class="followed-cards">
-              <view 
-                class="followed-card" 
-                v-for="fc in followedChoices" 
-                :key="fc.influencer.userId"
-              >
-                <text class="fc-avatar">{{ fc.influencer.avatar }}</text>
-                <view class="fc-detail">
-                  <text class="fc-name">{{ fc.influencer.nickname }}</text>
-                  <text class="fc-choice">选择了「{{ fc.latestChoice.choiceText }}」</text>
-                </view>
-              </view>
+          <!-- 已关注玩家的选择提示（紧凑条幅） -->
+          <view class="followed-hint-bar" v-if="followedChoices.length > 0">
+            <view class="followed-hint-item" v-for="fc in followedChoices" :key="fc.influencer.userId">
+              <text class="fh-avatar">{{ fc.influencer.avatar }}</text>
+              <text class="fh-text">{{ fc.influencer.nickname }} 选择了「{{ fc.latestChoice.choiceText }}」</text>
             </view>
           </view>
           
@@ -371,6 +312,73 @@
               class="dot"
               :class="{ active: idx === currentStageIndex, completed: idx < currentStageIndex }"
             />
+          </view>
+        </template>
+        
+        <!-- “与玩家相遇”偶发子事件卡片页 -->
+        <template v-else-if="mode === 'encounter' && encounterInfluencer">
+          <view class="encounter-card">
+            <!-- 氛围背景 -->
+            <view class="encounter-atmosphere">
+              <view class="encounter-glow" />
+              <view class="encounter-particles">
+                <view class="enc-particle" v-for="i in 6" :key="i" :class="'ep-' + i" />
+              </view>
+            </view>
+            
+            <!-- 标题 -->
+            <view class="encounter-title-row">
+              <text class="encounter-label">✨ 与玩家相遇</text>
+            </view>
+            
+            <!-- 玩家信息卡片 -->
+            <view class="encounter-profile">
+              <view class="encounter-avatar-ring">
+                <text class="encounter-avatar">{{ encounterInfluencer.avatar }}</text>
+              </view>
+              <text class="encounter-name">{{ encounterInfluencer.nickname }}</text>
+              <view class="encounter-percent-row">
+                <text class="encounter-percent">贡献占比 {{ (encounterInfluencer.investmentPercent * 100).toFixed(1) }}%</text>
+              </view>
+              <text class="encounter-bio" v-if="encounterInfluencer.bio">{{ encounterInfluencer.bio }}</text>
+            </view>
+            
+            <!-- 标签 -->
+            <view class="encounter-tags" v-if="encounterInfluencer.topTags?.length">
+              <view class="enc-tag" v-for="tag in encounterInfluencer.topTags" :key="tag.tagId">
+                <text class="enc-tag-icon">{{ tag.icon }}</text>
+                <text class="enc-tag-name">{{ tag.name }}</text>
+              </view>
+            </view>
+            
+            <!-- 历史选择记录 -->
+            <view class="encounter-history">
+              <text class="encounter-history-title">📜 历史选择</text>
+              <view class="encounter-choices">
+                <view 
+                  class="enc-choice-item" 
+                  v-for="(ch, idx) in encounterInfluencer.choices.slice(-4)" 
+                  :key="idx"
+                >
+                  <view class="enc-choice-dot" />
+                  <view class="enc-choice-content">
+                    <text class="enc-choice-text">「{{ ch.choiceText }}」</text>
+                    <text class="enc-choice-result" v-if="ch.resultText">{{ ch.resultText }}</text>
+                  </view>
+                </view>
+              </view>
+              <text class="enc-no-history" v-if="!encounterInfluencer.choices?.length">这位玩家还很神秘…</text>
+            </view>
+            
+            <!-- 操作按钮 -->
+            <view class="encounter-actions">
+              <button class="encounter-follow-btn" @click="handleEncounterFollow">
+                + 关注 TA
+              </button>
+              <button class="encounter-skip-btn" @click="handleEncounterSkip">
+                下次再说
+              </button>
+            </view>
           </view>
         </template>
         
@@ -475,10 +483,7 @@ const itemStore = useItemStore()
 const worldStore = useWorldStore()
 const influencerStore = useInfluencerStore()
 
-/** Influencer 推荐区域是否展开（默认收起，显示横向滚动头像） */
-const influencerExpanded = ref(false)
-
-const mode = ref<'preview' | 'playing' | 'result'>('preview')
+const mode = ref<'preview' | 'playing' | 'encounter' | 'result'>('preview')
 const currentStageIndex = ref(0)
 const lastResult = ref<EventOutcome | null>(null)
 const nextStageId = ref<string | null>(null)
@@ -486,6 +491,58 @@ const nextStageId = ref<string | null>(null)
 // ========== ClaimItem 状态 ==========
 const claimedItemIds = ref(new Set<string>())
 const skippedItemIds = ref(new Set<string>())
+
+// ========== 偏发相遇子事件 ==========
+/** 当前相遇的 Influencer */
+const encounterInfluencer = ref<InfluencerInfo | null>(null)
+/** 已经触发过相遇的阶段 ID 集合（每个阶段最多触发一次） */
+const encounteredStages = ref(new Set<string>())
+/** 相遇触发概率 */
+const ENCOUNTER_CHANCE = 0.35
+/** 最低贡献占比门槛（小数比例，0.05 = 5%） */
+const ENCOUNTER_MIN_PERCENT = 0.05
+
+/** 尝试触发相遇子事件，返回 true 表示触发成功 */
+const tryTriggerEncounter = (): boolean => {
+  const stageId = currentStage.value?.id
+  if (!stageId) return false
+  // 每个阶段最多触发一次
+  if (encounteredStages.value.has(stageId)) return false
+  // 随机概率判定
+  if (Math.random() > ENCOUNTER_CHANCE) return false
+  // 筛选贡献超过 5% 的玩家（排除自己和已关注的）
+  const userId = userStore.user?.id || ''
+  const allInfluencers = influencerStore.getStageInfluencers(props.event.id, stageId, userId)
+  const candidates = allInfluencers.filter(inf => 
+    inf.investmentPercent >= ENCOUNTER_MIN_PERCENT && 
+    !influencerStore.isFollowing(inf.userId)
+  )
+  if (candidates.length === 0) return false
+  // 随机选一位
+  const picked = candidates[Math.floor(Math.random() * candidates.length)]
+  encounterInfluencer.value = picked
+  encounteredStages.value.add(stageId)
+  return true
+}
+
+/** 相遇后关注 */
+const handleEncounterFollow = () => {
+  if (!encounterInfluencer.value) return
+  const inf = encounterInfluencer.value
+  influencerStore.followInfluencer(inf.userId, inf.nickname, inf.avatar)
+  uni.showToast({ title: `已关注 ${inf.nickname}`, icon: 'none' })
+  // 进入结果页
+  encounterInfluencer.value = null
+  mode.value = 'result'
+  emit('stateChange', 'result')
+}
+
+/** 相遇后跳过 */
+const handleEncounterSkip = () => {
+  encounterInfluencer.value = null
+  mode.value = 'result'
+  emit('stateChange', 'result')
+}
 
 // ========== Influencer 系统 ==========
 /** 是否已初始化过虚拟用户数据 */
@@ -1154,8 +1211,14 @@ const handleSelectChoice = (choice: EventChoice) => {
   claimedItemIds.value.clear()
   skippedItemIds.value.clear()
   
-  mode.value = 'result'
-  emit('stateChange', 'result')
+  // 尝试触发“与玩家相遇”偶发子事件
+  if (tryTriggerEncounter()) {
+    mode.value = 'encounter'
+    emit('stateChange', 'encounter')
+  } else {
+    mode.value = 'result'
+    emit('stateChange', 'result')
+  }
 }
 
 const handleContinue = () => {
@@ -2237,229 +2300,36 @@ defineExpose({
 }
 
 // ========== Influencer 系统样式 ==========
-// ==================== Influencer 卡片式推荐 ====================
-.influencer-section {
-  margin-bottom: 20rpx;
-}
-
-.influencer-header {
+// ==================== 已关注玩家提示条 ====================
+.followed-hint-bar {
+  margin-bottom: 16rpx;
+  padding: 12rpx 16rpx;
+  background: rgba(59, 130, 246, 0.05);
+  border-radius: $radius-lg;
+  border: 2rpx solid rgba(59, 130, 246, 0.12);
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 12rpx;
-  padding: 0 4rpx;
-}
-
-.influencer-header-left {
-  display: flex;
-  align-items: center;
-  gap: 12rpx;
-}
-
-.influencer-section-title {
-  font-size: 26rpx;
-  font-weight: 700;
-  color: $text-primary;
-}
-
-.influencer-count {
-  font-size: 20rpx;
-  color: #f59e0b;
-  background: rgba(245, 158, 11, 0.1);
-  padding: 2rpx 12rpx;
-  border-radius: 20rpx;
-  font-weight: 600;
-}
-
-.influencer-swipe-hint {
-  font-size: 20rpx;
-  color: $text-tertiary;
-  opacity: 0.6;
-}
-
-// 卡片式横向滚动
-.influencer-card-scroll {
-  white-space: nowrap;
-  ::-webkit-scrollbar { display: none; }
-  -webkit-overflow-scrolling: touch;
-}
-
-.influencer-card-row {
-  display: inline-flex;
-  gap: 16rpx;
-  padding: 4rpx 4rpx 8rpx;
-}
-
-.influencer-card {
-  display: inline-flex;
   flex-direction: column;
-  width: 280rpx;
-  min-height: 240rpx;
-  background: $white;
-  border-radius: $radius-xl;
-  padding: 20rpx;
-  border: 2rpx solid rgba(0, 0, 0, 0.06);
-  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.04);
-  transition: all 0.3s ease;
-  white-space: normal;
-  vertical-align: top;
-  position: relative;
-  
-  &.followed {
-    border-color: rgba(59, 130, 246, 0.35);
-    background: linear-gradient(135deg, rgba(59, 130, 246, 0.04), rgba(59, 130, 246, 0.01));
-    box-shadow: 0 4rpx 16rpx rgba(59, 130, 246, 0.08);
-  }
+  gap: 8rpx;
 }
 
-.inf-card-top {
+.followed-hint-item {
   display: flex;
   align-items: center;
-  gap: 12rpx;
-  margin-bottom: 10rpx;
+  gap: 8rpx;
 }
 
-.inf-avatar {
-  font-size: 44rpx;
-  width: 56rpx;
-  height: 56rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(245, 158, 11, 0.1);
-  border-radius: 50%;
+.fh-avatar {
+  font-size: 24rpx;
   flex-shrink: 0;
 }
 
-.inf-card-info {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 4rpx;
-}
-
-.inf-name {
-  font-size: 24rpx;
-  font-weight: 600;
-  color: $text-primary;
+.fh-text {
+  font-size: 22rpx;
+  color: $text-secondary;
+  font-weight: 500;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.inf-percent-badge {
-  font-size: 20rpx;
-  color: #f59e0b;
-  font-weight: 700;
-}
-
-.inf-bio {
-  font-size: 20rpx;
-  color: $text-secondary;
-  margin-bottom: 8rpx;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  line-height: 1.4;
-}
-
-.inf-stance {
-  margin-top: auto;
-  padding: 8rpx 12rpx;
-  background: rgba(245, 158, 11, 0.06);
-  border-radius: $radius-md;
-  border-left: 3rpx solid #f59e0b;
-  margin-bottom: 10rpx;
-}
-
-.inf-stance-text {
-  font-size: 20rpx;
-  color: $text-primary;
-  font-weight: 500;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  line-height: 1.4;
-}
-
-.follow-btn {
-  margin-top: auto;
-  padding: 6rpx 0 !important;
-  font-size: 22rpx !important;
-  font-weight: 600 !important;
-  color: #3b82f6 !important;
-  background: rgba(59, 130, 246, 0.08) !important;
-  border: 2rpx solid rgba(59, 130, 246, 0.2) !important;
-  border-radius: $radius-lg !important;
-  line-height: 1.4 !important;
-  min-height: 0 !important;
-  text-align: center;
-  transition: all 0.3s ease;
-  width: 100%;
-  
-  &.is-following {
-    color: $text-tertiary !important;
-    background: $gray-100 !important;
-    border-color: transparent !important;
-  }
-}
-
-// ==================== 已关注玩家卡片 ====================
-.followed-choices-section {
-  margin-bottom: 16rpx;
-}
-
-.followed-section-title {
-  font-size: 24rpx;
-  font-weight: 600;
-  color: #3b82f6;
-  display: block;
-  margin-bottom: 10rpx;
-  padding: 0 4rpx;
-}
-
-.followed-cards {
-  display: flex;
-  flex-direction: column;
-  gap: 10rpx;
-}
-
-.followed-card {
-  display: flex;
-  align-items: center;
-  gap: 12rpx;
-  padding: 14rpx 18rpx;
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.06), rgba(59, 130, 246, 0.02));
-  border-radius: $radius-lg;
-  border: 2rpx solid rgba(59, 130, 246, 0.12);
-}
-
-.fc-avatar {
-  font-size: 32rpx;
-  flex-shrink: 0;
-}
-
-.fc-detail {
-  flex: 1;
-  min-width: 0;
-}
-
-.fc-name {
-  font-size: 22rpx;
-  font-weight: 600;
-  color: $text-primary;
-  display: block;
-}
-
-.fc-choice {
-  font-size: 20rpx;
-  color: #f59e0b;
-  font-weight: 500;
-  display: block;
-  margin-top: 2rpx;
 }
 
 // ========== 多倍下注系统 ==========
@@ -2650,5 +2520,305 @@ defineExpose({
 .bet-boost-desc {
   font-size: 22rpx;
   color: #92400e;
+}
+
+// ==================== “与玩家相遇”偶发子事件 ====================
+.encounter-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20rpx 0;
+  position: relative;
+  animation: encounter-fade-in 0.6s ease-out;
+}
+
+@keyframes encounter-fade-in {
+  0% { opacity: 0; transform: scale(0.92) translateY(20rpx); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+// 氛围背景
+.encounter-atmosphere {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 280rpx;
+  overflow: hidden;
+  border-radius: $radius-xl;
+  pointer-events: none;
+}
+
+.encounter-glow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 300rpx;
+  height: 300rpx;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(circle, rgba(245, 158, 11, 0.15) 0%, transparent 70%);
+  animation: enc-glow-pulse 3s ease-in-out infinite alternate;
+}
+
+@keyframes enc-glow-pulse {
+  0% { transform: translate(-50%, -50%) scale(1); opacity: 0.6; }
+  100% { transform: translate(-50%, -50%) scale(1.3); opacity: 1; }
+}
+
+.encounter-particles {
+  position: absolute;
+  inset: 0;
+}
+
+.enc-particle {
+  position: absolute;
+  width: 6rpx;
+  height: 6rpx;
+  background: #f59e0b;
+  border-radius: 50%;
+  opacity: 0;
+  animation: enc-float 4s ease-in-out infinite;
+}
+
+.ep-1 { top: 20%; left: 15%; animation-delay: 0s; }
+.ep-2 { top: 40%; left: 75%; animation-delay: 0.8s; }
+.ep-3 { top: 60%; left: 30%; animation-delay: 1.6s; }
+.ep-4 { top: 25%; left: 60%; animation-delay: 2.4s; }
+.ep-5 { top: 70%; left: 80%; animation-delay: 0.4s; }
+.ep-6 { top: 50%; left: 45%; animation-delay: 1.2s; }
+
+@keyframes enc-float {
+  0%, 100% { opacity: 0; transform: translateY(0) scale(0.5); }
+  50% { opacity: 0.8; transform: translateY(-30rpx) scale(1); }
+}
+
+// 标题
+.encounter-title-row {
+  margin-bottom: 24rpx;
+  position: relative;
+  z-index: 1;
+}
+
+.encounter-label {
+  font-size: 30rpx;
+  font-weight: 700;
+  color: #b45309;
+  letter-spacing: 4rpx;
+}
+
+// 玩家信息
+.encounter-profile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10rpx;
+  margin-bottom: 24rpx;
+  position: relative;
+  z-index: 1;
+}
+
+.encounter-avatar-ring {
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #f59e0b, #ef4444);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6rpx;
+  box-shadow: 0 8rpx 32rpx rgba(245, 158, 11, 0.3);
+  animation: enc-ring-glow 2s ease-in-out infinite alternate;
+}
+
+@keyframes enc-ring-glow {
+  0% { box-shadow: 0 8rpx 24rpx rgba(245, 158, 11, 0.2); }
+  100% { box-shadow: 0 8rpx 40rpx rgba(245, 158, 11, 0.45); }
+}
+
+.encounter-avatar {
+  font-size: 64rpx;
+  width: 108rpx;
+  height: 108rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: $white;
+  border-radius: 50%;
+}
+
+.encounter-name {
+  font-size: 32rpx;
+  font-weight: 700;
+  color: $text-primary;
+}
+
+.encounter-percent-row {
+  display: flex;
+  align-items: center;
+}
+
+.encounter-percent {
+  font-size: 24rpx;
+  font-weight: 700;
+  color: #f59e0b;
+  background: rgba(245, 158, 11, 0.1);
+  padding: 4rpx 20rpx;
+  border-radius: 24rpx;
+}
+
+.encounter-bio {
+  font-size: 24rpx;
+  color: $text-secondary;
+  text-align: center;
+  max-width: 480rpx;
+  line-height: 1.5;
+}
+
+// 标签
+.encounter-tags {
+  display: flex;
+  justify-content: center;
+  gap: 12rpx;
+  flex-wrap: wrap;
+  margin-bottom: 24rpx;
+  position: relative;
+  z-index: 1;
+}
+
+.enc-tag {
+  display: flex;
+  align-items: center;
+  gap: 6rpx;
+  padding: 6rpx 16rpx;
+  background: $gray-100;
+  border-radius: 20rpx;
+}
+
+.enc-tag-icon {
+  font-size: 22rpx;
+}
+
+.enc-tag-name {
+  font-size: 22rpx;
+  color: $text-secondary;
+  font-weight: 500;
+}
+
+// 历史选择
+.encounter-history {
+  width: 100%;
+  margin-bottom: 28rpx;
+  position: relative;
+  z-index: 1;
+}
+
+.encounter-history-title {
+  font-size: 24rpx;
+  font-weight: 600;
+  color: $text-primary;
+  display: block;
+  margin-bottom: 14rpx;
+}
+
+.encounter-choices {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+}
+
+.enc-choice-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12rpx;
+  padding: 14rpx 18rpx;
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.05), rgba(245, 158, 11, 0.01));
+  border-radius: $radius-lg;
+  border-left: 4rpx solid rgba(245, 158, 11, 0.4);
+}
+
+.enc-choice-dot {
+  width: 10rpx;
+  height: 10rpx;
+  border-radius: 50%;
+  background: #f59e0b;
+  margin-top: 10rpx;
+  flex-shrink: 0;
+}
+
+.enc-choice-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.enc-choice-text {
+  font-size: 24rpx;
+  font-weight: 500;
+  color: $text-primary;
+  display: block;
+  line-height: 1.5;
+}
+
+.enc-choice-result {
+  font-size: 22rpx;
+  color: $text-tertiary;
+  display: block;
+  margin-top: 4rpx;
+  line-height: 1.4;
+}
+
+.enc-no-history {
+  font-size: 24rpx;
+  color: $text-tertiary;
+  text-align: center;
+  padding: 24rpx 0;
+  font-style: italic;
+}
+
+// 操作按钮
+.encounter-actions {
+  display: flex;
+  gap: 20rpx;
+  width: 100%;
+  position: relative;
+  z-index: 1;
+}
+
+.encounter-follow-btn {
+  flex: 1;
+  padding: 18rpx 0 !important;
+  font-size: 28rpx !important;
+  font-weight: 700 !important;
+  color: $white !important;
+  background: linear-gradient(135deg, #f59e0b, #ef4444) !important;
+  border: none !important;
+  border-radius: $radius-xl !important;
+  line-height: 1.4 !important;
+  min-height: 0 !important;
+  box-shadow: 0 6rpx 20rpx rgba(245, 158, 11, 0.3);
+  transition: all 0.3s ease;
+  
+  &:active {
+    transform: scale(0.96);
+    box-shadow: 0 2rpx 10rpx rgba(245, 158, 11, 0.2);
+  }
+}
+
+.encounter-skip-btn {
+  flex: 1;
+  padding: 18rpx 0 !important;
+  font-size: 28rpx !important;
+  font-weight: 600 !important;
+  color: $text-tertiary !important;
+  background: $gray-100 !important;
+  border: 2rpx solid rgba(0, 0, 0, 0.06) !important;
+  border-radius: $radius-xl !important;
+  line-height: 1.4 !important;
+  min-height: 0 !important;
+  transition: all 0.3s ease;
+  
+  &:active {
+    transform: scale(0.96);
+    background: $gray-200 !important;
+  }
 }
 </style>
