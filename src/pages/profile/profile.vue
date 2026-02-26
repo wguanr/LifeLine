@@ -136,7 +136,37 @@
 
       <!-- 关注 Tab -->
       <view class="tab-panel" v-if="activeTab === 'following'">
-        <view class="empty-state">
+        <view class="following-list" v-if="followedUserList.length">
+          <view
+            class="following-item"
+            v-for="user in followedUserList"
+            :key="user.id"
+          >
+            <view class="fi-avatar">
+              <text class="fi-avatar-text">{{ user.avatar || user.nickname.charAt(0) }}</text>
+              <view class="fi-level">L{{ user.level }}</view>
+            </view>
+            <view class="fi-info">
+              <view class="fi-name-row">
+                <text class="fi-name">{{ user.nickname }}</text>
+                <text class="fi-active">{{ getActiveTimeText(user.lastActive) }}</text>
+              </view>
+              <text class="fi-bio" v-if="user.bio">{{ user.bio }}</text>
+              <view class="fi-tags" v-if="user.tags.length">
+                <view class="fi-tag" v-for="tag in user.tags" :key="tag.tagId">
+                  <text class="fi-tag-icon">{{ tag.icon }}</text>
+                  <text class="fi-tag-name">{{ tag.name }}</text>
+                  <text class="fi-tag-weight" v-if="tag.weight">{{ tag.weight }}</text>
+                </view>
+              </view>
+              <text class="fi-stance" v-if="user.stance">💬 {{ user.stance }}</text>
+            </view>
+            <view class="fi-unfollow" @click="handleUnfollow(user.id)">
+              <text class="fi-unfollow-text">取消</text>
+            </view>
+          </view>
+        </view>
+        <view class="empty-state" v-else>
           <text class="empty-icon">👥</text>
           <text class="empty-title">暂无关注</text>
           <text class="empty-desc">在探索页面关注其他用户，他们会出现在这里</text>
@@ -217,8 +247,11 @@
 import { ref, computed, onMounted } from 'vue'
 import { useUserStore } from '@/stores/user'
 import { useWorldStore } from '@/stores/world'
+import { useInfluencerStore } from '@/stores/influencer'
 import { mockItems } from '@/data/items'
 import { aigcItems } from '@/data/aigc_items'
+import { mockUsers } from '@/data/users'
+import { getTagDefinition } from '@/data/tags'
 import type { Item } from '@/types'
 
 // 合并所有物品定义
@@ -226,6 +259,7 @@ const allItemDefs = [...mockItems, ...(aigcItems as any[])]
 
 const userStore = useUserStore()
 const worldStore = useWorldStore()
+const influencerStore = useInfluencerStore()
 
 // 数字格式化
 const formatNum = (n: number): string => {
@@ -272,10 +306,92 @@ const activeTab = ref<'collection' | 'events' | 'following'>('collection')
 
 const eventBranches = computed(() => worldStore.worldlineBranches)
 
+/** 关注用户列表 */
+const followedUserList = computed(() => {
+  const followedIds = [...influencerStore.followedInfluencers]
+  const users: Array<{
+    id: string
+    nickname: string
+    avatar: string
+    bio: string
+    level: number
+    tags: Array<{ tagId: string; icon: string; name: string; weight: number }>
+    reputation: number
+    lastActive: number
+    stance: string
+    source: 'mock' | 'pool'
+  }> = []
+
+  for (const userId of followedIds) {
+    // 优先从 mockUsers 中查找
+    const mockUser = mockUsers.find(u => u.id === userId)
+    if (mockUser) {
+      users.push({
+        id: mockUser.id,
+        nickname: mockUser.nickname,
+        avatar: mockUser.avatar || '',
+        bio: mockUser.bio || '',
+        level: mockUser.clearanceLevel,
+        tags: (mockUser.tags || []).slice(0, 3).map(t => {
+          const def = getTagDefinition(t.tagId)
+          return { tagId: t.tagId, icon: def?.icon || '🏷️', name: def?.name || t.tagId, weight: t.weight }
+        }),
+        reputation: mockUser.wallet?.reputation || 0,
+        lastActive: mockUser.lastActive || mockUser.lastActiveAt || 0,
+        stance: '',
+        source: 'mock'
+      })
+      continue
+    }
+
+    // 从 influencer 资源池中查找
+    for (const pool of Object.values(influencerStore.resourcePools)) {
+      const participant = pool.participants[userId]
+      if (participant) {
+        const latestChoices = participant.choices.slice(-2)
+        const stance = latestChoices.map(c => c.choiceText).join(' → ')
+        users.push({
+          id: userId,
+          nickname: participant.nickname,
+          avatar: participant.avatar || '',
+          bio: participant.bio || '',
+          level: 1,
+          tags: (participant.topTags || []).slice(0, 3).map(t => ({
+            tagId: t.tagId, icon: t.icon, name: t.name, weight: 0
+          })),
+          reputation: 0,
+          lastActive: 0,
+          stance,
+          source: 'pool'
+        })
+        break
+      }
+    }
+  }
+
+  return users
+})
+
+/** 取消关注 */
+const handleUnfollow = (userId: string) => {
+  influencerStore.unfollowInfluencer(userId)
+  uni.showToast({ title: '已取消关注', icon: 'none' })
+}
+
+/** 获取活跃时间文本 */
+const getActiveTimeText = (lastActive: number): string => {
+  if (!lastActive) return '未知'
+  const diff = Date.now() - lastActive
+  if (diff < 60000) return '刚刚'
+  if (diff < 3600000) return `${Math.floor(diff / 60000)}分钟前`
+  if (diff < 86400000) return `${Math.floor(diff / 3600000)}小时前`
+  return `${Math.floor(diff / 86400000)}天前`
+}
+
 const tabs = computed(() => [
   { key: 'collection' as const, icon: '💎', label: '藏品', count: collectionItems.value.length },
   { key: 'events' as const, icon: '📜', label: '事件', count: eventBranches.value.length },
-  { key: 'following' as const, icon: '👥', label: '关注', count: 0 }
+  { key: 'following' as const, icon: '👥', label: '关注', count: followedUserList.value.length }
 ])
 
 // ==================== 藏品系统 ====================
@@ -950,4 +1066,148 @@ const formatTime = (timestamp: number): string => {
 }
 
 .dm-price-val { font-size: 24rpx; font-weight: 600; color: $text-primary; }
+
+// ==================== 关注列表 ====================
+
+.following-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.following-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 20rpx;
+  padding: 20rpx;
+  background: $gray-50;
+  border-radius: $radius-xl;
+  transition: all 0.2s ease;
+
+  &:active {
+    background: $gray-100;
+  }
+}
+
+.fi-avatar {
+  position: relative;
+  width: 88rpx;
+  height: 88rpx;
+  border-radius: 50%;
+  background: linear-gradient(135deg, $primary-color, #8B5CF6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.fi-avatar-text {
+  font-size: 40rpx;
+}
+
+.fi-level {
+  position: absolute;
+  bottom: -4rpx;
+  right: -4rpx;
+  background: $gray-800;
+  color: $white;
+  font-size: 16rpx;
+  font-weight: 700;
+  padding: 2rpx 8rpx;
+  border-radius: $radius-full;
+  border: 2rpx solid $white;
+}
+
+.fi-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6rpx;
+}
+
+.fi-name-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12rpx;
+}
+
+.fi-name {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: $text-primary;
+  @include text-ellipsis(1);
+}
+
+.fi-active {
+  font-size: 20rpx;
+  color: $text-tertiary;
+  flex-shrink: 0;
+}
+
+.fi-bio {
+  font-size: 22rpx;
+  color: $text-secondary;
+  @include text-ellipsis(2);
+}
+
+.fi-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8rpx;
+  margin-top: 4rpx;
+}
+
+.fi-tag {
+  display: flex;
+  align-items: center;
+  gap: 4rpx;
+  background: $white;
+  padding: 4rpx 12rpx;
+  border-radius: $radius-full;
+  border: 1rpx solid $gray-200;
+}
+
+.fi-tag-icon {
+  font-size: 18rpx;
+}
+
+.fi-tag-name {
+  font-size: 18rpx;
+  color: $text-secondary;
+}
+
+.fi-tag-weight {
+  font-size: 16rpx;
+  color: $text-tertiary;
+  font-weight: 600;
+}
+
+.fi-stance {
+  font-size: 22rpx;
+  color: $primary-color;
+  margin-top: 4rpx;
+  @include text-ellipsis(1);
+}
+
+.fi-unfollow {
+  flex-shrink: 0;
+  padding: 10rpx 20rpx;
+  border-radius: $radius-lg;
+  background: $gray-200;
+  align-self: center;
+  transition: all 0.2s ease;
+
+  &:active {
+    background: $gray-300;
+    transform: scale(0.95);
+  }
+}
+
+.fi-unfollow-text {
+  font-size: 22rpx;
+  font-weight: 500;
+  color: $text-secondary;
+}
 </style>
