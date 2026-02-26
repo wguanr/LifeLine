@@ -124,6 +124,11 @@
         </template>
         
         <template v-else-if="mode === 'result'">
+          <!-- 阶段进度条 -->
+          <view class="stage-progress-bar">
+            <view class="stage-progress-fill" :style="{ width: stageProgressPercent + '%' }" />
+            <text class="stage-progress-text">阶段 {{ currentStageIndex + 1 }} / {{ event.stages.length }}</text>
+          </view>
           <text class="result-title">选择结果</text>
           <text class="result-desc">{{ lastResult?.resultText }}</text>
         </template>
@@ -216,18 +221,34 @@
         
         <template v-else-if="mode === 'playing'">
           <view class="options-list">
+            <!-- 普通选项 -->
             <view 
-              v-for="choice in currentStage?.choices" 
+              v-for="choice in visibleChoices" 
               :key="choice.id"
               class="option-item"
-              :class="{ disabled: !canAffordChoice(choice) }"
+              :class="{ 
+                disabled: !canAffordChoice(choice),
+                'hidden-choice': choice.hidden,
+                'hidden-unlocked': choice.hidden && isChoiceUnlocked(choice)
+              }"
               @click="handleSelectChoice(choice)"
             >
               <view class="option-main">
-                <text class="option-text">{{ choice.text }}</text>
+                <view class="option-text-row">
+                  <text class="hidden-badge" v-if="choice.hidden">🔓 隐藏</text>
+                  <text class="option-text">{{ choice.text }}</text>
+                </view>
+                <text class="hidden-hint" v-if="choice.hidden && choice.hiddenHint">{{ choice.hiddenHint }}</text>
                 <view class="option-cost" v-if="choice.cost">
                   <text v-if="choice.cost.time" class="cost-tag time">⏰ {{ choice.cost.time }}</text>
                   <text v-if="choice.cost.energy" class="cost-tag energy">⚡ {{ choice.cost.energy }}</text>
+                </view>
+                <view class="requires-items" v-if="choice.hidden && choice.requiresItems">
+                  <text class="requires-label">需要持有：</text>
+                  <view class="requires-item" v-for="reqId in choice.requiresItems" :key="reqId" :class="{ owned: userStore.hasItem(reqId) }">
+                    <text class="req-icon">{{ userStore.hasItem(reqId) ? '✅' : '❌' }}</text>
+                    <text class="req-name">{{ getItemName(reqId) }}</text>
+                  </view>
                 </view>
               </view>
               <text class="option-arrow">→</text>
@@ -273,8 +294,46 @@
             </view>
           </view>
           
-          <button class="action-btn" @click="handleContinue">
-            {{ hasNextStage ? '继续' : '完成' }}
+          <!-- ClaimItem 领取物品界面 -->
+          <view class="claim-items-panel" v-if="pendingClaimItems.length > 0">
+            <view class="claim-header">
+              <text class="claim-title">🎁 可领取的物品</text>
+              <text class="claim-subtitle">点击领取或跳过</text>
+            </view>
+            <view class="claim-items-list">
+              <view 
+                v-for="(ci, idx) in pendingClaimItems" 
+                :key="ci.itemId + '-' + idx"
+                class="claim-item"
+                :class="{ claimed: claimedItemIds.has(ci.itemId + '-' + idx), required: ci.required }"
+              >
+                <view class="claim-item-info">
+                  <text class="claim-item-icon">{{ getClaimItemIcon(ci.itemId) }}</text>
+                  <view class="claim-item-detail">
+                    <text class="claim-item-name">{{ getItemName(ci.itemId) }}</text>
+                    <text class="claim-item-qty" v-if="(ci.quantity || 1) > 1">×{{ ci.quantity }}</text>
+                  </view>
+                </view>
+                <text class="claim-item-prompt" v-if="ci.promptText">{{ ci.promptText }}</text>
+                <view class="claim-item-actions">
+                  <button 
+                    class="claim-btn" 
+                    v-if="!claimedItemIds.has(ci.itemId + '-' + idx)"
+                    @click.stop="handleClaimItem(ci, idx)"
+                  >领取</button>
+                  <text class="claimed-text" v-else>✅ 已领取</text>
+                  <button 
+                    class="skip-btn" 
+                    v-if="!ci.required && !claimedItemIds.has(ci.itemId + '-' + idx)"
+                    @click.stop="handleSkipClaim(ci, idx)"
+                  >跳过</button>
+                </view>
+              </view>
+            </view>
+          </view>
+
+          <button class="action-btn" @click="handleContinue" :disabled="hasRequiredUnclaimedItems">
+            {{ hasRequiredUnclaimedItems ? '请先领取必须物品' : (hasNextStage ? '继续' : '完成') }}
           </button>
         </template>
       </view>
@@ -289,7 +348,7 @@ import { useUserStore } from '@/stores/user'
 import { useItemStore } from '@/stores/item'
 import { useWorldStore } from '@/stores/world'
 import { getTagDefinition } from '@/data/tags'
-import type { GameEvent, EventStage, EventChoice, EventOutcome } from '@/types'
+import type { GameEvent, EventStage, EventChoice, EventOutcome, ClaimableItem } from '@/types'
 
 const props = defineProps<{
   event: GameEvent
@@ -308,6 +367,10 @@ const mode = ref<'preview' | 'playing' | 'result'>('preview')
 const currentStageIndex = ref(0)
 const lastResult = ref<EventOutcome | null>(null)
 const nextStageId = ref<string | null>(null)
+
+// ========== ClaimItem 状态 ==========
+const claimedItemIds = ref(new Set<string>())
+const skippedItemIds = ref(new Set<string>())
 
 // ========== 事件参与状态判断 ==========
 const isEventCompleted = computed(() => eventStore.isEventCompleted(props.event.id))
@@ -379,6 +442,39 @@ const btnClasses = computed(() => ({
   'level-high': multiplier.value >= 4,
   [`tap-${tapAnimKey.value % 2}`]: multiplier.value > 0,
 }))
+
+// ========== 隐藏分支计算 ==========
+const isChoiceUnlocked = (choice: EventChoice): boolean => {
+  if (!choice.hidden || !choice.requiresItems) return true
+  return choice.requiresItems.every(itemId => userStore.hasItem(itemId))
+}
+
+const visibleChoices = computed(() => {
+  if (!currentStage.value) return []
+  return currentStage.value.choices.filter(choice => {
+    // 非隐藏选项始终显示
+    if (!choice.hidden) return true
+    // 隐藏选项：只有持有所有所需物品时才显示
+    return isChoiceUnlocked(choice)
+  })
+})
+
+// ========== ClaimItem 计算 ==========
+const pendingClaimItems = computed(() => {
+  if (!lastResult.value?.claimableItems) return []
+  return lastResult.value.claimableItems.filter((ci, idx) => {
+    const key = ci.itemId + '-' + idx
+    return !skippedItemIds.value.has(key)
+  })
+})
+
+const hasRequiredUnclaimedItems = computed(() => {
+  if (!lastResult.value?.claimableItems) return false
+  return lastResult.value.claimableItems.some((ci, idx) => {
+    const key = ci.itemId + '-' + idx
+    return ci.required && !claimedItemIds.value.has(key) && !skippedItemIds.value.has(key)
+  })
+})
 
 // ========== 计算属性 ==========
 const currentStage = computed((): EventStage | undefined => {
@@ -607,8 +703,40 @@ const getTagIcon = (tagId: string): string => {
   return def?.icon || '🏷️'
 }
 
+// ========== ClaimItem 处理 ==========
+const handleClaimItem = (ci: ClaimableItem, idx: number) => {
+  const key = ci.itemId + '-' + idx
+  if (claimedItemIds.value.has(key)) return
+  
+  userStore.addItem({
+    itemId: ci.itemId,
+    quantity: ci.quantity || 1,
+    acquiredAt: Date.now(),
+    source: props.event.id
+  })
+  
+  claimedItemIds.value.add(key)
+  uni.showToast({ title: `获得 ${getItemName(ci.itemId)}`, icon: 'success' })
+}
+
+const handleSkipClaim = (ci: ClaimableItem, idx: number) => {
+  const key = ci.itemId + '-' + idx
+  skippedItemIds.value.add(key)
+}
+
+const getClaimItemIcon = (itemId: string): string => {
+  const item = itemStore.getItem(itemId)
+  return item?.icon || '🎁'
+}
+
 // ========== 选项选择 ==========
 const handleSelectChoice = (choice: EventChoice) => {
+  // 隐藏分支校验
+  if (choice.hidden && !isChoiceUnlocked(choice)) {
+    uni.showToast({ title: '需要持有特定物品才能解锁', icon: 'none' })
+    return
+  }
+  
   if (!canAffordChoice(choice)) {
     uni.showToast({ title: '时间或精力不足', icon: 'none' })
     return
@@ -671,11 +799,20 @@ const handleSelectChoice = (choice: EventChoice) => {
   
   worldStore.recordChoice(props.event.id, props.event.title, choice.text)
   
+  // 重置ClaimItem状态
+  claimedItemIds.value.clear()
+  skippedItemIds.value.clear()
+  
   mode.value = 'result'
   emit('stateChange', 'result')
 }
 
 const handleContinue = () => {
+  // 检查是否有必须领取的物品未领取
+  if (hasRequiredUnclaimedItems.value) {
+    uni.showToast({ title: '请先领取必须物品', icon: 'none' })
+    return
+  }
   if (hasNextStage.value) {
     if (nextStageId.value) {
       const idx = props.event.stages.findIndex(s => s.id === nextStageId.value)
@@ -726,6 +863,8 @@ const resetCardState = () => {
   nextStageId.value = null
   multiplier.value = 0
   ripples.splice(0)
+  claimedItemIds.value.clear()
+  skippedItemIds.value.clear()
   emit('stateChange', 'preview')
 }
 
@@ -1491,5 +1630,241 @@ defineExpose({
 .continue-btn {
   background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%) !important;
   box-shadow: 0 4rpx 16rpx rgba(245, 158, 11, 0.3) !important;
+}
+
+// ==================== 隐藏分支选项 ====================
+.hidden-choice {
+  border: 2rpx solid rgba(168, 85, 247, 0.3) !important;
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.05) 0%, rgba(139, 92, 246, 0.08) 100%) !important;
+  position: relative;
+  overflow: hidden;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: linear-gradient(45deg, transparent 40%, rgba(168, 85, 247, 0.06) 50%, transparent 60%);
+    animation: shimmer 3s infinite;
+  }
+  
+  &:active {
+    border-color: rgba(168, 85, 247, 0.6) !important;
+    box-shadow: 0 2rpx 16rpx rgba(168, 85, 247, 0.2) !important;
+  }
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+.option-text-row {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  margin-bottom: 4rpx;
+}
+
+.hidden-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2rpx 12rpx;
+  background: linear-gradient(135deg, #A855F7 0%, #7C3AED 100%);
+  color: white;
+  font-size: 18rpx;
+  font-weight: 700;
+  border-radius: $radius-full;
+  flex-shrink: 0;
+  letter-spacing: 1rpx;
+}
+
+.hidden-hint {
+  display: block;
+  font-size: 22rpx;
+  color: #7C3AED;
+  font-style: italic;
+  margin: 6rpx 0;
+  padding-left: 4rpx;
+  line-height: 1.4;
+}
+
+.requires-items {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8rpx;
+  margin-top: 8rpx;
+}
+
+.requires-label {
+  font-size: 20rpx;
+  color: $text-tertiary;
+  font-weight: 500;
+}
+
+.requires-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 4rpx;
+  padding: 4rpx 12rpx;
+  background: rgba(239, 68, 68, 0.08);
+  border-radius: $radius-lg;
+  border: 1rpx solid rgba(239, 68, 68, 0.2);
+  
+  &.owned {
+    background: rgba(16, 185, 129, 0.08);
+    border-color: rgba(16, 185, 129, 0.2);
+  }
+}
+
+.req-icon { font-size: 18rpx; }
+.req-name { font-size: 20rpx; color: $text-secondary; font-weight: 500; }
+
+// ==================== ClaimItem 领取面板 ====================
+.claim-items-panel {
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.08) 0%, rgba(245, 158, 11, 0.12) 100%);
+  border: 2rpx solid rgba(245, 158, 11, 0.2);
+  border-radius: $radius-xl;
+  padding: 24rpx;
+  margin-bottom: 20rpx;
+}
+
+.claim-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16rpx;
+}
+
+.claim-title {
+  font-size: 28rpx;
+  font-weight: 700;
+  color: #B45309;
+}
+
+.claim-subtitle {
+  font-size: 22rpx;
+  color: #D97706;
+}
+
+.claim-items-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.claim-item {
+  background: $white;
+  border-radius: $radius-lg;
+  padding: 20rpx;
+  border: 2rpx solid rgba(245, 158, 11, 0.15);
+  transition: all 0.3s ease;
+  
+  &.claimed {
+    background: rgba(16, 185, 129, 0.06);
+    border-color: rgba(16, 185, 129, 0.2);
+    opacity: 0.8;
+  }
+  
+  &.required {
+    border-color: rgba(239, 68, 68, 0.3);
+    &::after {
+      content: '必须领取';
+      position: absolute;
+      top: 8rpx;
+      right: 12rpx;
+      font-size: 18rpx;
+      color: #DC2626;
+      font-weight: 600;
+    }
+  }
+}
+
+.claim-item-info {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  margin-bottom: 8rpx;
+}
+
+.claim-item-icon {
+  font-size: 40rpx;
+  width: 56rpx;
+  height: 56rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(251, 191, 36, 0.1);
+  border-radius: $radius-lg;
+  flex-shrink: 0;
+}
+
+.claim-item-detail {
+  display: flex;
+  align-items: baseline;
+  gap: 8rpx;
+}
+
+.claim-item-name {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: $text-primary;
+}
+
+.claim-item-qty {
+  font-size: 24rpx;
+  color: #D97706;
+  font-weight: 700;
+}
+
+.claim-item-prompt {
+  display: block;
+  font-size: 24rpx;
+  color: $text-secondary;
+  font-style: italic;
+  line-height: 1.5;
+  margin-bottom: 12rpx;
+  padding-left: 72rpx;
+}
+
+.claim-item-actions {
+  display: flex;
+  gap: 16rpx;
+  padding-left: 72rpx;
+}
+
+.claim-btn {
+  padding: 10rpx 32rpx !important;
+  font-size: 24rpx !important;
+  font-weight: 600 !important;
+  color: white !important;
+  background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%) !important;
+  border-radius: $radius-lg !important;
+  border: none !important;
+  line-height: 1.4 !important;
+  min-height: 0 !important;
+  
+  &:active {
+    transform: scale(0.96);
+    opacity: 0.9;
+  }
+}
+
+.skip-btn {
+  padding: 10rpx 24rpx !important;
+  font-size: 24rpx !important;
+  font-weight: 500 !important;
+  color: $text-tertiary !important;
+  background: $gray-100 !important;
+  border-radius: $radius-lg !important;
+  border: none !important;
+  line-height: 1.4 !important;
+  min-height: 0 !important;
+}
+
+.claimed-text {
+  font-size: 24rpx;
+  color: #059669;
+  font-weight: 600;
 }
 </style>

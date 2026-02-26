@@ -57,13 +57,32 @@ export interface User {
 
 // ==================== 事件相关 ====================
 
+export interface ClaimableItem {
+  /** 物品ID */
+  itemId: string
+  /** 领取提示文字 */
+  promptText?: string
+  /** 领取数量，默认1 */
+  quantity?: number
+  /** 是否必须领取（false则可跳过），默认false */
+  required?: boolean
+}
+
 export interface EventChoice {
   id: string
   text: string
   cost?: { time?: number; energy?: number }
+  /** 隐藏选项：需要持有特定物品才可见 */
+  requiresItems?: string[]
+  /** 是否为隐藏选项（默认false，设为true时需满足requiresItems条件才显示） */
+  hidden?: boolean
+  /** 隐藏选项解锁时的提示文字 */
+  hiddenHint?: string
   outcome: {
     nextStageId?: string
     isEnding?: boolean
+    /** 阶段结束后可领取的物品（弹出领取界面） */
+    claimableItems?: ClaimableItem[]
     rewards?: {
       time?: number
       energy?: number

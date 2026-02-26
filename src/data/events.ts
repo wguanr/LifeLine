@@ -565,5 +565,209 @@ export const mockEvents: GameEvent[] = [
     ],
     participantCount: 7234,
     createdAt: Date.now() - 300000000
+  },
+
+  // ==================== 新增：神秘市集（演示ClaimItem + 隐藏分支） ====================
+  {
+    id: 'evt_mystery_market',
+    title: '神秘夜市',
+    description: '周末晚上，你在小巷子里发现了一个从未见过的夜市。摆主们卖的东西很特别，有些似乎不属于这个时代。',
+    cover: '/static/events/market.png',
+    type: 'exploration',
+    status: 'active',
+    requirements: {},
+    entryFee: { time: 20, energy: 10 },
+    stages: [
+      {
+        id: 'stage_1',
+        title: '夜市入口',
+        description: '夜市入口挂着一串复古的灯笼，摆主们的吼卖声此起彼伏。一个老婆婆向你招手：“小伙子，过来看看，有缘人才能看到我的摆子。”',
+        choices: [
+          {
+            id: 'choice_granny',
+            text: '🧙‍♀️ 走向老婆婆的摆位',
+            cost: { time: 10 },
+            outcome: {
+              nextStageId: 'stage_2a',
+              claimableItems: [
+                { itemId: 'item_notebook', promptText: '老婆婆送给你一本神秘的笔记本，说“记录下你看到的一切”', quantity: 1 }
+              ],
+              rewards: { reputation: 5, tags: ['curious'] },
+              resultText: '老婆婆的摆位上摆满了奇奇怪怪的小物件。她笑着递给你一本旧笔记本：“拿着吧，会有用的。”'
+            }
+          },
+          {
+            id: 'choice_food_stall',
+            text: '🍜 先去小吃摆填填肚子',
+            cost: { time: 15, energy: 5 },
+            outcome: {
+              nextStageId: 'stage_2b',
+              claimableItems: [
+                { itemId: 'item_takeout_coupon', promptText: '摆主送你一张神秘美食券，“下次来可以免费吃一碗”', quantity: 1 }
+              ],
+              rewards: { energy: 10, tags: ['foodie'] },
+              resultText: '你吃了一碗神奇的面条，味道好得让你想哭。摆主笑着递给你一张券：“下次再来。”'
+            }
+          },
+          {
+            id: 'choice_hidden_alley',
+            text: '🔍 注意到角落里一个不起眼的小巷子...',
+            hidden: true,
+            requiresItems: ['item_notebook'],
+            hiddenHint: '你的笔记本上隐约浮现出一行字：“左转三步，右转七步”',
+            cost: { time: 5 },
+            outcome: {
+              nextStageId: 'stage_secret',
+              rewards: { reputation: 15, tags: ['adventurous', 'curious'] },
+              resultText: '你按照笔记本上的指引走进小巷子，发现了一个隐藏的地下市场！'
+            }
+          }
+        ]
+      },
+      {
+        id: 'stage_2a',
+        title: '老婆婆的宝贝',
+        description: '老婆婆摆位上的东西越看越神奇。一个水晶球里似乎有什么在动，一本书的页面会自己翻动。',
+        choices: [
+          {
+            id: 'choice_crystal',
+            text: '🔮 仔细看看水晶球',
+            cost: { time: 10 },
+            outcome: {
+              isEnding: true,
+              claimableItems: [
+                { itemId: 'item_plant_pot', promptText: '老婆婆神秘地拿出一个小花盆：“这个送你，它会带给你好运”', quantity: 1, required: false }
+              ],
+              rewards: { reputation: 20, tags: ['open_minded', 'curious'] },
+              resultText: '水晶球里映出了你未来的影像——你看到自己在一个陌生的城市，笑得很开心。老婆婆说：“记住这个画面，它会实现的。”'
+            }
+          },
+          {
+            id: 'choice_book',
+            text: '📚 翻开那本会动的书',
+            cost: { time: 15, energy: 5 },
+            outcome: {
+              isEnding: true,
+              rewards: { reputation: 25, energy: 15, tags: ['reader', 'sentimental'] },
+              resultText: '书页自动翻到了一页，上面写着你的名字和一段话：“人生没有白走的路，每一步都算数。”你合上书，心里莫名地平静了。'
+            }
+          },
+          {
+            id: 'choice_secret_item',
+            text: '✨ 注意到摆位下面藏着一个古老的箱子...',
+            hidden: true,
+            requiresItems: ['item_coffee_coupon', 'item_notebook'],
+            hiddenHint: '你的咖啡券和笔记本同时发出微光，指向摆位下方',
+            cost: { energy: 10 },
+            outcome: {
+              isEnding: true,
+              claimableItems: [
+                { itemId: 'item_yoga_mat', promptText: '箱子里是一张古老的羊皮卷轴，散发着宁静的气息', quantity: 1 },
+                { itemId: 'item_plant_pot', promptText: '还有一个精美的小花盆，里面的花永远不会凋谢', quantity: 1, required: false }
+              ],
+              rewards: { reputation: 50, tags: ['adventurous', 'curious', 'open_minded'] },
+              resultText: '你发现了老婆婆的私藏宝箱！她惊讶地看着你：“五十年来，你是第一个找到这个箱子的人。这些都是你的了。”'
+            }
+          }
+        ]
+      },
+      {
+        id: 'stage_2b',
+        title: '美食街深处',
+        description: '吃完面条后，你发现夜市比想象中大得多。远处传来了奇怪的音乐声。',
+        choices: [
+          {
+            id: 'choice_music',
+            text: '🎵 循着音乐声走去',
+            cost: { time: 15 },
+            outcome: {
+              isEnding: true,
+              claimableItems: [
+                { itemId: 'item_activity_coupon', promptText: '街头艺人送你一张神秘活动券：“下次满月夜，来这里找我”', quantity: 1 }
+              ],
+              rewards: { reputation: 15, energy: 10, tags: ['adventurous'] },
+              resultText: '你找到了一个街头艺人，他在演奏一种你从未见过的乐器。音乐让你感到前所未有的平静。'
+            }
+          },
+          {
+            id: 'choice_explore_more',
+            text: '🚶 继续深入探索夜市',
+            cost: { time: 20, energy: 10 },
+            outcome: {
+              isEnding: true,
+              rewards: { reputation: 20, tags: ['adventurous', 'persistent'] },
+              resultText: '你在夜市深处发现了一个古董店，店主说这里每个月只开一晚。你们聊了很久，他说下次会给你留一件特别的东西。'
+            }
+          },
+          {
+            id: 'choice_hidden_passage',
+            text: '🗝️ 用笔记本上的线索找到隐藏通道',
+            hidden: true,
+            requiresItems: ['item_notebook'],
+            hiddenHint: '笔记本的某一页突然发光，显示出一张地图',
+            cost: { time: 10, energy: 5 },
+            outcome: {
+              nextStageId: 'stage_secret',
+              rewards: { reputation: 10, tags: ['curious'] },
+              resultText: '笔记本上的地图引导你找到了一个隐藏的地下通道！'
+            }
+          }
+        ]
+      },
+      {
+        id: 'stage_secret',
+        title: '地下市场',
+        description: '你走进了一个地下空间，这里是一个更加神秘的市场。摆主们卖的东西更加离奇——装在瓶子里的星光、能听到回忆的耳机、会自己写字的钢笔...',
+        choices: [
+          {
+            id: 'choice_starlight',
+            text: '⭐ 买一瓶星光',
+            cost: { time: 10, energy: 10 },
+            outcome: {
+              isEnding: true,
+              claimableItems: [
+                { itemId: 'item_plant_pot', promptText: '卖星光的少女额外送你一个“星光花盆”，用星光浇水就能开花', quantity: 1, required: false },
+                { itemId: 'item_coffee_coupon', promptText: '她还给了你一张“星光咖啡券”，可以在任何咖啡店兑换一杯会发光的咖啡', quantity: 1 }
+              ],
+              rewards: { reputation: 40, energy: 20, tags: ['adventurous', 'open_minded', 'sentimental'] },
+              resultText: '你打开瓶子，星光洒满了整个地下市场。所有人都抬头看着，就像在看真正的星空。这一刻，你觉得世界充满了魔法。'
+            }
+          },
+          {
+            id: 'choice_memory_earphone',
+            text: '🎧 试试回忆耳机',
+            cost: { time: 15 },
+            outcome: {
+              isEnding: true,
+              claimableItems: [
+                { itemId: 'item_yoga_mat', promptText: '卖耳机的老人说：“听完回忆后，你需要这个来平复心情”，递给你一张冥想垫', quantity: 1 }
+              ],
+              rewards: { reputation: 35, tags: ['sentimental', 'family_first'] },
+              resultText: '你戴上耳机，听到了小时候妈妈唱的摇篮曲。泪水不知不觉地流了下来。老人说：“每个人都有忘不掉的声音。”'
+            }
+          },
+          {
+            id: 'choice_ultimate_secret',
+            text: '🌟 地下市场最深处的封印之门',
+            hidden: true,
+            requiresItems: ['item_travel_bag', 'item_yoga_mat'],
+            hiddenHint: '你的旅行包和瑜伽垫开始共振，指向市场最深处的一扇古老石门',
+            cost: { time: 20, energy: 15 },
+            outcome: {
+              isEnding: true,
+              claimableItems: [
+                { itemId: 'item_travel_bag', promptText: '石门后是一个时空裂缝，你获得了一个“时空旅行包”，据说可以装下无限的东西', quantity: 1 },
+                { itemId: 'item_notebook', promptText: '还有一本“时空日志”，能记录跨越时空的经历', quantity: 1 },
+                { itemId: 'item_coffee_coupon', promptText: '以及一张“时空咖啡券”，可以在任何时代的咖啡店使用', quantity: 2 }
+              ],
+              rewards: { reputation: 80, energy: 30, tags: ['adventurous', 'curious', 'open_minded', 'persistent'] },
+              resultText: '你推开石门，发现了一个连接不同时空的裂缝。你短暂地看到了过去和未来的自己。回来后，你发现自己对世界的理解完全不同了。这是整个夜市最大的秘密。'
+            }
+          }
+        ]
+      }
+    ],
+    participantCount: 3456,
+    createdAt: Date.now() - 100000000
   }
 ]
