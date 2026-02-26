@@ -131,6 +131,12 @@
           </view>
           <text class="result-title">选择结果</text>
           <text class="result-desc">{{ lastResult?.resultText }}</text>
+          
+          <!-- 多倍下注提示 -->
+          <view class="bet-boost-info" v-if="lastBetMultiplier > 1">
+            <text class="bet-boost-badge">🔥 {{ lastBetMultiplier }}× 加码</text>
+            <text class="bet-boost-desc">你的影响力占比：{{ (myInvestmentPercent * 100).toFixed(1) }}%</text>
+          </view>
         </template>
       </view>
       
@@ -292,6 +298,13 @@
             </view>
           </view>
           
+          <!-- 下注提示信息 -->
+          <view class="bet-hint-bar" v-if="hasAnyBetBoosted">
+            <text class="bet-hint-icon">🔥</text>
+            <text class="bet-hint-text">加码投入可提升你的影响力占比</text>
+            <text class="bet-hint-total" v-if="totalBetExtraCost">额外消耗: {{ totalBetExtraCostText }}</text>
+          </view>
+          
           <view class="options-list">
             <!-- 普通选项 -->
             <view 
@@ -299,21 +312,31 @@
               :key="choice.id"
               class="option-item"
               :class="{ 
-                disabled: !canAffordChoice(choice),
+                disabled: !canAffordBet(choice),
                 'hidden-choice': choice.hidden,
-                'hidden-unlocked': choice.hidden && isChoiceUnlocked(choice)
+                'hidden-unlocked': choice.hidden && isChoiceUnlocked(choice),
+                'bet-boosted': getChoiceBet(choice.id) > 1
               }"
-              @click="handleSelectChoice(choice)"
             >
-              <view class="option-main">
+              <view class="option-main" @click="handleSelectChoice(choice)">
                 <view class="option-text-row">
                   <text class="hidden-badge" v-if="choice.hidden">🔓 隐藏</text>
                   <text class="option-text">{{ choice.text }}</text>
                 </view>
                 <text class="hidden-hint" v-if="choice.hidden && choice.hiddenHint">{{ choice.hiddenHint }}</text>
-                <view class="option-cost" v-if="choice.cost">
-                  <text v-if="choice.cost.time" class="cost-tag time">⏰ {{ choice.cost.time }}</text>
-                  <text v-if="choice.cost.energy" class="cost-tag energy">⚡ {{ choice.cost.energy }}</text>
+                <view class="option-cost-row">
+                  <view class="option-cost" v-if="getChoiceTotalCost(choice)">
+                    <text v-if="getChoiceTotalCost(choice).time" class="cost-tag time">
+                      ⏰ {{ getChoiceTotalCost(choice).time }}
+                    </text>
+                    <text v-if="getChoiceTotalCost(choice).energy" class="cost-tag energy">
+                      ⚡ {{ getChoiceTotalCost(choice).energy }}
+                    </text>
+                    <text v-if="getChoiceBet(choice.id) > 1" class="cost-multiplier-badge">
+                      {{ getChoiceBet(choice.id) }}× 加码
+                    </text>
+                  </view>
+                  <text v-if="!canAffordBet(choice)" class="cant-afford-hint">资源不足</text>
                 </view>
                 <view class="requires-items" v-if="choice.hidden && choice.requiresItems">
                   <text class="requires-label">需要持有：</text>
@@ -323,7 +346,26 @@
                   </view>
                 </view>
               </view>
-              <text class="option-arrow">→</text>
+              
+              <!-- 下注倍数选择器 -->
+              <view class="bet-selector">
+                <text class="bet-label">下注</text>
+                <view class="bet-chips">
+                  <view 
+                    v-for="m in betOptions" 
+                    :key="m"
+                    class="bet-chip"
+                    :class="{ 
+                      active: getChoiceBet(choice.id) === m,
+                      'cant-afford': !canAffordBetLevel(choice, m),
+                      'is-boost': m > 1
+                    }"
+                    @click.stop="handleSetBet(choice.id, m)"
+                  >
+                    <text class="bet-chip-text">{{ m }}×</text>
+                  </view>
+                </view>
+              </view>
             </view>
           </view>
           
@@ -672,6 +714,116 @@ const canAffordChoice = (choice: EventChoice): boolean => {
   return userStore.canAfford(choice.cost)
 }
 
+// ========== 多倍下注系统 ==========
+/** 可选的下注倍数 */
+const betOptions = [1, 2, 3, 5]
+/** 无cost选项的基础下注额 */
+const BASE_BET = { time: 5, energy: 3 }
+/** 每个选项的当前下注倍数：choiceId -> multiplier */
+const choiceBets = ref<Record<string, number>>({})
+/** 上一次选择的下注倍数（用于result页面展示） */
+const lastBetMultiplier = ref(1)
+
+/** 获取某选项的当前下注倍数 */
+const getChoiceBet = (choiceId: string): number => {
+  return choiceBets.value[choiceId] || 1
+}
+
+/** 设置某选项的下注倍数 */
+const setChoiceBet = (choiceId: string, m: number) => {
+  choiceBets.value[choiceId] = m
+}
+
+/** 设置下注倍数（带触觉反馈） */
+const handleSetBet = (choiceId: string, m: number) => {
+  if (!canAffordBetLevel(visibleChoices.value.find(c => c.id === choiceId)!, m)) return
+  setChoiceBet(choiceId, m)
+  // 触觉反馈
+  try {
+    if (navigator && navigator.vibrate) {
+      navigator.vibrate(m > 1 ? [20, 10, 20] : 10)
+    }
+  } catch (e) {}
+}
+
+/** 是否有任何选项被加码 */
+const hasAnyBetBoosted = computed(() => {
+  return Object.values(choiceBets.value).some(m => m > 1)
+})
+
+/** 当前所有选项的额外消耗总和 */
+const totalBetExtraCost = computed(() => {
+  let extraTime = 0
+  let extraEnergy = 0
+  for (const choice of visibleChoices.value) {
+    const m = getChoiceBet(choice.id)
+    if (m <= 1) continue
+    if (choice.cost) {
+      extraTime += (choice.cost.time || 0) * (m - 1)
+      extraEnergy += (choice.cost.energy || 0) * (m - 1)
+    } else {
+      extraTime += BASE_BET.time * (m - 1)
+      extraEnergy += BASE_BET.energy * (m - 1)
+    }
+  }
+  if (extraTime === 0 && extraEnergy === 0) return null
+  return { time: extraTime, energy: extraEnergy }
+})
+
+/** 额外消耗文本 */
+const totalBetExtraCostText = computed(() => {
+  if (!totalBetExtraCost.value) return ''
+  const parts: string[] = []
+  if (totalBetExtraCost.value.time) parts.push(`⏰${totalBetExtraCost.value.time}`)
+  if (totalBetExtraCost.value.energy) parts.push(`⚡${totalBetExtraCost.value.energy}`)
+  return parts.join(' ')
+})
+
+/** 获取某选项在当前下注倍数下的总消耗 */
+const getChoiceTotalCost = (choice: EventChoice): { time?: number; energy?: number } | null => {
+  const m = getChoiceBet(choice.id)
+  if (choice.cost) {
+    return {
+      time: choice.cost.time ? choice.cost.time * m : undefined,
+      energy: choice.cost.energy ? choice.cost.energy * m : undefined
+    }
+  }
+  // 无cost选项：倍数>1时使用基础下注额
+  if (m > 1) {
+    return {
+      time: BASE_BET.time * (m - 1),
+      energy: BASE_BET.energy * (m - 1)
+    }
+  }
+  return null
+}
+
+/** 检查当前下注倍数下是否负担得起 */
+const canAffordBet = (choice: EventChoice): boolean => {
+  const cost = getChoiceTotalCost(choice)
+  if (!cost) return true
+  return userStore.canAfford(cost)
+}
+
+/** 检查某个特定倍数是否负担得起 */
+const canAffordBetLevel = (choice: EventChoice, m: number): boolean => {
+  if (choice.cost) {
+    const cost = {
+      time: choice.cost.time ? choice.cost.time * m : 0,
+      energy: choice.cost.energy ? choice.cost.energy * m : 0
+    }
+    return userStore.canAfford(cost)
+  }
+  if (m > 1) {
+    const cost = {
+      time: BASE_BET.time * (m - 1),
+      energy: BASE_BET.energy * (m - 1)
+    }
+    return userStore.canAfford(cost)
+  }
+  return true
+}
+
 const totalCost = computed(() => {
   const fee = props.event.entryFee
   if (!fee) return { time: 0, energy: 0 }
@@ -925,15 +1077,24 @@ const handleSelectChoice = (choice: EventChoice) => {
     return
   }
   
-  if (!canAffordChoice(choice)) {
+  // 使用多倍下注的实际消耗
+  const betMultiplier = getChoiceBet(choice.id)
+  lastBetMultiplier.value = betMultiplier
+  const actualCost = getChoiceTotalCost(choice)
+  
+  if (actualCost && !userStore.canAfford(actualCost)) {
     uni.showToast({ title: '时间或精力不足', icon: 'none' })
     return
   }
   
-  if (choice.cost) {
-    userStore.pay(choice.cost)
+  if (actualCost) {
+    userStore.pay(actualCost)
     // Influencer系统：记录选择消耗
-    recordMyInvestment('choice_cost', choice.cost, currentStage.value?.id, `选择“${choice.text}”的消耗`)
+    const investType: 'boost' | 'choice_cost' = betMultiplier > 1 ? 'boost' : 'choice_cost'
+    const desc = betMultiplier > 1 
+      ? `选择“${choice.text}”并${betMultiplier}倍加码` 
+      : `选择“${choice.text}”的消耗`
+    recordMyInvestment(investType, actualCost, currentStage.value?.id, desc)
   }
   
   // Influencer系统：记录用户选择
@@ -1028,6 +1189,8 @@ const handleContinue = () => {
     mode.value = 'playing'
     lastResult.value = null
     nextStageId.value = null
+    choiceBets.value = {}
+    lastBetMultiplier.value = 1
     emit('stateChange', 'playing')
   } else {
     eventStore.completeEvent(props.event.id)
@@ -1070,6 +1233,8 @@ const resetCardState = () => {
   claimedItemIds.value.clear()
   skippedItemIds.value.clear()
   influencerExpanded.value = false
+  choiceBets.value = {}
+  lastBetMultiplier.value = 1
   emit('stateChange', 'preview')
 }
 
@@ -1630,14 +1795,13 @@ defineExpose({
 
 .option-item {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 28rpx 32rpx;
+  flex-direction: column;
+  padding: 24rpx 28rpx;
   min-height: 88rpx;
   background: $gray-50;
   border-radius: $radius-xl;
   border: 2rpx solid transparent;
-  transition: all 0.2s ease;
+  transition: all 0.25s ease;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
   
@@ -1647,10 +1811,14 @@ defineExpose({
     transform: scale(0.98);
     box-shadow: 0 2rpx 12rpx rgba(16, 185, 129, 0.15);
   }
-  &.disabled { opacity: 0.5; }
+  &.disabled { opacity: 0.5; pointer-events: none; }
 }
 
-.option-main { flex: 1; }
+.option-main {
+  flex: 1;
+  cursor: pointer;
+  padding: 4rpx 0;
+}
 
 .option-text {
   display: block;
@@ -2350,5 +2518,195 @@ defineExpose({
   font-size: 22rpx;
   color: #f59e0b;
   font-weight: 500;
+}
+
+// ========== 多倍下注系统 ==========
+.option-item.bet-boosted {
+  border-color: #f59e0b;
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.08), rgba(245, 158, 11, 0.02));
+  box-shadow: 0 0 12rpx rgba(245, 158, 11, 0.2);
+  animation: bet-glow 2s ease-in-out infinite alternate;
+}
+
+@keyframes bet-glow {
+  0% { box-shadow: 0 0 8rpx rgba(245, 158, 11, 0.15); }
+  100% { box-shadow: 0 0 16rpx rgba(245, 158, 11, 0.3); }
+}
+
+// 下注提示栏
+.bet-hint-bar {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  padding: 12rpx 16rpx;
+  margin-bottom: 16rpx;
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(239, 68, 68, 0.05));
+  border-radius: $radius-lg;
+  border: 1rpx solid rgba(245, 158, 11, 0.2);
+  animation: hint-slide-in 0.3s ease-out;
+}
+
+@keyframes hint-slide-in {
+  from { opacity: 0; transform: translateY(-10rpx); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.bet-hint-icon {
+  font-size: 24rpx;
+  flex-shrink: 0;
+}
+
+.bet-hint-text {
+  font-size: 22rpx;
+  color: #92400e;
+  font-weight: 500;
+  flex: 1;
+}
+
+.bet-hint-total {
+  font-size: 22rpx;
+  color: #d97706;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+// 选项消耗行
+.option-cost-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8rpx;
+}
+
+.cost-multiplier-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2rpx 10rpx;
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: white;
+  font-size: 18rpx;
+  font-weight: 700;
+  border-radius: $radius-full;
+  animation: badge-pop 0.3s ease;
+}
+
+@keyframes badge-pop {
+  0% { transform: scale(0.5); opacity: 0; }
+  60% { transform: scale(1.1); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.cant-afford-hint {
+  font-size: 20rpx;
+  color: #ef4444;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.bet-selector {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 12rpx;
+  margin-top: 12rpx;
+  padding-top: 10rpx;
+  border-top: 1rpx solid rgba(0, 0, 0, 0.04);
+}
+
+.bet-label {
+  font-size: 20rpx;
+  color: $text-tertiary;
+  font-weight: 500;
+  letter-spacing: 1rpx;
+}
+
+.bet-chips {
+  display: flex;
+  align-items: center;
+  gap: 10rpx;
+}
+
+.bet-chip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 64rpx;
+  height: 44rpx;
+  padding: 0 14rpx;
+  border-radius: 22rpx;
+  border: 2rpx solid #e5e7eb;
+  background: #f9fafb;
+  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  
+  &.active {
+    border-color: #f59e0b;
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    box-shadow: 0 2rpx 12rpx rgba(245, 158, 11, 0.4);
+    transform: scale(1.08);
+    
+    .bet-chip-text {
+      color: white;
+      font-weight: 700;
+    }
+  }
+  
+  &.active.is-boost {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    border-color: #ef4444;
+    box-shadow: 0 2rpx 12rpx rgba(239, 68, 68, 0.4);
+  }
+  
+  &.cant-afford {
+    opacity: 0.3;
+    pointer-events: none;
+    filter: grayscale(1);
+  }
+  
+  &:active:not(.cant-afford) {
+    transform: scale(0.92);
+  }
+}
+
+.bet-chip-text {
+  font-size: 22rpx;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.cost-multiplier {
+  font-size: 20rpx;
+  color: #f59e0b;
+  font-weight: 600;
+}
+
+.bet-boost-info {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  margin-top: 16rpx;
+  padding: 12rpx 16rpx;
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.12), rgba(245, 158, 11, 0.04));
+  border-radius: 12rpx;
+  border: 1rpx solid rgba(245, 158, 11, 0.3);
+  animation: boost-info-in 0.4s ease;
+}
+
+@keyframes boost-info-in {
+  from { opacity: 0; transform: translateY(10rpx); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.bet-boost-badge {
+  font-size: 24rpx;
+  font-weight: 700;
+  color: #d97706;
+  white-space: nowrap;
+}
+
+.bet-boost-desc {
+  font-size: 22rpx;
+  color: #92400e;
 }
 </style>
