@@ -53,6 +53,8 @@ export interface User {
   createdAt: number
   lastActiveAt: number
   lastActive?: number
+  /** 座右铭 */
+  motto?: string
 }
 
 // ==================== 事件相关 ====================

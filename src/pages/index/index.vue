@@ -204,9 +204,46 @@
                 
                 <!-- 用户详情 -->
                 <view v-else-if="card.type === 'user'" class="detail-content">
+                  <!-- 座右铭 -->
+                  <view class="detail-section" v-if="(card.data as User).motto">
+                    <view class="detail-motto-card">
+                      <text class="detail-motto-mark">“</text>
+                      <text class="detail-motto-text">{{ (card.data as User).motto }}</text>
+                      <text class="detail-motto-mark end">”</text>
+                    </view>
+                  </view>
+                  
                   <view class="detail-section">
                     <text class="section-title">👤 关于 TA</text>
                     <text class="section-text">{{ (card.data as User).bio || '这个人很懒，什么都没写~' }}</text>
+                  </view>
+                  
+                  <!-- 资源概览 -->
+                  <view class="detail-section">
+                    <text class="section-title">💰 资源概览</text>
+                    <view class="resource-grid">
+                      <view class="resource-item">
+                        <text class="resource-icon">⏰</text>
+                        <view class="resource-info">
+                          <text class="resource-value">{{ (card.data as User).wallet?.time || 0 }}</text>
+                          <text class="resource-label">时间</text>
+                        </view>
+                      </view>
+                      <view class="resource-item">
+                        <text class="resource-icon">⚡</text>
+                        <view class="resource-info">
+                          <text class="resource-value">{{ (card.data as User).wallet?.energy || 0 }}</text>
+                          <text class="resource-label">精力</text>
+                        </view>
+                      </view>
+                      <view class="resource-item">
+                        <text class="resource-icon">🌟</text>
+                        <view class="resource-info">
+                          <text class="resource-value">{{ (card.data as User).wallet?.reputation || 0 }}</text>
+                          <text class="resource-label">声望</text>
+                        </view>
+                      </view>
+                    </view>
                   </view>
                   
                   <!-- 标签展示 - 带权重进度条 -->
@@ -236,6 +273,17 @@
                   <view class="detail-section empty-tags" v-else>
                     <text class="section-title">🏷️ TA 的标签</text>
                     <text class="empty-text">还没有获得任何标签</text>
+                  </view>
+                  
+                  <!-- 成就展示 -->
+                  <view class="detail-section" v-if="(card.data as User).history?.achievements?.length">
+                    <text class="section-title">🏆 成就徽章</text>
+                    <view class="detail-achievement-grid">
+                      <view class="detail-achievement-item" v-for="achId in (card.data as User).history.achievements" :key="achId">
+                        <text class="detail-ach-icon">{{ getAchievementIcon(achId) }}</text>
+                        <text class="detail-ach-name">{{ getAchievementName(achId) }}</text>
+                      </view>
+                    </view>
                   </view>
                   
                   <!-- 共同点 -->
@@ -286,13 +334,17 @@
                     </view>
                   </view>
                   
-                  <!-- 物品收藏 -->
+                  <!-- 物品收藏 - 增强版，显示稀有度和图标 -->
                   <view class="detail-section" v-if="(card.data as User).inventory?.length">
                     <text class="section-title">🎒 物品收藏</text>
-                    <view class="inventory-grid">
-                      <view class="inventory-item" v-for="item in (card.data as User).inventory.slice(0, 6)" :key="item.itemId">
-                        <text class="inventory-icon">{{ item.icon || '📦' }}</text>
-                        <text class="inventory-name">{{ item.name || item.itemId }}</text>
+                    <view class="detail-inventory-list">
+                      <view class="detail-inv-item" v-for="inv in (card.data as User).inventory.slice(0, 8)" :key="inv.itemId">
+                        <text class="detail-inv-icon">{{ getItemIcon(inv.itemId) }}</text>
+                        <view class="detail-inv-info">
+                          <text class="detail-inv-name">{{ getItemName(inv.itemId) }}</text>
+                          <text class="detail-inv-rarity" :class="'rarity-text-' + getItemRarity(inv.itemId)">{{ getRarityLabel(getItemRarity(inv.itemId)) }}</text>
+                        </view>
+                        <text class="detail-inv-qty" v-if="inv.quantity > 1">×{{ inv.quantity }}</text>
                       </view>
                     </view>
                   </view>
@@ -541,6 +593,45 @@ const getRarityLabel = (rarity: string): string => {
     'legendary': '传说'
   }
   return labels[rarity] || rarity
+}
+
+// 成就定义
+const achievementDefs: Record<string, { icon: string; name: string }> = {
+  first_choice: { icon: '🎯', name: '初次抉择' },
+  bookworm: { icon: '📖', name: '书虫' },
+  early_adopter: { icon: '🌅', name: '先行者' },
+  fitness_master: { icon: '🏋️', name: '健身大师' },
+  early_bird: { icon: '🐦', name: '早起鸟' },
+  iron_will: { icon: '🔥', name: '钢铁意志' },
+  streak_7: { icon: '📅', name: '连续7天' },
+  social_star: { icon: '⭐', name: '社交之星' },
+  party_king: { icon: '👑', name: '派对之王' },
+  wanderer: { icon: '🗺️', name: '漫游者' },
+  collector: { icon: '💎', name: '收藏家' }
+}
+
+const getAchievementIcon = (id: string): string => {
+  return achievementDefs[id]?.icon || '🏅'
+}
+
+const getAchievementName = (id: string): string => {
+  return achievementDefs[id]?.name || id
+}
+
+// 物品信息辅助函数
+const getItemIcon = (itemId: string): string => {
+  const item = itemStore.getItemById(itemId)
+  return item?.icon || '📦'
+}
+
+const getItemName = (itemId: string): string => {
+  const item = itemStore.getItemById(itemId)
+  return item?.name || itemId
+}
+
+const getItemRarity = (itemId: string): string => {
+  const item = itemStore.getItemById(itemId)
+  return item?.rarity || 'common'
 }
 
 // 物品拥有状态检查
@@ -1253,6 +1344,159 @@ $safe-area-bottom: env(safe-area-inset-bottom, 0px);
       display: block;
       font-size: 24rpx;
       color: #10B981;
+    }
+  }
+  
+  // 详情面板座右铭
+  .detail-motto-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 6rpx;
+    padding: 20rpx 24rpx;
+    background: linear-gradient(135deg, rgba(#ab47bc, 0.08), rgba(#7b1fa2, 0.05));
+    border-radius: $radius-xl;
+    border-left: 6rpx solid #ab47bc;
+  }
+  
+  .detail-motto-mark {
+    font-size: 40rpx;
+    font-weight: 700;
+    color: #ab47bc;
+    line-height: 1;
+    opacity: 0.5;
+    flex-shrink: 0;
+    
+    &.end {
+      align-self: flex-end;
+    }
+  }
+  
+  .detail-motto-text {
+    font-size: 26rpx;
+    color: $text-primary;
+    line-height: 1.6;
+    font-style: italic;
+    flex: 1;
+    padding: 6rpx 0;
+  }
+  
+  // 资源概览
+  .resource-grid {
+    display: flex;
+    gap: 12rpx;
+    
+    .resource-item {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 12rpx;
+      padding: 16rpx 14rpx;
+      @include glass-effect(0.6);
+      border-radius: $radius-lg;
+      
+      .resource-icon {
+        font-size: 28rpx;
+      }
+      
+      .resource-info {
+        display: flex;
+        flex-direction: column;
+        gap: 2rpx;
+      }
+      
+      .resource-value {
+        font-size: 28rpx;
+        font-weight: 700;
+        color: $text-primary;
+      }
+      
+      .resource-label {
+        font-size: 20rpx;
+        color: $text-tertiary;
+      }
+    }
+  }
+  
+  // 成就徽章网格
+  .detail-achievement-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10rpx;
+    
+    .detail-achievement-item {
+      display: flex;
+      align-items: center;
+      gap: 8rpx;
+      padding: 10rpx 16rpx;
+      background: linear-gradient(135deg, rgba(#ffd54f, 0.12), rgba(#ffb300, 0.12));
+      border: 1rpx solid rgba(#ffb300, 0.2);
+      border-radius: 20rpx;
+      
+      .detail-ach-icon {
+        font-size: 24rpx;
+      }
+      
+      .detail-ach-name {
+        font-size: 22rpx;
+        font-weight: 600;
+        color: #f57f17;
+      }
+    }
+  }
+  
+  // 物品收藏列表（增强版）
+  .detail-inventory-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10rpx;
+    
+    .detail-inv-item {
+      display: flex;
+      align-items: center;
+      gap: 14rpx;
+      padding: 14rpx 18rpx;
+      @include glass-effect(0.6);
+      border-radius: $radius-lg;
+      
+      .detail-inv-icon {
+        font-size: 32rpx;
+        flex-shrink: 0;
+      }
+      
+      .detail-inv-info {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 4rpx;
+      }
+      
+      .detail-inv-name {
+        font-size: 24rpx;
+        font-weight: 600;
+        color: $text-primary;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      
+      .detail-inv-rarity {
+        font-size: 20rpx;
+        font-weight: 500;
+        
+        &.rarity-text-legendary { color: #ff9800; }
+        &.rarity-text-epic { color: #9c27b0; }
+        &.rarity-text-rare { color: #2196f3; }
+        &.rarity-text-uncommon { color: #4caf50; }
+        &.rarity-text-common { color: #9e9e9e; }
+      }
+      
+      .detail-inv-qty {
+        font-size: 22rpx;
+        font-weight: 700;
+        color: $text-secondary;
+        flex-shrink: 0;
+      }
     }
   }
 }

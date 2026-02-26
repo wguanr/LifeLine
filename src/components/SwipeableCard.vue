@@ -104,8 +104,8 @@ const emit = defineEmits<{
   (e: 'panelChange', panel: 'left' | 'right' | null): void
 }>()
 
-// 面板宽度
-const PANEL_WIDTH = 280
+// 面板宽度（扩展至340px以提供更多展示空间）
+const PANEL_WIDTH = 340
 // 方向锁定阈值：移动超过此距离后锁定方向
 const LOCK_THRESHOLD = 12
 // 水平滑动触发面板的阈值
@@ -349,7 +349,7 @@ defineExpose({
   position: absolute;
   top: 0;
   bottom: 0;
-  width: 280px;
+  width: 340px;
   background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
   transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   z-index: 5;

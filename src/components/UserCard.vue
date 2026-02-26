@@ -24,6 +24,15 @@
         </view>
       </view>
 
+      <!-- 座右铭 -->
+      <view class="motto-section" v-if="user.motto">
+        <view class="motto-card">
+          <text class="motto-quote-mark">"</text>
+          <text class="motto-text">{{ user.motto }}</text>
+          <text class="motto-quote-mark end">"</text>
+        </view>
+      </view>
+
       <!-- 彩色标签 -->
       <view class="user-tags" v-if="user.tags && user.tags.length">
         <view 
@@ -67,13 +76,36 @@
         </view>
       </view>
 
-      <!-- 最近选择记录 -->
-      <view class="recent-choices" v-if="recentChoices.length > 0">
-        <text class="section-label">📜 最近选择</text>
-        <view class="choice-list">
-          <view class="choice-item" v-for="(ch, idx) in recentChoices" :key="idx">
-            <view class="choice-dot" :class="'dot-color-' + (idx % 3)" />
-            <text class="choice-text">{{ ch.choiceId }}</text>
+      <!-- 最佳藏品展示 -->
+      <view class="best-items-section" v-if="bestItems.length > 0">
+        <text class="section-label">🏆 珍藏展柜</text>
+        <view class="best-items-row">
+          <view 
+            class="best-item" 
+            v-for="item in bestItems" 
+            :key="item.id"
+            :class="'rarity-' + item.rarity"
+          >
+            <view class="item-icon-wrap" :class="'rarity-bg-' + item.rarity">
+              <text class="item-icon">{{ item.icon }}</text>
+            </view>
+            <text class="item-name">{{ item.name }}</text>
+            <view class="rarity-dot" :class="'rarity-' + item.rarity" />
+          </view>
+        </view>
+      </view>
+
+      <!-- 成就徽章 -->
+      <view class="achievements-section" v-if="achievementBadges.length > 0">
+        <text class="section-label">🎖️ 成就</text>
+        <view class="badge-row">
+          <view 
+            class="badge-chip" 
+            v-for="badge in achievementBadges" 
+            :key="badge.id"
+          >
+            <text class="badge-icon">{{ badge.icon }}</text>
+            <text class="badge-name">{{ badge.name }}</text>
           </view>
         </view>
       </view>
@@ -109,6 +141,7 @@ import type { User } from '@/types'
 import { getTagDefinition } from '@/data/tags'
 import { useInfluencerStore } from '@/stores/influencer'
 import { useUserStore } from '@/stores/user'
+import { useItemStore } from '@/stores/item'
 
 const props = defineProps<{
   user: User
@@ -123,6 +156,7 @@ const emit = defineEmits<{
 
 const influencerStore = useInfluencerStore()
 const userStore = useUserStore()
+const itemStore = useItemStore()
 
 const getTagName = (tagId: string): string => {
   const def = getTagDefinition(tagId)
@@ -163,9 +197,63 @@ const isFollowed = computed(() => {
   return influencerStore.isFollowing(props.user.id)
 })
 
-/** 最近选择记录（展示3条） */
-const recentChoices = computed(() => {
-  return (props.user.history?.choiceHistory || []).slice(-3).reverse()
+/** 稀有度排序权重 */
+const rarityOrder: Record<string, number> = {
+  legendary: 5,
+  epic: 4,
+  rare: 3,
+  uncommon: 2,
+  common: 1
+}
+
+/** 最佳藏品 - 按稀有度排序，展示前3个 */
+const bestItems = computed(() => {
+  if (!props.user.inventory?.length) return []
+  
+  const resolved = props.user.inventory
+    .map(inv => {
+      const itemDef = itemStore.getItemById(inv.itemId)
+      if (!itemDef) return null
+      return {
+        id: itemDef.id,
+        name: itemDef.name,
+        icon: itemDef.icon,
+        rarity: itemDef.rarity,
+        quantity: inv.quantity
+      }
+    })
+    .filter(Boolean) as Array<{ id: string; name: string; icon: string; rarity: string; quantity: number }>
+  
+  // 按稀有度降序排列
+  resolved.sort((a, b) => (rarityOrder[b.rarity] || 0) - (rarityOrder[a.rarity] || 0))
+  
+  return resolved.slice(0, 3)
+})
+
+/** 成就徽章定义 */
+const achievementDefs: Record<string, { icon: string; name: string }> = {
+  first_choice: { icon: '🎯', name: '初次抉择' },
+  bookworm: { icon: '📖', name: '书虫' },
+  early_adopter: { icon: '🌅', name: '先行者' },
+  fitness_master: { icon: '🏋️', name: '健身大师' },
+  early_bird: { icon: '🐦', name: '早起鸟' },
+  iron_will: { icon: '🔥', name: '钢铁意志' },
+  streak_7: { icon: '📅', name: '连续7天' },
+  social_star: { icon: '⭐', name: '社交之星' },
+  party_king: { icon: '👑', name: '派对之王' },
+  wanderer: { icon: '🗺️', name: '漫游者' },
+  collector: { icon: '💎', name: '收藏家' }
+}
+
+/** 成就徽章列表 */
+const achievementBadges = computed(() => {
+  const achievements = props.user.history?.achievements || []
+  return achievements
+    .map(id => {
+      const def = achievementDefs[id]
+      return def ? { id, ...def } : { id, icon: '🏅', name: id }
+    })
+    .slice(0, 4)
 })
 
 /** 共同参与的事件数 */
@@ -211,7 +299,7 @@ const handleFollow = () => {
   display: flex;
   flex-direction: column;
   padding: 36rpx 32rpx 28rpx;
-  gap: 20rpx;
+  gap: 16rpx;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
 }
@@ -239,6 +327,7 @@ const handleFollow = () => {
   font-size: 48rpx;
   border: 4rpx solid rgba(0,0,0,0.06);
   
+  &.level-0 { background: linear-gradient(135deg, #f5f5f5, #e0e0e0); }
   &.level-1 { background: linear-gradient(135deg, #e8f5e9, #c8e6c9); }
   &.level-2 { background: linear-gradient(135deg, #e3f2fd, #bbdefb); }
   &.level-3 { background: linear-gradient(135deg, #f3e5f5, #ce93d8); }
@@ -257,6 +346,7 @@ const handleFollow = () => {
   border-radius: 16rpx;
   border: 3rpx solid $white;
   
+  &.level-0 { background: #9e9e9e; }
   &.level-1 { background: #66bb6a; }
   &.level-2 { background: #42a5f5; }
   &.level-3 { background: #ab47bc; }
@@ -330,6 +420,44 @@ const handleFollow = () => {
   color: $text-tertiary;
 }
 
+// ==================== 座右铭 ====================
+.motto-section {
+  flex-shrink: 0;
+}
+
+.motto-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 4rpx;
+  padding: 16rpx 20rpx;
+  background: linear-gradient(135deg, rgba(#f3e5f5, 0.6), rgba(#e8eaf6, 0.6));
+  border-radius: 16rpx;
+  border-left: 6rpx solid #ab47bc;
+  position: relative;
+}
+
+.motto-quote-mark {
+  font-size: 36rpx;
+  font-weight: 700;
+  color: #ab47bc;
+  line-height: 1;
+  opacity: 0.6;
+  flex-shrink: 0;
+  
+  &.end {
+    align-self: flex-end;
+  }
+}
+
+.motto-text {
+  font-size: 24rpx;
+  color: $text-primary;
+  line-height: 1.6;
+  font-style: italic;
+  flex: 1;
+  padding: 4rpx 0;
+}
+
 // ==================== 标签区域 ====================
 .user-tags {
   display: flex;
@@ -400,8 +528,8 @@ const handleFollow = () => {
 .stat-value { font-size: 32rpx; font-weight: 700; color: $text-primary; }
 .stat-label { font-size: 20rpx; color: $text-tertiary; }
 
-// ==================== 最近选择 ====================
-.recent-choices {
+// ==================== 最佳藏品 ====================
+.best-items-section {
   flex-shrink: 0;
 }
 
@@ -413,38 +541,110 @@ const handleFollow = () => {
   display: block;
 }
 
-.choice-list {
+.best-items-row {
+  display: flex;
+  gap: 12rpx;
+}
+
+.best-item {
+  flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 10rpx;
+  align-items: center;
+  gap: 8rpx;
+  padding: 16rpx 8rpx;
+  border-radius: $radius-lg;
+  position: relative;
+  background: $gray-50;
+  border: 2rpx solid transparent;
+  
+  &.rarity-legendary {
+    background: linear-gradient(135deg, rgba(#ff9800, 0.08), rgba(#f44336, 0.08));
+    border-color: rgba(#ff9800, 0.3);
+  }
+  &.rarity-epic {
+    background: linear-gradient(135deg, rgba(#9c27b0, 0.08), rgba(#673ab7, 0.08));
+    border-color: rgba(#9c27b0, 0.3);
+  }
+  &.rarity-rare {
+    background: linear-gradient(135deg, rgba(#2196f3, 0.08), rgba(#1565c0, 0.08));
+    border-color: rgba(#2196f3, 0.3);
+  }
+  &.rarity-uncommon {
+    background: linear-gradient(135deg, rgba(#4caf50, 0.08), rgba(#2e7d32, 0.08));
+    border-color: rgba(#4caf50, 0.3);
+  }
 }
 
-.choice-item {
+.item-icon-wrap {
+  width: 56rpx;
+  height: 56rpx;
+  border-radius: 50%;
   display: flex;
   align-items: center;
-  gap: 12rpx;
-  padding: 10rpx 16rpx;
-  background: $gray-50;
-  border-radius: $radius-md;
-}
-
-.choice-dot {
-  width: 12rpx;
-  height: 12rpx;
-  border-radius: 50%;
-  flex-shrink: 0;
+  justify-content: center;
   
-  &.dot-color-0 { background: #42a5f5; }
-  &.dot-color-1 { background: #66bb6a; }
-  &.dot-color-2 { background: #ffa726; }
+  &.rarity-bg-legendary { background: linear-gradient(135deg, #fff3e0, #ffe0b2); }
+  &.rarity-bg-epic { background: linear-gradient(135deg, #f3e5f5, #e1bee7); }
+  &.rarity-bg-rare { background: linear-gradient(135deg, #e3f2fd, #bbdefb); }
+  &.rarity-bg-uncommon { background: linear-gradient(135deg, #e8f5e9, #c8e6c9); }
+  &.rarity-bg-common { background: $gray-100; }
 }
 
-.choice-text {
-  font-size: 24rpx;
-  color: $text-primary;
+.item-icon { font-size: 28rpx; }
+
+.item-name {
+  font-size: 20rpx;
+  color: $text-secondary;
+  text-align: center;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  max-width: 100%;
+  font-weight: 500;
+}
+
+.rarity-dot {
+  width: 10rpx;
+  height: 10rpx;
+  border-radius: 50%;
+  
+  &.rarity-legendary { background: #ff9800; box-shadow: 0 0 8rpx rgba(#ff9800, 0.5); }
+  &.rarity-epic { background: #9c27b0; box-shadow: 0 0 8rpx rgba(#9c27b0, 0.5); }
+  &.rarity-rare { background: #2196f3; box-shadow: 0 0 8rpx rgba(#2196f3, 0.5); }
+  &.rarity-uncommon { background: #4caf50; box-shadow: 0 0 8rpx rgba(#4caf50, 0.5); }
+  &.rarity-common { background: #9e9e9e; }
+}
+
+// ==================== 成就徽章 ====================
+.achievements-section {
+  flex-shrink: 0;
+}
+
+.badge-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10rpx;
+}
+
+.badge-chip {
+  display: flex;
+  align-items: center;
+  gap: 6rpx;
+  padding: 8rpx 14rpx;
+  background: linear-gradient(135deg, rgba(#ffd54f, 0.15), rgba(#ffb300, 0.15));
+  border: 1rpx solid rgba(#ffb300, 0.25);
+  border-radius: 20rpx;
+  
+  .badge-icon {
+    font-size: 22rpx;
+  }
+  
+  .badge-name {
+    font-size: 20rpx;
+    font-weight: 600;
+    color: #f57f17;
+  }
 }
 
 // ==================== 共同事件 ====================
