@@ -226,75 +226,70 @@
         </template>
         
         <template v-else-if="mode === 'playing'">
-          <!-- Influencer 推荐区域（横向滚动 + 折叠） -->
+          <!-- Influencer 推荐区域（卡片式横向滚动） -->
           <view class="influencer-section" v-if="stageInfluencers.length > 0">
-            <view class="influencer-header" @click="influencerExpanded = !influencerExpanded">
+            <view class="influencer-header">
               <view class="influencer-header-left">
                 <text class="influencer-section-title">🔥 影响力玩家</text>
                 <text class="influencer-count">{{ stageInfluencers.length }}人</text>
               </view>
-              <text class="influencer-toggle">{{ influencerExpanded ? '▲ 收起' : '▼ 展开' }}</text>
+              <text class="influencer-swipe-hint" v-if="stageInfluencers.length > 2">← 滑动查看 →</text>
             </view>
             
-            <!-- 收起状态：横向滚动头像列表 -->
-            <scroll-view v-if="!influencerExpanded" scroll-x class="influencer-scroll-row">
-              <view class="influencer-avatar-list">
+            <!-- 卡片式横向滚动列表 -->
+            <scroll-view scroll-x class="influencer-card-scroll">
+              <view class="influencer-card-row">
                 <view 
                   v-for="inf in stageInfluencers" 
                   :key="inf.userId"
-                  class="inf-avatar-chip"
+                  class="influencer-card"
                   :class="{ followed: influencerStore.isFollowing(inf.userId) }"
-                  @click="influencerExpanded = true"
                 >
-                  <text class="inf-chip-avatar">{{ inf.avatar }}</text>
-                  <text class="inf-chip-name">{{ inf.nickname.substring(0, 4) }}</text>
-                  <text class="inf-chip-percent">{{ inf.investmentPercent.toFixed(1) }}%</text>
+                  <!-- 卡片头部：头像 + 名称 + 占比 -->
+                  <view class="inf-card-top">
+                    <text class="inf-avatar">{{ inf.avatar }}</text>
+                    <view class="inf-card-info">
+                      <text class="inf-name">{{ inf.nickname }}</text>
+                      <text class="inf-percent-badge">{{ inf.investmentPercent.toFixed(1) }}%</text>
+                    </view>
+                  </view>
+                  
+                  <!-- 简介 -->
+                  <text class="inf-bio" v-if="inf.bio">{{ inf.bio }}</text>
+                  
+                  <!-- 主张 -->
+                  <view class="inf-stance" v-if="inf.latestChoice">
+                    <text class="inf-stance-text">💬「{{ inf.latestChoice.choiceText }}」</text>
+                  </view>
+                  
+                  <!-- 关注按钮 -->
+                  <button 
+                    class="follow-btn"
+                    :class="{ 'is-following': influencerStore.isFollowing(inf.userId) }"
+                    @click.stop="handleToggleFollow(inf)"
+                  >
+                    {{ influencerStore.isFollowing(inf.userId) ? '✅ 已关注' : '+ 关注' }}
+                  </button>
                 </view>
               </view>
             </scroll-view>
-            
-            <!-- 展开状态：完整卡片列表（最多显示3个） -->
-            <view v-if="influencerExpanded" class="influencer-list">
-              <view 
-                v-for="inf in stageInfluencers.slice(0, 3)" 
-                :key="inf.userId"
-                class="influencer-card"
-                :class="{ followed: influencerStore.isFollowing(inf.userId) }"
-              >
-                <view class="inf-profile">
-                  <text class="inf-avatar">{{ inf.avatar }}</text>
-                  <view class="inf-info">
-                    <view class="inf-name-row">
-                      <text class="inf-name">{{ inf.nickname }}</text>
-                      <text class="inf-percent">投入占比 {{ inf.investmentPercent.toFixed(1) }}%</text>
-                    </view>
-                    <text class="inf-bio" v-if="inf.bio">{{ inf.bio }}</text>
-                  </view>
-                </view>
-                <view class="inf-stance" v-if="inf.latestChoice">
-                  <text class="inf-stance-label">💬 主张：</text>
-                  <text class="inf-stance-text">「{{ inf.latestChoice.choiceText }}」</text>
-                </view>
-                <button 
-                  class="follow-btn"
-                  :class="{ 'is-following': influencerStore.isFollowing(inf.userId) }"
-                  @click.stop="handleToggleFollow(inf)"
-                >
-                  {{ influencerStore.isFollowing(inf.userId) ? '✅ 已关注' : '+ 关注' }}
-                </button>
-              </view>
-              <text v-if="stageInfluencers.length > 3" class="inf-more-hint">还有 {{ stageInfluencers.length - 3 }} 位影响力玩家...</text>
-            </view>
           </view>
           
-          <!-- 已关注 Influencer 的选择提示 -->
-          <view class="followed-choices-hint" v-if="followedChoices.length > 0">
-            <text class="followed-hint-title">👥 你关注的玩家的选择</text>
-            <view class="followed-choice" v-for="fc in followedChoices" :key="fc.influencer.userId">
-              <text class="fc-avatar">{{ fc.influencer.avatar }}</text>
-              <text class="fc-name">{{ fc.influencer.nickname }}</text>
-              <text class="fc-chose">选择了</text>
-              <text class="fc-choice">「{{ fc.latestChoice.choiceText }}」</text>
+          <!-- 已关注 Influencer 的选择提示（内嵌卡片） -->
+          <view class="followed-choices-section" v-if="followedChoices.length > 0">
+            <text class="followed-section-title">👥 你关注的玩家</text>
+            <view class="followed-cards">
+              <view 
+                class="followed-card" 
+                v-for="fc in followedChoices" 
+                :key="fc.influencer.userId"
+              >
+                <text class="fc-avatar">{{ fc.influencer.avatar }}</text>
+                <view class="fc-detail">
+                  <text class="fc-name">{{ fc.influencer.nickname }}</text>
+                  <text class="fc-choice">选择了「{{ fc.latestChoice.choiceText }}」</text>
+                </view>
+              </view>
             </view>
           </view>
           
@@ -2242,12 +2237,9 @@ defineExpose({
 }
 
 // ========== Influencer 系统样式 ==========
+// ==================== Influencer 卡片式推荐 ====================
 .influencer-section {
   margin-bottom: 20rpx;
-  padding: 20rpx;
-  background: linear-gradient(135deg, rgba(245, 158, 11, 0.06), rgba(239, 68, 68, 0.04));
-  border-radius: $radius-lg;
-  border: 2rpx solid rgba(245, 158, 11, 0.15);
 }
 
 .influencer-header {
@@ -2255,7 +2247,7 @@ defineExpose({
   justify-content: space-between;
   align-items: center;
   margin-bottom: 12rpx;
-  cursor: pointer;
+  padding: 0 4rpx;
 }
 
 .influencer-header-left {
@@ -2279,99 +2271,58 @@ defineExpose({
   font-weight: 600;
 }
 
-.influencer-toggle {
-  font-size: 22rpx;
+.influencer-swipe-hint {
+  font-size: 20rpx;
   color: $text-tertiary;
+  opacity: 0.6;
 }
 
-// 横向滚动头像列表（收起状态）
-.influencer-scroll-row {
+// 卡片式横向滚动
+.influencer-card-scroll {
   white-space: nowrap;
   ::-webkit-scrollbar { display: none; }
+  -webkit-overflow-scrolling: touch;
 }
 
-.influencer-avatar-list {
+.influencer-card-row {
   display: inline-flex;
   gap: 16rpx;
-  padding: 4rpx 0;
-}
-
-.inf-avatar-chip {
-  display: inline-flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4rpx;
-  padding: 8rpx 12rpx;
-  background: $white;
-  border-radius: $radius-lg;
-  border: 2rpx solid rgba(0, 0, 0, 0.06);
-  min-width: 100rpx;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  
-  &.followed {
-    border-color: rgba(59, 130, 246, 0.3);
-    background: rgba(59, 130, 246, 0.03);
-  }
-}
-
-.inf-chip-avatar {
-  font-size: 40rpx;
-}
-
-.inf-chip-name {
-  font-size: 20rpx;
-  color: $text-secondary;
-  font-weight: 500;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 100rpx;
-}
-
-.inf-chip-percent {
-  font-size: 18rpx;
-  color: #f59e0b;
-  font-weight: 600;
-}
-
-.inf-more-hint {
-  font-size: 22rpx;
-  color: $text-tertiary;
-  text-align: center;
-  display: block;
-  padding: 8rpx 0;
-}
-
-.influencer-list {
-  display: flex;
-  flex-direction: column;
-  gap: 16rpx;
+  padding: 4rpx 4rpx 8rpx;
 }
 
 .influencer-card {
+  display: inline-flex;
+  flex-direction: column;
+  width: 280rpx;
+  min-height: 240rpx;
   background: $white;
-  border-radius: $radius-lg;
+  border-radius: $radius-xl;
   padding: 20rpx;
   border: 2rpx solid rgba(0, 0, 0, 0.06);
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.04);
   transition: all 0.3s ease;
+  white-space: normal;
+  vertical-align: top;
+  position: relative;
   
   &.followed {
-    border-color: rgba(59, 130, 246, 0.3);
-    background: rgba(59, 130, 246, 0.03);
+    border-color: rgba(59, 130, 246, 0.35);
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.04), rgba(59, 130, 246, 0.01));
+    box-shadow: 0 4rpx 16rpx rgba(59, 130, 246, 0.08);
   }
 }
 
-.inf-profile {
+.inf-card-top {
   display: flex;
-  gap: 16rpx;
-  align-items: flex-start;
+  align-items: center;
+  gap: 12rpx;
+  margin-bottom: 10rpx;
 }
 
 .inf-avatar {
-  font-size: 48rpx;
-  width: 64rpx;
-  height: 64rpx;
+  font-size: 44rpx;
+  width: 56rpx;
+  height: 56rpx;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2380,85 +2331,64 @@ defineExpose({
   flex-shrink: 0;
 }
 
-.inf-info {
+.inf-card-info {
   flex: 1;
   min-width: 0;
-}
-
-.inf-name-row {
   display: flex;
-  align-items: center;
-  gap: 12rpx;
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: 4rpx;
 }
 
 .inf-name {
-  font-size: 26rpx;
+  font-size: 24rpx;
   font-weight: 600;
   color: $text-primary;
-}
-
-.inf-percent {
-  font-size: 20rpx;
-  color: #f59e0b;
-  background: rgba(245, 158, 11, 0.1);
-  padding: 2rpx 12rpx;
-  border-radius: 20rpx;
-  font-weight: 600;
-}
-
-.inf-bio {
-  font-size: 22rpx;
-  color: $text-secondary;
-  margin-top: 6rpx;
-  display: block;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.inf-tags {
-  display: flex;
-  gap: 8rpx;
-  margin-top: 8rpx;
-  flex-wrap: wrap;
+.inf-percent-badge {
+  font-size: 20rpx;
+  color: #f59e0b;
+  font-weight: 700;
 }
 
-.inf-tag {
+.inf-bio {
   font-size: 20rpx;
-  color: $text-tertiary;
-  background: $gray-100;
-  padding: 2rpx 10rpx;
-  border-radius: 12rpx;
+  color: $text-secondary;
+  margin-bottom: 8rpx;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  line-height: 1.4;
 }
 
 .inf-stance {
-  margin-top: 12rpx;
-  padding: 12rpx 16rpx;
+  margin-top: auto;
+  padding: 8rpx 12rpx;
   background: rgba(245, 158, 11, 0.06);
   border-radius: $radius-md;
-  border-left: 4rpx solid #f59e0b;
-  display: flex;
-  align-items: flex-start;
-  gap: 8rpx;
-}
-
-.inf-stance-label {
-  font-size: 22rpx;
-  color: $text-tertiary;
-  flex-shrink: 0;
+  border-left: 3rpx solid #f59e0b;
+  margin-bottom: 10rpx;
 }
 
 .inf-stance-text {
-  font-size: 22rpx;
+  font-size: 20rpx;
   color: $text-primary;
   font-weight: 500;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  line-height: 1.4;
 }
 
 .follow-btn {
-  margin-top: 12rpx;
-  padding: 8rpx 24rpx !important;
-  font-size: 24rpx !important;
+  margin-top: auto;
+  padding: 6rpx 0 !important;
+  font-size: 22rpx !important;
   font-weight: 600 !important;
   color: #3b82f6 !important;
   background: rgba(59, 130, 246, 0.08) !important;
@@ -2466,7 +2396,9 @@ defineExpose({
   border-radius: $radius-lg !important;
   line-height: 1.4 !important;
   min-height: 0 !important;
+  text-align: center;
   transition: all 0.3s ease;
+  width: 100%;
   
   &.is-following {
     color: $text-tertiary !important;
@@ -2475,49 +2407,59 @@ defineExpose({
   }
 }
 
-.followed-choices-hint {
+// ==================== 已关注玩家卡片 ====================
+.followed-choices-section {
   margin-bottom: 16rpx;
-  padding: 16rpx 20rpx;
-  background: rgba(59, 130, 246, 0.05);
-  border-radius: $radius-lg;
-  border: 2rpx solid rgba(59, 130, 246, 0.12);
 }
 
-.followed-hint-title {
+.followed-section-title {
   font-size: 24rpx;
   font-weight: 600;
   color: #3b82f6;
   display: block;
-  margin-bottom: 12rpx;
+  margin-bottom: 10rpx;
+  padding: 0 4rpx;
 }
 
-.followed-choice {
+.followed-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 10rpx;
+}
+
+.followed-card {
   display: flex;
   align-items: center;
-  gap: 8rpx;
-  padding: 8rpx 0;
-  flex-wrap: wrap;
+  gap: 12rpx;
+  padding: 14rpx 18rpx;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.06), rgba(59, 130, 246, 0.02));
+  border-radius: $radius-lg;
+  border: 2rpx solid rgba(59, 130, 246, 0.12);
 }
 
 .fc-avatar {
-  font-size: 28rpx;
+  font-size: 32rpx;
+  flex-shrink: 0;
+}
+
+.fc-detail {
+  flex: 1;
+  min-width: 0;
 }
 
 .fc-name {
   font-size: 22rpx;
   font-weight: 600;
   color: $text-primary;
-}
-
-.fc-chose {
-  font-size: 22rpx;
-  color: $text-tertiary;
+  display: block;
 }
 
 .fc-choice {
-  font-size: 22rpx;
+  font-size: 20rpx;
   color: #f59e0b;
   font-weight: 500;
+  display: block;
+  margin-top: 2rpx;
 }
 
 // ========== 多倍下注系统 ==========
