@@ -137,6 +137,31 @@
             <text class="bet-boost-badge">🔥 {{ lastBetMultiplier }}× 加码</text>
             <text class="bet-boost-desc">你的影响力占比：{{ (myInvestmentPercent * 100).toFixed(1) }}%</text>
           </view>
+          
+          <!-- 概率掉落物品展示 -->
+          <view class="item-drops-panel" v-if="droppedItems.length > 0">
+            <view class="drops-header">
+              <text class="drops-sparkle">✨</text>
+              <text class="drops-title">意外收获</text>
+              <text class="drops-sparkle">✨</text>
+            </view>
+            <view class="drops-list">
+              <view class="drop-item" v-for="(drop, idx) in droppedItems" :key="drop.itemId + '-' + idx">
+                <view class="drop-item-glow" />
+                <text class="drop-item-icon">{{ getClaimItemIcon(drop.itemId) }}</text>
+                <view class="drop-item-info">
+                  <text class="drop-item-name">{{ getItemName(drop.itemId) }}</text>
+                  <text class="drop-item-qty" v-if="drop.quantity > 1">×{{ drop.quantity }}</text>
+                </view>
+                <text class="drop-item-badge">NEW</text>
+              </view>
+            </view>
+          </view>
+          
+          <!-- 未掉落物品时的提示 -->
+          <view class="no-drops-hint" v-else-if="lastResult?.rewards?.itemDrops && lastResult.rewards.itemDrops.length > 0">
+            <text class="no-drops-text">🎲 这次没有额外收获，下次运气会更好！</text>
+          </view>
         </template>
       </view>
       
@@ -467,7 +492,7 @@ import { useWorldStore } from '@/stores/world'
 import { useInfluencerStore, costToValue } from '@/stores/influencer'
 import { generateSimulatedParticipation } from '@/data/simulated_users'
 import { getTagDefinition } from '@/data/tags'
-import type { GameEvent, EventStage, EventChoice, EventOutcome, ClaimableItem, InfluencerInfo } from '@/types'
+import type { GameEvent, EventStage, EventChoice, EventOutcome, ClaimableItem, InfluencerInfo, ItemDrop } from '@/types'
 
 const props = defineProps<{
   event: GameEvent
@@ -491,6 +516,25 @@ const nextStageId = ref<string | null>(null)
 // ========== ClaimItem 状态 ==========
 const claimedItemIds = ref(new Set<string>())
 const skippedItemIds = ref(new Set<string>())
+
+// ========== 概率掉落物品状态 ==========
+const droppedItems = ref<Array<{ itemId: string; quantity: number }>>([])
+
+/** 根据 itemDrops 概率判定掉落物品 */
+const rollItemDrops = (itemDrops?: ItemDrop[]): Array<{ itemId: string; quantity: number }> => {
+  if (!itemDrops || itemDrops.length === 0) return []
+  const results: Array<{ itemId: string; quantity: number }> = []
+  for (const drop of itemDrops) {
+    const roll = Math.random()
+    if (roll < drop.dropRate) {
+      const min = drop.minQuantity || 1
+      const max = drop.maxQuantity || 1
+      const qty = min === max ? min : Math.floor(Math.random() * (max - min + 1)) + min
+      results.push({ itemId: drop.itemId, quantity: qty })
+    }
+  }
+  return results
+}
 
 // ========== 偏发相遇子事件 ==========
 /** 当前相遇的 Influencer */
@@ -1191,6 +1235,22 @@ const handleSelectChoice = (choice: EventChoice) => {
           source: props.event.id
         }))
     }
+    
+    // 概率掉落物品处理
+    if (result.rewards.itemDrops && result.rewards.itemDrops.length > 0) {
+      const drops = rollItemDrops(result.rewards.itemDrops)
+      droppedItems.value = drops
+      drops.forEach(drop => {
+        userStore.addItem({
+          itemId: drop.itemId,
+          quantity: drop.quantity,
+          acquiredAt: Date.now(),
+          source: props.event.id
+        })
+      })
+    } else {
+      droppedItems.value = []
+    }
   }
   
   if (result.penalties) {
@@ -1290,6 +1350,7 @@ const resetCardState = () => {
   ripples.splice(0)
   claimedItemIds.value.clear()
   skippedItemIds.value.clear()
+  droppedItems.value = []
   influencerExpanded.value = false
   choiceBets.value = {}
   lastBetMultiplier.value = 1
@@ -2820,5 +2881,169 @@ defineExpose({
     transform: scale(0.96);
     background: $gray-200 !important;
   }
+}
+
+// ========== 概率掉落物品展示 ==========
+.item-drops-panel {
+  margin-top: 20rpx;
+  padding: 20rpx;
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.08), rgba(234, 88, 12, 0.06));
+  border-radius: $radius-lg;
+  border: 2rpx solid rgba(245, 158, 11, 0.2);
+  position: relative;
+  overflow: hidden;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(245, 158, 11, 0.06) 0%, transparent 60%);
+    animation: shimmer 3s ease-in-out infinite;
+  }
+}
+
+@keyframes shimmer {
+  0%, 100% { transform: translate(0, 0); opacity: 0.5; }
+  50% { transform: translate(10%, 10%); opacity: 1; }
+}
+
+.drops-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12rpx;
+  margin-bottom: 16rpx;
+  position: relative;
+  z-index: 1;
+}
+
+.drops-sparkle {
+  font-size: 24rpx;
+  animation: sparkle-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes sparkle-pulse {
+  0%, 100% { opacity: 0.6; transform: scale(0.9); }
+  50% { opacity: 1; transform: scale(1.2); }
+}
+
+.drops-title {
+  font-size: 26rpx;
+  font-weight: 700;
+  color: #d97706;
+  letter-spacing: 2rpx;
+}
+
+.drops-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+  position: relative;
+  z-index: 1;
+}
+
+.drop-item {
+  display: flex;
+  align-items: center;
+  gap: 14rpx;
+  padding: 14rpx 18rpx;
+  background: rgba(255, 255, 255, 0.85);
+  border-radius: $radius-md;
+  border: 2rpx solid rgba(245, 158, 11, 0.15);
+  position: relative;
+  overflow: hidden;
+  animation: drop-slide-in 0.5s ease-out backwards;
+  
+  &:nth-child(1) { animation-delay: 0.1s; }
+  &:nth-child(2) { animation-delay: 0.3s; }
+  &:nth-child(3) { animation-delay: 0.5s; }
+}
+
+@keyframes drop-slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(20rpx) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.drop-item-glow {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, transparent, rgba(245, 158, 11, 0.08), transparent);
+  animation: glow-sweep 2s ease-in-out infinite;
+}
+
+@keyframes glow-sweep {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+.drop-item-icon {
+  font-size: 36rpx;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
+}
+
+.drop-item-info {
+  flex: 1;
+  display: flex;
+  align-items: baseline;
+  gap: 8rpx;
+  position: relative;
+  z-index: 1;
+}
+
+.drop-item-name {
+  font-size: 26rpx;
+  font-weight: 600;
+  color: $text-primary;
+}
+
+.drop-item-qty {
+  font-size: 22rpx;
+  color: $text-secondary;
+}
+
+.drop-item-badge {
+  font-size: 18rpx;
+  font-weight: 700;
+  color: #fff;
+  background: linear-gradient(135deg, #f59e0b, #ef4444);
+  padding: 4rpx 12rpx;
+  border-radius: 20rpx;
+  letter-spacing: 1rpx;
+  position: relative;
+  z-index: 1;
+  animation: badge-pulse 2s ease-in-out infinite;
+}
+
+@keyframes badge-pulse {
+  0%, 100% { opacity: 0.9; }
+  50% { opacity: 1; transform: scale(1.05); }
+}
+
+.no-drops-hint {
+  margin-top: 16rpx;
+  padding: 14rpx 20rpx;
+  background: rgba(0, 0, 0, 0.02);
+  border-radius: $radius-md;
+  text-align: center;
+}
+
+.no-drops-text {
+  font-size: 24rpx;
+  color: $text-tertiary;
+  font-style: italic;
 }
 </style>

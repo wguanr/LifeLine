@@ -1,4 +1,4 @@
-import type { GameEvent } from '@/types'
+import type { GameEvent, ItemDrop } from '@/types'
 
 export const mockEvents: GameEvent[] = [
   // ==================== 社交类事件 ====================
@@ -48,7 +48,10 @@ export const mockEvents: GameEvent[] = [
             text: '📲 交换联系方式，约下次聚会',
             outcome: {
               isEnding: true,
-              rewards: { reputation: 15, tags: ['connector'] },
+              rewards: { reputation: 15, tags: ['connector'], itemDrops: [
+                { itemId: 'item_coffee_coupon', dropRate: 0.6 },
+                { itemId: 'item_notebook', dropRate: 0.25 }
+              ] },
               resultText: '你们加了微信，约好下周一起吃饭。说不定这是一个新的职业机会！'
             }
           },
@@ -57,7 +60,9 @@ export const mockEvents: GameEvent[] = [
             text: '⏰ 简单寒暄后告别，赶时间',
             outcome: {
               isEnding: true,
-              rewards: { reputation: 3, time: 20 },
+              rewards: { reputation: 3, time: 20, itemDrops: [
+                { itemId: 'item_coffee_coupon', dropRate: 0.3 }
+              ] },
               resultText: '"下次再聊！"你匆匆离开。虽然节省了时间，但也许错过了什么。'
             }
           }
@@ -73,7 +78,9 @@ export const mockEvents: GameEvent[] = [
             text: '😅 尴尬地挥挥手打招呼',
             outcome: {
               isEnding: true,
-              rewards: { reputation: 2 },
+              rewards: { reputation: 2, itemDrops: [
+                { itemId: 'item_coffee_coupon', dropRate: 0.15 }
+              ] },
               resultText: '"嗨！改天聊！"你们简单打了个招呼。气氛有点尴尬。'
             }
           },
@@ -163,7 +170,9 @@ export const mockEvents: GameEvent[] = [
             text: '😊 摇摇头，示意她继续坐——不用在意，举手之劳',
             outcome: {
               isEnding: true,
-              rewards: { reputation: 10, energy: 5 },
+              rewards: { reputation: 10, energy: 5, itemDrops: [
+                { itemId: 'item_plant_pot', dropRate: 0.35 }
+              ] },
               resultText: '你摇了摇头，微笑着走出车厢。阳光照在脸上，你觉得今天的空气格外清新。有时候，不需要理由，不需要回报，只是因为你看见了。'
             }
           },
@@ -173,7 +182,10 @@ export const mockEvents: GameEvent[] = [
             cost: { time: 10 },
             outcome: {
               isEnding: true,
-              rewards: { reputation: 15, tags: ['connector'] },
+              rewards: { reputation: 15, tags: ['connector'], itemDrops: [
+                { itemId: 'item_activity_coupon', dropRate: 0.2 },
+                { itemId: 'item_plant_pot', dropRate: 0.4 }
+              ] },
               resultText: '你们聊了几句。她是独自带孩子去看病的，丈夫在外地出差。"谢谢你，今天遇到你真好。"她说。你在心里默默祝福她一切顺利。城市很大，但善意让距离变短了。'
             }
           }
@@ -191,7 +203,9 @@ export const mockEvents: GameEvent[] = [
             text: '🤔 工作处理完了，心里却有些说不清的滋味',
             outcome: {
               isEnding: true,
-              rewards: { time: 20, reputation: 3 },
+              rewards: { time: 20, reputation: 3, itemDrops: [
+                { itemId: 'item_notebook', dropRate: 0.4 }
+              ] },
               resultText: '下午的季度汇报很顺利，老板对你的数据准备赞不绝口。晚上回家的路上，你又想起了那位老人的眼神——不是责备，更像是一种平静的理解。你打开手机，给一个公益项目捐了一笔钱。每个人表达善意的方式不同，你选择了自己的方式。'
             }
           },
@@ -200,7 +214,10 @@ export const mockEvents: GameEvent[] = [
             text: '📊 专注是一种能力——我用我的方式创造价值',
             outcome: {
               isEnding: true,
-              rewards: { time: 25, tags: ['determined'] },
+              rewards: { time: 25, tags: ['determined'], itemDrops: [
+                { itemId: 'item_notebook', dropRate: 0.5 },
+                { itemId: 'item_coffee_coupon', dropRate: 0.3 }
+              ] },
               resultText: '季度汇报你拿了部门第一，老板暗示下个月会有晋升机会。你知道，每个人都有自己的战场。今天你选择了在自己的战场上全力以赴。这不是冷漠，这是一个成年人的取舍。'
             }
           }
@@ -218,7 +235,10 @@ export const mockEvents: GameEvent[] = [
             text: '🌊 有时候，只需要一个人先开口',
             outcome: {
               isEnding: true,
-              rewards: { reputation: 20, tags: ['leader'] },
+              rewards: { reputation: 20, tags: ['leader'], itemDrops: [
+                { itemId: 'item_activity_coupon', dropRate: 0.15 },
+                { itemId: 'item_plant_pot', dropRate: 0.45 }
+              ] },
               resultText: '那天的车厢和平时不太一样。有人开始聊天，有人帮忙拿行李，一个小女孩把手里的糖分给了旁边的小朋友。你不确定这些是不是因为你，但你知道——改变一个空间的氛围，有时候只需要一个人愿意打破沉默。'
             }
           },
@@ -228,7 +248,9 @@ export const mockEvents: GameEvent[] = [
             cost: { energy: 5 },
             outcome: {
               isEnding: true,
-              rewards: { reputation: 15, tags: ['thinker'] },
+              rewards: { reputation: 15, tags: ['thinker'], itemDrops: [
+                { itemId: 'item_notebook', dropRate: 0.55 }
+              ] },
               resultText: '下了地铁，你在备忘录里写下了一些想法。关于公共空间、关于沉默的代价、关于"旁观者效应"。也许有一天，你会把这些想法变成一篇文章，或者一个项目。改变世界的方式有很多种，不一定都要在地铁上。'
             }
           }
@@ -247,7 +269,10 @@ export const mockEvents: GameEvent[] = [
             cost: { time: 5 },
             outcome: {
               isEnding: true,
-              rewards: { reputation: 8, energy: 10, tags: ['explorer'] },
+              rewards: { reputation: 8, energy: 10, tags: ['explorer'], itemDrops: [
+                { itemId: 'item_travel_bag', dropRate: 0.2 },
+                { itemId: 'item_plant_pot', dropRate: 0.35 }
+              ] },
               resultText: '你站在壁画前，看着一百年前的街道和人群。那时候没有地铁，没有智能手机，人们走在泥路上，但笑容和现在一样。你拍了张照片，发现这个站台藏着好几处这样的艺术作品。有时候，绕一点路，反而能看到不一样的风景。你决定以后每周随机选一个陌生的站下车看看。'
             }
           },
@@ -256,7 +281,9 @@ export const mockEvents: GameEvent[] = [
             text: '🏃 快步换乘——冒险归冒险，不能真的迟到',
             outcome: {
               isEnding: true,
-              rewards: { time: 10, tags: ['adaptable'] },
+              rewards: { time: 10, tags: ['adaptable'], itemDrops: [
+                { itemId: 'item_coffee_coupon', dropRate: 0.25 }
+              ] },
               resultText: '你小跑着穿过换乘通道，刚好赶上下一班车。坐下来的时候，你发现心情意外地轻松。那位妈妈有了座位，你也没有耽误太多时间。生活中很多看似两难的选择，其实都有第三条路——只要你愿意动动脑筋，跳出非此即彼的框架。'
             }
           }
@@ -293,7 +320,7 @@ export const mockEvents: GameEvent[] = [
         title: '深夜办公室',
         description: '你完成了项目，老板很满意，说下个月考虑给你加薪。但朋友的回复只有一个"哦"。',
         choices: [
-          { id: 'choice_go_home', text: '🚕 叹口气，打车回家', outcome: { isEnding: true, rewards: { time: 50 }, penalties: { reputation: 15 }, resultText: '凌晨1点，你终于到家。手机里朋友圈刷到了聚会的照片，大家玩得很开心...' } }
+          { id: 'choice_go_home', text: '🚕 叹口气，打车回家', outcome: { isEnding: true, rewards: { time: 50, itemDrops: [{ itemId: 'item_coffee_coupon', dropRate: 0.5 }, { itemId: 'item_notebook', dropRate: 0.3 }] }, penalties: { reputation: 15 }, resultText: '凌晨1点，你终于到家。手机里朋友圈刷到了聚会的照片，大家玩得很开心...' } }
         ]
       },
       {
@@ -301,7 +328,7 @@ export const mockEvents: GameEvent[] = [
         title: '愉快的聚会',
         description: '朋友们很开心你能来。你们聊到很晚，感觉压力都释放了。',
         choices: [
-          { id: 'choice_enjoy', text: '🎉 这才是生活！', outcome: { isEnding: true, rewards: { energy: 20, reputation: 15 }, resultText: '周一老板虽然有点不高兴，但也没说什么。朋友们都说你变了，变得更懂生活了。' } }
+          { id: 'choice_enjoy', text: '🎉 这才是生活！', outcome: { isEnding: true, rewards: { energy: 20, reputation: 15, itemDrops: [{ itemId: 'item_takeout_coupon', dropRate: 0.45 }, { itemId: 'item_yoga_mat', dropRate: 0.15 }] }, resultText: '周一老板虽然有点不高兴，但也没说什么。朋友们都说你变了，变得更懂生活了。' } }
         ]
       },
       {
@@ -309,7 +336,7 @@ export const mockEvents: GameEvent[] = [
         title: '双赢方案',
         description: '老板想了想，同意了你的提议。你准时赴约，第二天早起完成了工作。',
         choices: [
-          { id: 'choice_perfect', text: '✨ 完美解决！', outcome: { isEnding: true, rewards: { time: 30, reputation: 20, energy: 10 }, resultText: '老板对你的责任心很满意，朋友们也玩得很开心。这就是成年人的智慧！' } }
+          { id: 'choice_perfect', text: '✨ 完美解决！', outcome: { isEnding: true, rewards: { time: 30, reputation: 20, energy: 10, itemDrops: [{ itemId: 'item_coffee_coupon', dropRate: 0.55 }, { itemId: 'item_notebook', dropRate: 0.35 }, { itemId: 'item_travel_bag', dropRate: 0.1 }] }, resultText: '老板对你的责任心很满意，朋友们也玩得很开心。这就是成年人的智慧！' } }
         ]
       }
     ],
@@ -343,8 +370,8 @@ export const mockEvents: GameEvent[] = [
         title: '坚持的考验',
         description: '课程进行到一半，你感觉有些疲惫。工作也很忙，是继续坚持还是暂时休息？',
         choices: [
-          { id: 'choice_continue', text: '💪 坚持完成课程', cost: { energy: 20 }, outcome: { isEnding: true, rewards: { reputation: 25, tags: ['persistent'] }, resultText: '你坚持完成了整个课程！虽然很累，但收获满满。朋友们都说你变得不一样了。' } },
-          { id: 'choice_rest', text: '😴 先休息，改天继续', outcome: { isEnding: true, rewards: { energy: 15 }, resultText: '你决定休息一下。但不知不觉，这个课程就被搁置了...也许下次会完成吧。' } }
+          { id: 'choice_continue', text: '💪 坚持完成课程', cost: { energy: 20 }, outcome: { isEnding: true, rewards: { reputation: 25, tags: ['persistent'], itemDrops: [{ itemId: 'item_notebook', dropRate: 0.6 }, { itemId: 'item_yoga_mat', dropRate: 0.2 }, { itemId: 'item_travel_bag', dropRate: 0.08 }] }, resultText: '你坚持完成了整个课程！虽然很累，但收获满满。朋友们都说你变得不一样了。' } },
+          { id: 'choice_rest', text: '😴 先休息，改天继续', outcome: { isEnding: true, rewards: { energy: 15, itemDrops: [{ itemId: 'item_takeout_coupon', dropRate: 0.3 }] }, resultText: '你决定休息一下。但不知不觉，这个课程就被搁置了...也许下次会完成吧。' } }
         ]
       }
     ],
@@ -370,7 +397,7 @@ export const mockEvents: GameEvent[] = [
         choices: [
           { id: 'choice_order', text: '🍜 管它呢，下单！', cost: { time: 30 }, outcome: { nextStageId: 'stage_2a', rewards: { tags: ['adventurous'] }, resultText: '你果断下了单。配送预计45分钟，你开始期待...' } },
           { id: 'choice_cook', text: '🍳 算了，自己煮碗泡面', cost: { energy: 5 }, outcome: { nextStageId: 'stage_2b', rewards: { energy: 10 }, resultText: '你打开橱柜，发现只剩最后一包泡面了。' } },
-          { id: 'choice_sleep', text: '😤 忍住！减肥要紧', outcome: { isEnding: true, rewards: { energy: 20 }, resultText: '你翻来覆去，最终在饥饿中睡着了。第二天早上称体重，轻了0.5kg。值了？' } }
+          { id: 'choice_sleep', text: '😤 忍住！减肥要紧', outcome: { isEnding: true, rewards: { energy: 20, itemDrops: [{ itemId: 'item_yoga_mat', dropRate: 0.2 }] }, resultText: '你翻来覆去，最终在饥饿中睡着了。第二天早上称体重，轻了0.5kg。值了？' } }
         ]
       },
       {
@@ -379,7 +406,7 @@ export const mockEvents: GameEvent[] = [
         description: '外卖迟到了20分钟。你正准备打电话投诉，门铃响了。打开一看——骑手居然是你的前同事老张。',
         choices: [
           { id: 'choice_chat_zhang', text: '😮 老张？！你怎么在送外卖？', outcome: { nextStageId: 'stage_3a', rewards: { reputation: 5 }, resultText: '"嘿！好久不见！"老张笑着说，"这是我的副业，白天我在做自己的创业项目。"' } },
-          { id: 'choice_take_food', text: '📦 接过外卖，礼貌道谢', outcome: { isEnding: true, rewards: { energy: 15 }, resultText: '你接过外卖，味道确实惊艳。但总觉得错过了什么故事。' } }
+          { id: 'choice_take_food', text: '📦 接过外卖，礼貌道谢', outcome: { isEnding: true, rewards: { energy: 15, itemDrops: [{ itemId: 'item_takeout_coupon', dropRate: 0.5 }] }, resultText: '你接过外卖，味道确实惊艳。但总觉得错过了什么故事。' } }
         ]
       },
       {
@@ -387,7 +414,7 @@ export const mockEvents: GameEvent[] = [
         title: '泡面哲学',
         description: '水烧开了，泡面的香气弥漫。你突然想起小时候，爸妈加班时你一个人在家煮泡面的日子。',
         choices: [
-          { id: 'choice_enjoy_noodle', text: '🍜 加个蛋，享受这份简单', outcome: { isEnding: true, rewards: { energy: 15, reputation: 3 }, resultText: '热腾腾的泡面，配上一个溏心蛋。有时候，幸福就是这么简单。你拍了张照发朋友圈，收获了32个赞。' } }
+          { id: 'choice_enjoy_noodle', text: '🍜 加个蛋，享受这份简单', outcome: { isEnding: true, rewards: { energy: 15, reputation: 3, itemDrops: [{ itemId: 'item_takeout_coupon', dropRate: 0.35 }, { itemId: 'item_plant_pot', dropRate: 0.15 }] }, resultText: '热腾腾的泡面，配上一个溏心蛋。有时候，幸福就是这么简单。你拍了张照发朋友圈，收获了32个赞。' } }
         ]
       },
       {
@@ -395,8 +422,8 @@ export const mockEvents: GameEvent[] = [
         title: '深夜长谈',
         description: '老张说他辞职后一直在做AI相关的创业，白天写代码晚上送外卖攒启动资金。他问你要不要一起干。',
         choices: [
-          { id: 'choice_join', text: '🚀 有意思！详细聊聊', cost: { time: 60 }, outcome: { isEnding: true, rewards: { reputation: 30, tags: ['adventurous', 'connector'] }, resultText: '你们聊到凌晨4点。老张的项目确实有前景，你答应周末去他的"车库办公室"看看。也许这就是命运的安排。' } },
-          { id: 'choice_decline', text: '😅 我还是安稳上班吧', outcome: { isEnding: true, rewards: { reputation: 5, energy: 10 }, resultText: '"理解理解。"老张笑着离开了。三个月后你在新闻上看到他的公司拿到了天使轮...' } }
+          { id: 'choice_join', text: '🚀 有意思！详细聊聊', cost: { time: 60 }, outcome: { isEnding: true, rewards: { reputation: 30, tags: ['adventurous', 'connector'], itemDrops: [{ itemId: 'item_notebook', dropRate: 0.55 }, { itemId: 'item_coffee_coupon', dropRate: 0.65 }, { itemId: 'item_travel_bag', dropRate: 0.12 }] }, resultText: '你们聊到凌晨4点。老张的项目确实有前景，你答应周末去他的"车库办公室"看看。也许这就是命运的安排。' } },
+          { id: 'choice_decline', text: '😅 我还是安稳上班吧', outcome: { isEnding: true, rewards: { reputation: 5, energy: 10, itemDrops: [{ itemId: 'item_takeout_coupon', dropRate: 0.4 }] }, resultText: '"理解理解。"老张笑着离开了。三个月后你在新闻上看到他的公司拿到了天使轮...' } }
         ]
       }
     ],
@@ -430,7 +457,7 @@ export const mockEvents: GameEvent[] = [
         title: '白板奇迹',
         description: '你的即兴演讲出乎意料地好。没有PPT的束缚，你反而讲得更自然、更有感染力。客户VP放下了手表，开始认真听。',
         choices: [
-          { id: 'choice_close_deal', text: '🤝 趁热打铁，当场敲定合作', cost: { energy: 15 }, outcome: { isEnding: true, rewards: { reputation: 40, energy: 10, tags: ['closer'] }, resultText: '客户VP站起来鼓掌："这是我见过最真诚的提案。"当天就签了合同。你的老板事后说："以后别做PPT了。"' } }
+          { id: 'choice_close_deal', text: '🤝 趁热打铁，当场敲定合作', cost: { energy: 15 }, outcome: { isEnding: true, rewards: { reputation: 40, energy: 10, tags: ['closer'], itemDrops: [{ itemId: 'item_notebook', dropRate: 0.7 }, { itemId: 'item_coffee_coupon', dropRate: 0.5 }, { itemId: 'item_travel_bag', dropRate: 0.15 }] }, resultText: '客户VP站起来鼓掌："这是我见过最真诚的提案。"当天就签了合同。你的老板事后说："以后别做PPT了。"' } }
         ]
       },
       {
@@ -438,7 +465,7 @@ export const mockEvents: GameEvent[] = [
         title: '小屏幕大智慧',
         description: '手机投屏虽然不够完美，但你的准备工作让客户印象深刻。"看得出你们很重视这次合作。"',
         choices: [
-          { id: 'choice_followup', text: '📧 会后立即发送完整方案', outcome: { isEnding: true, rewards: { reputation: 25, tags: ['reliable'] }, resultText: '你在会后30分钟内就发出了完整方案。客户回复："效率很高，我们内部讨论一下。"一周后，合同到了。' } }
+          { id: 'choice_followup', text: '📧 会后立即发送完整方案', outcome: { isEnding: true, rewards: { reputation: 25, tags: ['reliable'], itemDrops: [{ itemId: 'item_notebook', dropRate: 0.55 }, { itemId: 'item_coffee_coupon', dropRate: 0.4 }] }, resultText: '你在会后30分钟内就发出了完整方案。客户回复："效率很高，我们内部讨论一下。"一周后，合同到了。' } }
         ]
       },
       {
@@ -446,7 +473,7 @@ export const mockEvents: GameEvent[] = [
         title: '尴尬的等待',
         description: '休息期间，客户VP接了个电话，表情不太好。你的老板把你拉到角落："你最好想想办法..."',
         choices: [
-          { id: 'choice_save', text: '🏃 冲回工位重新做一份简版PPT', cost: { time: 20, energy: 20 }, outcome: { isEnding: true, rewards: { reputation: 15, tags: ['resilient'] }, resultText: '你用10分钟做了一份极简版PPT，虽然不够精美，但核心数据都在。客户说："下次准备充分点。"勉强过关。' } },
+          { id: 'choice_save', text: '🏃 冲回工位重新做一份简版PPT', cost: { time: 20, energy: 20 }, outcome: { isEnding: true, rewards: { reputation: 15, tags: ['resilient'], itemDrops: [{ itemId: 'item_coffee_coupon', dropRate: 0.45 }] }, resultText: '你用10分钟做了一份极简版PPT，虽然不够精美，但核心数据都在。客户说："下次准备充分点。"勉强过关。' } },
           { id: 'choice_give_up', text: '😞 向客户道歉，提议改期', outcome: { isEnding: true, penalties: { reputation: 20 }, resultText: '客户VP说："我们的时间很宝贵。"会议改期后，这个客户最终选择了竞争对手...' } }
         ]
       }
@@ -473,7 +500,7 @@ export const mockEvents: GameEvent[] = [
         choices: [
           { id: 'choice_continue_look', text: '📖 继续翻看相册', cost: { time: 30 }, outcome: { nextStageId: 'stage_2a', rewards: { reputation: 5 }, resultText: '你一页一页地翻着，每张照片都是一段故事。眼眶不知不觉湿了。' } },
           { id: 'choice_call_family', text: '📞 给爸妈打个电话', cost: { time: 15, energy: 5 }, outcome: { nextStageId: 'stage_2b', rewards: { reputation: 10, tags: ['family_first'] }, resultText: '电话响了三声就接了。"妈，我在整理东西，看到爷爷的照片了..."' } },
-          { id: 'choice_put_away', text: '📦 先收起来，继续搬家', outcome: { isEnding: true, rewards: { time: 30 }, resultText: '你把相册小心地放进新家的书柜里。总有一天会好好看的。总有一天。' } }
+          { id: 'choice_put_away', text: '📦 先收起来，继续搬家', outcome: { isEnding: true, rewards: { time: 30, itemDrops: [{ itemId: 'item_plant_pot', dropRate: 0.2 }] }, resultText: '你把相册小心地放进新家的书柜里。总有一天会好好看的。总有一天。' } }
         ]
       },
       {
@@ -481,7 +508,7 @@ export const mockEvents: GameEvent[] = [
         title: '时光碎片',
         description: '最后一页夹着一封信，是爷爷的字迹："等你长大了再看。"信封上写着你的名字。',
         choices: [
-          { id: 'choice_read_letter', text: '✉️ 打开信封', cost: { energy: 10 }, outcome: { isEnding: true, rewards: { reputation: 30, tags: ['sentimental', 'family_first'] }, resultText: '"孩子，爷爷不知道你什么时候会看到这封信。人这一辈子，最重要的不是赚多少钱，而是身边有没有真心对你的人。照顾好自己，也照顾好你爱的人。"你哭了很久。但心里，好像有什么东西变得更坚定了。' } }
+          { id: 'choice_read_letter', text: '✉️ 打开信封', cost: { energy: 10 }, outcome: { isEnding: true, rewards: { reputation: 30, tags: ['sentimental', 'family_first'], itemDrops: [{ itemId: 'item_notebook', dropRate: 0.5 }, { itemId: 'item_plant_pot', dropRate: 0.4 }, { itemId: 'item_activity_coupon', dropRate: 0.1 }] }, resultText: '"孩子，爷爷不知道你什么时候会看到这封信。人这一辈子，最重要的不是赚多少钱，而是身边有没有真心对你的人。照顾好自己，也照顾好你爱的人。"你哭了很久。但心里，好像有什么东西变得更坚定了。' } }
         ]
       },
       {
@@ -489,8 +516,8 @@ export const mockEvents: GameEvent[] = [
         title: '电话那头',
         description: '妈妈在电话那头沉默了一会儿，然后说："你爷爷最疼你了。上次回来是什么时候？"',
         choices: [
-          { id: 'choice_go_home', text: '🏠 这周末我回去看看', cost: { time: 60 }, outcome: { isEnding: true, rewards: { reputation: 25, energy: 20, tags: ['family_first'] }, resultText: '周末你回了老家。院子里的石榴树结满了果实，妈妈做了你最爱吃的红烧肉。你在爷爷的遗像前放了一颗石榴。"爷爷，我回来了。"' } },
-          { id: 'choice_busy', text: '😔 最近太忙了，下次吧', outcome: { isEnding: true, rewards: { time: 20 }, penalties: { reputation: 5 }, resultText: '"好吧，你忙你的。"妈妈的语气有点失落。你挂了电话，看着窗外的城市夜景，突然觉得很孤独。' } }
+          { id: 'choice_go_home', text: '🏠 这周末我回去看看', cost: { time: 60 }, outcome: { isEnding: true, rewards: { reputation: 25, energy: 20, tags: ['family_first'], itemDrops: [{ itemId: 'item_plant_pot', dropRate: 0.55 }, { itemId: 'item_activity_coupon', dropRate: 0.2 }] }, resultText: '周末你回了老家。院子里的石榴树结满了果实，妈妈做了你最爱吃的红烧肉。你在爷爷的遗像前放了一颗石榴。"爷爷，我回来了。"' } },
+          { id: 'choice_busy', text: '😔 最近太忙了，下次吧', outcome: { isEnding: true, rewards: { time: 20, itemDrops: [{ itemId: 'item_coffee_coupon', dropRate: 0.2 }] }, penalties: { reputation: 5 }, resultText: '"好吧，你忙你的。"妈妈的语气有点失落。你挂了电话，看着窗外的城市夜景，突然觉得很孤独。' } }
         ]
       }
     ],
@@ -516,7 +543,7 @@ export const mockEvents: GameEvent[] = [
         choices: [
           { id: 'choice_feed', text: '🐟 去便利店买罐猫粮喂它', cost: { time: 15, energy: 5 }, outcome: { nextStageId: 'stage_2a', rewards: { reputation: 10, tags: ['animal_lover'] }, resultText: '你买了一罐金枪鱼猫粮。橘猫吃得狼吞虎咽，吃完还舔了舔你的手。' } },
           { id: 'choice_adopt', text: '🏠 直接抱回家！', cost: { energy: 15 }, outcome: { nextStageId: 'stage_2b', rewards: { reputation: 15, tags: ['animal_lover', 'adventurous'] }, resultText: '你小心翼翼地抱起橘猫。它居然没有挣扎，反而在你怀里打起了呼噜。' } },
-          { id: 'choice_walk_away', text: '🚶 拍张照发朋友圈，然后走了', outcome: { isEnding: true, rewards: { reputation: 2 }, resultText: '你发了条朋友圈："遇到一只好可爱的橘猫！"收获了58个赞。但第二天路过时，猫已经不在了。' } }
+          { id: 'choice_walk_away', text: '🚶 拍张照发朋友圈，然后走了', outcome: { isEnding: true, rewards: { reputation: 2, itemDrops: [{ itemId: 'item_plant_pot', dropRate: 0.1 }] }, resultText: '你发了条朋友圈："遇到一只好可爱的橘猫！"收获了58个赞。但第二天路过时，猫已经不在了。' } }
         ]
       },
       {
@@ -524,8 +551,8 @@ export const mockEvents: GameEvent[] = [
         title: '每日之约',
         description: '从那天起，橘猫每天都在楼下等你。邻居说："这猫认你了。"',
         choices: [
-          { id: 'choice_finally_adopt', text: '🐱 好吧，你赢了，跟我回家', cost: { energy: 10 }, outcome: { isEnding: true, rewards: { reputation: 20, energy: 15, tags: ['animal_lover', 'persistent'] }, resultText: '你给它取名"橘座"。带去宠物医院检查，医生说它很健康，就是太胖了。等等，它不是很瘦吗？...原来是你喂太多了。橘座成了你最忠实的室友。' } },
-          { id: 'choice_find_owner', text: '📋 发帖帮它找领养家庭', outcome: { isEnding: true, rewards: { reputation: 15, tags: ['kindhearted'] }, resultText: '你在小区群里发了领养信息。一个小女孩的妈妈联系了你，小女孩看到橘猫的照片就哭着说"我要它！"。一周后你收到了小女孩画的感谢卡。' } }
+          { id: 'choice_finally_adopt', text: '🐱 好吧，你赢了，跟我回家', cost: { energy: 10 }, outcome: { isEnding: true, rewards: { reputation: 20, energy: 15, tags: ['animal_lover', 'persistent'], itemDrops: [{ itemId: 'item_plant_pot', dropRate: 0.45 }, { itemId: 'item_yoga_mat', dropRate: 0.15 }] }, resultText: '你给它取名"橘座"。带去宠物医院检查，医生说它很健康，就是太胖了。等等，它不是很瘦吗？...原来是你喂太多了。橘座成了你最忠实的室友。' } },
+          { id: 'choice_find_owner', text: '📋 发帖帮它找领养家庭', outcome: { isEnding: true, rewards: { reputation: 15, tags: ['kindhearted'], itemDrops: [{ itemId: 'item_activity_coupon', dropRate: 0.25 }, { itemId: 'item_plant_pot', dropRate: 0.3 }] }, resultText: '你在小区群里发了领养信息。一个小女孩的妈妈联系了你，小女孩看到橘猫的照片就哭着说"我要它！"。一周后你收到了小女孩画的感谢卡。' } }
         ]
       },
       {
@@ -533,7 +560,7 @@ export const mockEvents: GameEvent[] = [
         title: '新室友',
         description: '橘猫在你家里巡视了一圈，跳上沙发，占据了最好的位置，然后睡着了。你看着它，觉得生活突然有了点不一样的意义。',
         choices: [
-          { id: 'choice_name_it', text: '✨ 给它取个名字：橘座大人', outcome: { isEnding: true, rewards: { reputation: 20, energy: 25, tags: ['animal_lover'] }, resultText: '橘座大人很快适应了新家。它最喜欢趴在你的键盘上，每次你加班它都陪着你。有时候你觉得，是它收养了你。' } }
+          { id: 'choice_name_it', text: '✨ 给它取个名字：橘座大人', outcome: { isEnding: true, rewards: { reputation: 20, energy: 25, tags: ['animal_lover'], itemDrops: [{ itemId: 'item_plant_pot', dropRate: 0.5 }, { itemId: 'item_yoga_mat', dropRate: 0.2 }, { itemId: 'item_activity_coupon', dropRate: 0.08 }] }, resultText: '橘座大人很快适应了新家。它最喜欢赴在你的键盘上，每次你加班它都陪着你。有时候你觉得，是它收养了你。' } }
         ]
       }
     ],
@@ -559,7 +586,7 @@ export const mockEvents: GameEvent[] = [
         choices: [
           { id: 'choice_go', text: '🏢 好奇心驱使，前往体验', cost: { time: 30, energy: 10 }, outcome: { nextStageId: 'stage_2a', rewards: { tags: ['curious'] }, resultText: '你来到了一间极简风格的白色房间。一个屏幕亮了起来："欢迎，测试者。"' } },
           { id: 'choice_research', text: '🔍 先查查这家公司的背景', cost: { time: 20 }, outcome: { nextStageId: 'stage_2b', rewards: { tags: ['cautious'] }, resultText: '你搜索了半天，只找到一个极简的官网和几篇模糊的报道。这家公司似乎刻意保持低调。' } },
-          { id: 'choice_ignore', text: '🗑️ 垃圾邮件，删除', outcome: { isEnding: true, rewards: { time: 15 }, resultText: '你删除了邮件。三个月后，这家公司上了热搜——他们的AI准确预测了股市走向。你看着新闻，默默关掉了手机。' } }
+          { id: 'choice_ignore', text: '🗑️ 垃圾邮件，删除', outcome: { isEnding: true, rewards: { time: 15, itemDrops: [{ itemId: 'item_coffee_coupon', dropRate: 0.15 }] }, resultText: '你删除了邮件。三个月后，这家公司上了热搜——他们的AI准确预测了股市走向。你看着新闻，默默关掉了手机。' } }
         ]
       },
       {
@@ -567,8 +594,8 @@ export const mockEvents: GameEvent[] = [
         title: '人生模拟',
         description: 'AI问了你一系列奇怪的问题："如果时间可以倒流，你最想改变什么？""你觉得自己五年后在做什么？"然后它给出了一个预测。',
         choices: [
-          { id: 'choice_accept', text: '🤯 这个预测...太准了', cost: { energy: 15 }, outcome: { isEnding: true, rewards: { reputation: 35, tags: ['techie', 'open_minded'] }, resultText: 'AI预测你会在两年内转行做自己真正热爱的事。你走出大楼，看着天空，第一次认真思考：我真正热爱的是什么？这个问题，比任何AI都重要。' } },
-          { id: 'choice_question', text: '🤔 我不信，这只是概率游戏', outcome: { isEnding: true, rewards: { reputation: 15, tags: ['skeptic'] }, resultText: '"有趣的观点。"AI说，"但请记住这个数字：42。"你笑着离开了。一个月后，你在一次关键决策中，莫名其妙地想起了42这个数字。巧合？' } }
+          { id: 'choice_accept', text: '🤯 这个预测...太准了', cost: { energy: 15 }, outcome: { isEnding: true, rewards: { reputation: 35, tags: ['techie', 'open_minded'], itemDrops: [{ itemId: 'item_notebook', dropRate: 0.6 }, { itemId: 'item_travel_bag', dropRate: 0.18 }] }, resultText: 'AI预测你会在两年内转行做自己真正热爱的事。你走出大楼，看着天空，第一次认真思考：我真正热爱的是什么？这个问题，比任何AI都重要。' } },
+          { id: 'choice_question', text: '🤔 我不信，这只是概率游戏', outcome: { isEnding: true, rewards: { reputation: 15, tags: ['skeptic'], itemDrops: [{ itemId: 'item_coffee_coupon', dropRate: 0.35 }, { itemId: 'item_notebook', dropRate: 0.25 }] }, resultText: '"有趣的观点。"AI说，"但请记住这个数字：42。"你笑着离开了。一个月后，你在一次关键决策中，莫名其妙地想起了42这个数字。巧合？' } }
         ]
       },
       {
@@ -576,8 +603,8 @@ export const mockEvents: GameEvent[] = [
         title: '深入调查',
         description: '你发现这家公司的创始人是一位前Google AI研究员，去年刚从硅谷回国。公司虽然低调，但投资方都是顶级VC。',
         choices: [
-          { id: 'choice_go_anyway', text: '🚀 看起来靠谱，去体验一下', cost: { time: 30, energy: 10 }, outcome: { isEnding: true, rewards: { reputation: 25, tags: ['cautious', 'techie'] }, resultText: '你最终还是去了。体验结束后，创始人亲自出来和你聊了聊。他说："你的谨慎让我印象深刻。我们正在招产品经理，有兴趣吗？"' } },
-          { id: 'choice_pass', text: '😐 还是算了，风险太大', outcome: { isEnding: true, rewards: { time: 20, energy: 10 }, resultText: '你决定不去。安全第一。但你把这家公司加入了关注列表。也许未来会有机会。' } }
+          { id: 'choice_go_anyway', text: '🚀 看起来靠谱，去体验一下', cost: { time: 30, energy: 10 }, outcome: { isEnding: true, rewards: { reputation: 25, tags: ['cautious', 'techie'], itemDrops: [{ itemId: 'item_notebook', dropRate: 0.5 }, { itemId: 'item_coffee_coupon', dropRate: 0.4 }, { itemId: 'item_travel_bag', dropRate: 0.1 }] }, resultText: '你最终还是去了。体验结束后，创始人亲自出来和你聊了聊。他说："你的谨慎让我印象深刻。我们正在招产品经理，有兴趣吗？"' } },
+          { id: 'choice_pass', text: '😐 还是算了，风险太大', outcome: { isEnding: true, rewards: { time: 20, energy: 10, itemDrops: [{ itemId: 'item_coffee_coupon', dropRate: 0.2 }] }, resultText: '你决定不去。安全第一。但你把这家公司加入了关注列表。也许未来会有机会。' } }
         ]
       }
     ],
@@ -601,9 +628,9 @@ export const mockEvents: GameEvent[] = [
         title: '措手不及',
         description: '雨越下越大，路上的人都在跑。你看到旁边有一家书店，门口有个卖伞的小摊。',
         choices: [
-          { id: 'choice_run', text: '🏃 冲！500米而已', cost: { energy: 15 }, outcome: { isEnding: true, rewards: { energy: 5, tags: ['brave'] }, resultText: '你像百米冲刺一样跑到地铁站，全身湿透。但不知道为什么，你笑了出来。旁边的人都用奇怪的眼神看你。这种淋雨的感觉，好久没有了。' } },
+          { id: 'choice_run', text: '🏃 冲！500米而已', cost: { energy: 15 }, outcome: { isEnding: true, rewards: { energy: 5, tags: ['brave'], itemDrops: [{ itemId: 'item_yoga_mat', dropRate: 0.25 }] }, resultText: '你像百米冲刺一样跑到地铁站，全身湿透。但不知道为什么，你笑了出来。旁边的人都用奇怪的眼神看你。这种淋雨的感觉，好久没有了。' } },
           { id: 'choice_bookstore', text: '📚 躲进书店等雨停', cost: { time: 40 }, outcome: { nextStageId: 'stage_2a', rewards: { tags: ['reader'] }, resultText: '你推开书店的门，铃铛叮当响了一声。店里很安静，飘着咖啡和旧书的味道。' } },
-          { id: 'choice_buy_umbrella', text: '☂️ 买把伞，从容走回去', cost: { time: 5 }, outcome: { isEnding: true, rewards: { reputation: 5 }, resultText: '你花20块买了一把透明伞。雨中漫步，看着城市的霓虹灯在雨幕中模糊成一片光晕。你拍了张照，这是今年最美的一张。' } }
+          { id: 'choice_buy_umbrella', text: '☂️ 买把伞，从容走回去', cost: { time: 5 }, outcome: { isEnding: true, rewards: { reputation: 5, itemDrops: [{ itemId: 'item_plant_pot', dropRate: 0.2 }] }, resultText: '你花20块买了一把透明伞。雨中漫步，看着城市的霓虹灯在雨幕中模糊成一片光晕。你拍了张照，这是今年最美的一张。' } }
         ]
       },
       {
@@ -611,8 +638,8 @@ export const mockEvents: GameEvent[] = [
         title: '书店奇遇',
         description: '书店老板是个留着白胡子的老爷爷，他递给你一杯热茶："淋雨了吧？坐坐，看看书。"你随手拿起一本书，是《小王子》。',
         choices: [
-          { id: 'choice_read', text: '📖 坐下来，安静地读一会儿', cost: { time: 30 }, outcome: { isEnding: true, rewards: { reputation: 15, energy: 20, tags: ['reader', 'sentimental'] }, resultText: '"真正重要的东西，用眼睛是看不见的。"你读完最后一页，雨也停了。老爷爷说："这本书送你了。"你走出书店，空气清新得像刚洗过的世界。这个雨天，意外地美好。' } },
-          { id: 'choice_browse', text: '👀 随便逛逛，看看有什么好书', outcome: { isEnding: true, rewards: { reputation: 8, energy: 10 }, resultText: '你在书架间穿梭，发现了好几本想读的书。最后买了两本，老爷爷还送了你一个书签。"常来啊。"他笑着说。你决定以后每周来一次。' } }
+          { id: 'choice_read', text: '📖 坐下来，安静地读一会儿', cost: { time: 30 }, outcome: { isEnding: true, rewards: { reputation: 15, energy: 20, tags: ['reader', 'sentimental'], itemDrops: [{ itemId: 'item_notebook', dropRate: 0.55 }, { itemId: 'item_plant_pot', dropRate: 0.3 }] }, resultText: '"真正重要的东西，用眼睛是看不见的。"你读完最后一页，雨也停了。老爷爷说："这本书送你了。"你走出书店，空气清新得像刚洗过的世界。这个雨天，意外地美好。' } },
+          { id: 'choice_browse', text: '👀 随便逛逛，看看有什么好书', outcome: { isEnding: true, rewards: { reputation: 8, energy: 10, itemDrops: [{ itemId: 'item_notebook', dropRate: 0.35 }] }, resultText: '你在书架间穿梭，发现了好几本想读的书。最后买了两本，老爷爷还送了你一个书签。"常来啊。"他笑着说。你决定以后每周来一次。' } }
         ]
       }
     ],
@@ -638,7 +665,7 @@ export const mockEvents: GameEvent[] = [
         choices: [
           { id: 'choice_lend', text: '💰 二话不说，直接转账', cost: { energy: 5 }, outcome: { nextStageId: 'stage_2a', rewards: { reputation: 15, tags: ['generous'] }, resultText: '你转了5000块过去。"谢谢兄弟！救命了！"他发了一连串感谢的表情。' } },
           { id: 'choice_ask', text: '🤔 先问清楚情况再说', cost: { time: 10 }, outcome: { nextStageId: 'stage_2b', rewards: { tags: ['cautious'] }, resultText: '"怎么了？出什么事了？"你回复道。' } },
-          { id: 'choice_refuse', text: '😅 编个理由婉拒', outcome: { isEnding: true, rewards: { time: 10 }, penalties: { reputation: 8 }, resultText: '"不好意思兄弟，我最近也紧张..."你编了个理由。对方回了个"好吧"就没再说话。你心里有点不是滋味。' } }
+          { id: 'choice_refuse', text: '😅 编个理由婉拒', outcome: { isEnding: true, rewards: { time: 10, itemDrops: [{ itemId: 'item_coffee_coupon', dropRate: 0.15 }] }, penalties: { reputation: 8 }, resultText: '"不好意思兄弟，我最近也紧张..."你编了个理由。对方回了个"好吧"就没再说话。你心里有点不是滋味。' } }
         ]
       },
       {
@@ -646,8 +673,8 @@ export const mockEvents: GameEvent[] = [
         title: '后续',
         description: '一个月过去了，他没有提还钱的事。你要不要主动问？',
         choices: [
-          { id: 'choice_remind', text: '💬 委婉地提一下', outcome: { isEnding: true, rewards: { reputation: 10 }, resultText: '"上次那个钱不急，你方便的时候还就行。"他立刻回复："对不起！差点忘了！"当天就转了回来，还多转了500说请你吃饭。有时候，信任是最好的投资。' } },
-          { id: 'choice_wait', text: '😶 算了，等他自己想起来', outcome: { isEnding: true, rewards: { reputation: 5 }, penalties: { reputation: 3 }, resultText: '又过了两个月，他突然转了5500过来："加了利息！太不好意思了！"你笑了笑，觉得这个朋友没白交。' } }
+          { id: 'choice_remind', text: '💬 委婉地提一下', outcome: { isEnding: true, rewards: { reputation: 10, itemDrops: [{ itemId: 'item_coffee_coupon', dropRate: 0.3 }] }, resultText: '"上次那个钱不急，你方便的时候还就行。"他立刻回复："对不起！差点忘了！"当天就转了回来，还多转了500说请你吃饭。有时候，信任是最好的投资。' } },
+          { id: 'choice_wait', text: '😶 算了，等他自己想起来', outcome: { isEnding: true, rewards: { reputation: 5, itemDrops: [{ itemId: 'item_takeout_coupon', dropRate: 0.2 }] }, penalties: { reputation: 3 }, resultText: '又过了两个月，他突然转了5500过来："加了利息！太不好意思了！"你笑了笑，觉得这个朋友没白交。' } }
         ]
       },
       {
@@ -655,8 +682,8 @@ export const mockEvents: GameEvent[] = [
         title: '真相',
         description: '他说妈妈突然住院了，需要交押金。他在外地工作，一时凑不齐。你能感觉到他的焦急。',
         choices: [
-          { id: 'choice_help_more', text: '💪 不止5000，我再多给你点', cost: { energy: 10 }, outcome: { isEnding: true, rewards: { reputation: 30, tags: ['generous', 'kindhearted'] }, resultText: '你转了8000过去。"多的别急着还，先给阿姨看病。"他在电话那头哭了。三个月后他还了钱，还专门从老家寄了一箱土特产。你们的友谊，比大学时更深了。' } },
-          { id: 'choice_lend_5000', text: '💰 5000没问题，马上转', outcome: { isEnding: true, rewards: { reputation: 20, tags: ['reliable'] }, resultText: '你立刻转了账。"谢谢你，真的谢谢你。"他的声音有些颤抖。有些友情，不会因为时间和距离而褪色。' } }
+          { id: 'choice_help_more', text: '💪 不止5000，我再多给你点', cost: { energy: 10 }, outcome: { isEnding: true, rewards: { reputation: 30, tags: ['generous', 'kindhearted'], itemDrops: [{ itemId: 'item_activity_coupon', dropRate: 0.2 }, { itemId: 'item_plant_pot', dropRate: 0.4 }] }, resultText: '你转了8000过去。"多的别急着还，先给阿姨看病。"他在电话那头哭了。三个月后他还了钱，还专门从老家寄了一箱土特产。你们的友谊，比大学时更深了。' } },
+          { id: 'choice_lend_5000', text: '💰 5000没问题，马上转', outcome: { isEnding: true, rewards: { reputation: 20, tags: ['reliable'], itemDrops: [{ itemId: 'item_plant_pot', dropRate: 0.3 }, { itemId: 'item_coffee_coupon', dropRate: 0.25 }] }, resultText: '你立刻转了账。"谢谢你，真的谢谢你。"他的声音有些颤抖。有些友情，不会因为时间和距离而褪色。' } }
         ]
       }
     ],
@@ -745,7 +772,7 @@ export const mockEvents: GameEvent[] = [
             cost: { time: 15, energy: 5 },
             outcome: {
               isEnding: true,
-              rewards: { reputation: 25, energy: 15, tags: ['reader', 'sentimental'] },
+              rewards: { reputation: 25, energy: 15, tags: ['reader', 'sentimental'], itemDrops: [{ itemId: 'item_notebook', dropRate: 0.45 }, { itemId: 'item_plant_pot', dropRate: 0.25 }] },
               resultText: '书页自动翻到了一页，上面写着你的名字和一段话：“人生没有白走的路，每一步都算数。”你合上书，心里莫名地平静了。'
             }
           },
@@ -792,7 +819,7 @@ export const mockEvents: GameEvent[] = [
             cost: { time: 20, energy: 10 },
             outcome: {
               isEnding: true,
-              rewards: { reputation: 20, tags: ['adventurous', 'persistent'] },
+              rewards: { reputation: 20, tags: ['adventurous', 'persistent'], itemDrops: [{ itemId: 'item_travel_bag', dropRate: 0.15 }, { itemId: 'item_notebook', dropRate: 0.4 }] },
               resultText: '你在夜市深处发现了一个古董店，店主说这里每个月只开一晚。你们聊了很久，他说下次会给你留一件特别的东西。'
             }
           },

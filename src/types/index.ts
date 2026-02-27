@@ -70,6 +70,17 @@ export interface ClaimableItem {
   required?: boolean
 }
 
+export interface ItemDrop {
+  /** 物品ID */
+  itemId: string
+  /** 掉落概率 (0 到 1) */
+  dropRate: number
+  /** 最小掉落数量 */
+  minQuantity?: number
+  /** 最大掉落数量 */
+  maxQuantity?: number
+}
+
 export interface EventChoice {
   id: string
   text: string
@@ -91,6 +102,8 @@ export interface EventChoice {
       reputation?: number
       tags?: Record<string, number> | string[]
       items?: string[]
+      /** 概率掉落物品列表 */
+      itemDrops?: ItemDrop[]
     }
     penalties?: {
       time?: number
