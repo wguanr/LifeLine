@@ -93,11 +93,11 @@ export const mockEvents: GameEvent[] = [
     createdAt: Date.now() - 86400000
   },
 
-  // ==================== 生活类事件 ====================
+  // ==================== 生活类事件（基于选择决策哲学框架重新设计） ====================
   {
     id: 'evt_subway_seat',
-    title: '地铁让座',
-    description: '早高峰的地铁上，你好不容易抢到一个座位。这时一位抱着孩子的妈妈挤到了你面前。',
+    title: '通勤时刻',
+    description: '早高峰的地铁上，你好不容易抢到一个座位，正准备利用通勤时间处理紧急工作。这时一位抱着孩子的妈妈挤到了你面前。',
     cover: '/static/events/subway.png',
     type: 'social',
     status: 'active',
@@ -107,62 +107,159 @@ export const mockEvents: GameEvent[] = [
       {
         id: 'stage_1',
         title: '拥挤的车厢',
-        description: '那位妈妈看起来很疲惫，怀里的孩子也在哭闹。周围的人都在低头看手机。',
+        description: '那位妈妈看起来很疲惫，怀里的孩子在哭闹。你的手机上还有三封未回复的紧急邮件，今天下午就是季度汇报的截止时间。周围的人都在低头看手机，没有人动。',
         choices: [
           {
-            id: 'choice_give',
-            text: '💺 起身让座',
+            id: 'choice_empathy',
+            text: '💺 立刻起身让座——看到孩子哭，心里就难受',
             cost: { energy: 5 },
             outcome: {
-              nextStageId: 'stage_2a',
-              rewards: { reputation: 15, tags: ['kindhearted'] },
-              resultText: '"谢谢你！"妈妈感激地坐下，孩子也安静了。'
+              nextStageId: 'stage_empathy',
+              rewards: { reputation: 10, tags: ['empathetic'] },
+              resultText: '你几乎没有犹豫就站了起来。妈妈感激地坐下，孩子渐渐安静了。你扶着扶手，心里觉得踏实。'
             }
           },
           {
-            id: 'choice_pretend',
-            text: '📱 假装没看见，继续看手机',
+            id: 'choice_pragmatic',
+            text: '💻 戴上降噪耳机，专注处理工作——季度汇报不能出差错',
+            cost: { energy: 5 },
             outcome: {
-              nextStageId: 'stage_2b',
-              rewards: { energy: 5 },
-              resultText: '你假装专注地看着手机...'
+              nextStageId: 'stage_pragmatic',
+              rewards: { time: 15, tags: ['focused'] },
+              resultText: '你戴上耳机，打开邮件开始回复。周围的噪音渐渐远去，你的注意力完全集中在屏幕上。'
             }
           },
           {
-            id: 'choice_help',
-            text: '🤱 帮忙抱一下孩子，让妈妈休息',
+            id: 'choice_principle',
+            text: '📢 让座并环顾四周——这不该只是一个人的事',
             cost: { energy: 10 },
             outcome: {
-              nextStageId: 'stage_2c',
-              rewards: { reputation: 25, tags: ['kindhearted', 'warmhearted'] },
-              resultText: '妈妈惊讶又感动地把孩子递给你，自己终于能喘口气。'
+              nextStageId: 'stage_principle',
+              rewards: { reputation: 8, tags: ['principled'] },
+              resultText: '你站起来让座，然后看向周围的乘客。"这位妈妈抱着孩子挺辛苦的，大家方便的话可以帮忙腾个位置。"'
+            }
+          },
+          {
+            id: 'choice_creative',
+            text: '🚉 示意妈妈稍等，提前一站下车换乘——换条路线也不迟',
+            cost: { time: 10 },
+            outcome: {
+              nextStageId: 'stage_creative',
+              rewards: { tags: ['adaptable'] },
+              resultText: '你微笑着对妈妈说"您坐这儿吧，我下一站就到了。"其实你还有四站，但换乘也不过多花十分钟。'
             }
           }
         ]
       },
+
+      // ====== 共情本能路线：直觉 & 利他 ======
       {
-        id: 'stage_2a',
-        title: '感谢的微笑',
-        description: '周围有人向你投来赞许的目光。那位妈妈一直在说谢谢。',
+        id: 'stage_empathy',
+        title: '无声的温暖',
+        description: '你站在车厢里，扶着扶手。妈妈轻声哄着孩子，孩子渐渐睡着了。她抬头看了你一眼，眼里满是感激。到站的时候，她站起来想把座位还给你。',
         choices: [
-          { id: 'choice_smile', text: '😊 微笑点头，戴上耳机', outcome: { isEnding: true, rewards: { reputation: 5 }, resultText: '你感觉今天的心情特别好。做好事的感觉真不错。' } }
+          {
+            id: 'choice_empathy_quiet',
+            text: '😊 摇摇头，示意她继续坐——不用在意，举手之劳',
+            outcome: {
+              isEnding: true,
+              rewards: { reputation: 10, energy: 5 },
+              resultText: '你摇了摇头，微笑着走出车厢。阳光照在脸上，你觉得今天的空气格外清新。有时候，不需要理由，不需要回报，只是因为你看见了。'
+            }
+          },
+          {
+            id: 'choice_empathy_connect',
+            text: '💬 趁机聊几句——她看起来也不容易',
+            cost: { time: 10 },
+            outcome: {
+              isEnding: true,
+              rewards: { reputation: 15, tags: ['connector'] },
+              resultText: '你们聊了几句。她是独自带孩子去看病的，丈夫在外地出差。"谢谢你，今天遇到你真好。"她说。你在心里默默祝福她一切顺利。城市很大，但善意让距离变短了。'
+            }
+          }
         ]
       },
+
+      // ====== 务实主义路线：理性 & 利我 ======
       {
-        id: 'stage_2b',
-        title: '内心的纠结',
-        description: '你假装专注地看着手机，但心里有点不是滋味。旁边有人小声议论。',
+        id: 'stage_pragmatic',
+        title: '效率与代价',
+        description: '你成功回复了两封紧急邮件，季度汇报的数据也整理好了。但你注意到那位妈妈一直站着，孩子哭得更厉害了。旁边一位老人站起来给她让了座。你的目光和老人交汇了一瞬。',
         choices: [
-          { id: 'choice_finally_give', text: '😓 算了，还是让座吧', outcome: { isEnding: true, rewards: { reputation: 8 }, resultText: '你最终还是站了起来。虽然晚了点，但做对的事永远不晚。' } },
-          { id: 'choice_stay', text: '😤 凭什么要我让，继续坐着', outcome: { isEnding: true, penalties: { reputation: 10 }, resultText: '那位妈妈在下一站下车了。你松了口气，但心里有点空落落的。' } }
+          {
+            id: 'choice_pragmatic_reflect',
+            text: '🤔 工作处理完了，心里却有些说不清的滋味',
+            outcome: {
+              isEnding: true,
+              rewards: { time: 20, reputation: 3 },
+              resultText: '下午的季度汇报很顺利，老板对你的数据准备赞不绝口。晚上回家的路上，你又想起了那位老人的眼神——不是责备，更像是一种平静的理解。你打开手机，给一个公益项目捐了一笔钱。每个人表达善意的方式不同，你选择了自己的方式。'
+            }
+          },
+          {
+            id: 'choice_pragmatic_firm',
+            text: '📊 专注是一种能力——我用我的方式创造价值',
+            outcome: {
+              isEnding: true,
+              rewards: { time: 25, tags: ['determined'] },
+              resultText: '季度汇报你拿了部门第一，老板暗示下个月会有晋升机会。你知道，每个人都有自己的战场。今天你选择了在自己的战场上全力以赴。这不是冷漠，这是一个成年人的取舍。'
+            }
+          }
         ]
       },
+
+      // ====== 原则主义路线：理性 & 利他 ======
       {
-        id: 'stage_2c',
-        title: '意外的收获',
-        description: '妈妈非常感动，你们聊了起来。原来她是一位儿童教育专家。',
+        id: 'stage_principle',
+        title: '涟漪效应',
+        description: '你的话让车厢里安静了一瞬。有人抬起头，有人假装没听见。过了几秒，一个年轻人也站了起来，把座位让给了旁边一位拄拐的老人。"谢谢你开口，"他小声对你说，"我其实一直想站起来，但不好意思。"',
         choices: [
-          { id: 'choice_chat', text: '💬 继续聊天，交换联系方式', outcome: { isEnding: true, rewards: { reputation: 15, tags: ['connector'], items: ['item_activity_coupon'] }, resultText: '她给了你一张她公司的亲子活动券，说以后有孩子了可以用。你们成了朋友。' } }
+          {
+            id: 'choice_principle_lead',
+            text: '🌊 有时候，只需要一个人先开口',
+            outcome: {
+              isEnding: true,
+              rewards: { reputation: 20, tags: ['leader'] },
+              resultText: '那天的车厢和平时不太一样。有人开始聊天，有人帮忙拿行李，一个小女孩把手里的糖分给了旁边的小朋友。你不确定这些是不是因为你，但你知道——改变一个空间的氛围，有时候只需要一个人愿意打破沉默。'
+            }
+          },
+          {
+            id: 'choice_principle_think',
+            text: '📝 这件事让你开始思考：公共空间的规则到底该由谁来维护？',
+            cost: { energy: 5 },
+            outcome: {
+              isEnding: true,
+              rewards: { reputation: 15, tags: ['thinker'] },
+              resultText: '下了地铁，你在备忘录里写下了一些想法。关于公共空间、关于沉默的代价、关于"旁观者效应"。也许有一天，你会把这些想法变成一篇文章，或者一个项目。改变世界的方式有很多种，不一定都要在地铁上。'
+            }
+          }
+        ]
+      },
+
+      // ====== 灵活变通路线：直觉 & 利我 ======
+      {
+        id: 'stage_creative',
+        title: '意外的风景',
+        description: '你在一个陌生的站台下了车。这个站你从来没来过，站厅里有一面巨大的壁画，画的是这座城市一百年前的样子。你有十分钟的换乘时间。',
+        choices: [
+          {
+            id: 'choice_creative_explore',
+            text: '🎨 驻足欣赏壁画——难得发现这样的风景',
+            cost: { time: 5 },
+            outcome: {
+              isEnding: true,
+              rewards: { reputation: 8, energy: 10, tags: ['explorer'] },
+              resultText: '你站在壁画前，看着一百年前的街道和人群。那时候没有地铁，没有智能手机，人们走在泥路上，但笑容和现在一样。你拍了张照片，发现这个站台藏着好几处这样的艺术作品。有时候，绕一点路，反而能看到不一样的风景。你决定以后每周随机选一个陌生的站下车看看。'
+            }
+          },
+          {
+            id: 'choice_creative_rush',
+            text: '🏃 快步换乘——冒险归冒险，不能真的迟到',
+            outcome: {
+              isEnding: true,
+              rewards: { time: 10, tags: ['adaptable'] },
+              resultText: '你小跑着穿过换乘通道，刚好赶上下一班车。坐下来的时候，你发现心情意外地轻松。那位妈妈有了座位，你也没有耽误太多时间。生活中很多看似两难的选择，其实都有第三条路——只要你愿意动动脑筋，跳出非此即彼的框架。'
+            }
+          }
         ]
       }
     ],
