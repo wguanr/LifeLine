@@ -128,7 +128,7 @@
           <text class="btn-text">{{ isFollowed ? '✅ 已关注' : '👋 关注' }}</text>
         </view>
         <view class="swipe-hint">
-          <text class="hint-text">← 左滑查看主页</text>
+          <text class="hint-text">点击边缘查看详情</text>
         </view>
       </view>
     </view>

@@ -61,8 +61,6 @@
             <SwipeableCard
               :ref="(el: any) => setSwipeableCardRef(index, el)"
               :disabled="isCardActive"
-              @swipeLeft="onSwipeLeft(card)"
-              @swipeRight="onSwipeRight(card)"
               @action="(action) => onCardAction(card, action)"
               @panelChange="onPanelChange"
             >
@@ -679,20 +677,6 @@ const onSwiperAnimationFinish = (e: any) => {
   // animation finish
 }
 
-// 左滑操作
-const onSwipeLeft = (card: Card) => {
-  cardStore.nextCard()
-}
-
-// 右滑操作
-const onSwipeRight = (card: Card) => {
-  if (card.type === 'event') {
-    // 收藏事件
-  } else if (card.type === 'user') {
-    // 关注用户
-  }
-  cardStore.nextCard()
-}
 
 // 卡片操作
 const onCardAction = (card: Card, action: string) => {
