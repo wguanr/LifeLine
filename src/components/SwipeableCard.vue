@@ -422,21 +422,18 @@ defineExpose({
   padding: 40rpx;
 }
 
-// ====== 遮罩层 ======
+// ====== 遮罩层（透明，仅用于点击关闭面板） ======
 .overlay {
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  opacity: 0;
+  background: transparent;
   pointer-events: none;
-  transition: opacity 0.3s;
   z-index: 8;
   
   &.visible {
-    opacity: 1;
     pointer-events: auto;
   }
 }
