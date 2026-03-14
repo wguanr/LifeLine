@@ -490,6 +490,7 @@ import { useUserStore } from '@/stores/user'
 import { useItemStore } from '@/stores/item'
 import { useWorldStore } from '@/stores/world'
 import { useInfluencerStore, costToValue } from '@/stores/influencer'
+import { showItemDrops } from '@/utils/itemShowcase'
 import { generateSimulatedParticipation } from '@/data/simulated_users'
 import { getTagDefinition } from '@/data/tags'
 import type { GameEvent, EventStage, EventChoice, EventOutcome, ClaimableItem, InfluencerInfo, ItemDrop } from '@/types'
@@ -500,6 +501,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (e: 'stateChange', state: string): void
+  (e: 'itemDropped', items: Array<{ itemId: string; quantity: number }>): void
 }>()
 
 const eventStore = useEventStore()
@@ -507,6 +509,7 @@ const userStore = useUserStore()
 const itemStore = useItemStore()
 const worldStore = useWorldStore()
 const influencerStore = useInfluencerStore()
+// ItemShowcase 使用纯 JS DOM 方案，无需 store
 
 const mode = ref<'preview' | 'playing' | 'encounter' | 'result'>('preview')
 const currentStageIndex = ref(0)
@@ -1152,7 +1155,8 @@ const handleClaimItem = (ci: ClaimableItem, idx: number) => {
   })
   
   claimedItemIds.value.add(key)
-  uni.showToast({ title: `获得 ${getItemName(ci.itemId)}`, icon: 'success' })
+  // 触发全屏展示
+  showItemDrops([{ itemId: ci.itemId, quantity: ci.quantity || 1 }])
 }
 
 const handleSkipClaim = (ci: ClaimableItem, idx: number) => {
@@ -1240,6 +1244,7 @@ const handleSelectChoice = (choice: EventChoice) => {
     if (result.rewards.itemDrops && result.rewards.itemDrops.length > 0) {
       const drops = rollItemDrops(result.rewards.itemDrops)
       droppedItems.value = drops
+      // 先添加到背包
       drops.forEach(drop => {
         userStore.addItem({
           itemId: drop.itemId,
@@ -1248,6 +1253,10 @@ const handleSelectChoice = (choice: EventChoice) => {
           source: props.event.id
         })
       })
+      // 触发全屏展示
+      if (drops.length > 0) {
+        showItemDrops(drops)
+      }
     } else {
       droppedItems.value = []
     }

@@ -452,6 +452,8 @@
       <view class="loading-spinner"></view>
       <text class="loading-text">加载中...</text>
     </view>
+    
+    <!-- 物品全屏展示使用纯 JS DOM 方案，无需 Vue 组件 -->
   </view>
 </template>
 
@@ -478,6 +480,7 @@ const itemStore = useItemStore()
 
 const isPanelOpen = ref(false)
 const isCardActive = ref(false)
+
 
 // SwipeableCard 实例引用
 const swipeableCardRefs = ref<Record<number, any>>({})

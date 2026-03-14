@@ -162,6 +162,8 @@ export interface Item {
   featureTags: string[]
   /** 物品的事件故事 */
   story: string
+  /** 物品渲染图路径 */
+  image?: string
   visible: boolean
   createdAt: number
   /** 是否可叠加购买（默认true），为false时已拥有则不可再买 */
