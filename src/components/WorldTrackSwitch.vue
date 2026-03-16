@@ -25,45 +25,55 @@ const toggleWorld = () => {
   display: flex;
   align-items: center;
   gap: 8rpx;
-  padding: 8rpx 16rpx;
-  background: $gray-100;
+  padding: 6rpx 14rpx;
+  background: rgba($neon-cyan, 0.06);
+  border: 1rpx solid rgba($neon-cyan, 0.12);
   border-radius: $radius-full;
-  min-height: $touch-target-min;
+  min-height: 36px;
   cursor: pointer;
+  transition: all $transition-fast;
+  
+  &:active {
+    background: rgba($neon-cyan, 0.12);
+    transform: scale(0.96);
+  }
 }
 
 .world-label {
-  font-size: 24rpx;
+  font-size: 22rpx;
   font-weight: 600;
-  color: $text-primary;
+  color: $text-secondary;
+  letter-spacing: 1rpx;
 }
 
 .switch-indicator {
-  width: 40rpx;
-  height: 24rpx;
-  background: $gray-300;
+  width: 36rpx;
+  height: 20rpx;
+  background: rgba(255, 255, 255, 0.15);
   border-radius: $radius-full;
   position: relative;
   transition: background $transition-normal;
 
   &.chain {
-    background: $accent-color;
+    background: rgba($neon-magenta, 0.5);
 
     .switch-dot {
       transform: translateX(16rpx);
+      background: $neon-magenta-light;
+      box-shadow: 0 0 6rpx rgba($neon-magenta, 0.5);
     }
   }
 }
 
 .switch-dot {
-  width: 20rpx;
-  height: 20rpx;
-  background: $white;
+  width: 16rpx;
+  height: 16rpx;
+  background: $neon-cyan-light;
   border-radius: 50%;
   position: absolute;
   top: 2rpx;
   left: 2rpx;
-  transition: transform $transition-normal;
-  box-shadow: $shadow-sm;
+  transition: all $transition-normal;
+  box-shadow: 0 0 6rpx rgba($neon-cyan, 0.5);
 }
 </style>

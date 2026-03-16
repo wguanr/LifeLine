@@ -1,39 +1,57 @@
 <template>
   <view class="index-container">
-    <!-- 顶部状态栏 - 不使用fixed定位 -->
+    <!-- 顶部状态栏 - Cyberpunk 风格 -->
     <view class="status-bar">
-      <!-- 左侧：世界切换 -->
+      <!-- 左侧：LifeLine Logo + 世界切换 -->
       <view class="status-left">
+        <view class="logo-group">
+          <text class="logo-text">Life</text><text class="logo-text logo-accent">Line</text>
+        </view>
         <WorldTrackSwitch />
       </view>
       
-      <!-- 中间：货币/资源显示 -->
-      <view class="status-center">
-        <view class="wallet-item" v-if="!isChainWorld">
-          <text class="wallet-icon">⏰</text>
-          <text class="wallet-value">{{ formatNum(userStore.wallet.time) }}</text>
-        </view>
-        <view class="wallet-item" v-if="!isChainWorld">
-          <text class="wallet-icon">⚡</text>
-          <text class="wallet-value">{{ formatNum(userStore.wallet.energy) }}</text>
-        </view>
-        <view class="wallet-item chain-currency" v-if="isChainWorld">
-          <text class="wallet-icon">🦋</text>
-          <text class="wallet-value">{{ chainWallet.bfc }}</text>
-        </view>
-        <view class="wallet-item chain-currency" v-if="isChainWorld">
-          <text class="wallet-icon">🗳️</text>
-          <text class="wallet-value">{{ chainWallet.gov }}</text>
-        </view>
-      </view>
-      
-      <!-- 右侧：等级和头像 -->
+      <!-- 右侧：资源胶囊 + 头像 + 通知 -->
       <view class="status-right">
-        <view class="clearance-badge">
-          <text class="clearance-text">L{{ userStore.currentUser.clearanceLevel }}</text>
+        <!-- 资源胶囊 -->
+        <view class="resource-capsule" v-if="!isChainWorld">
+          <view class="resource-item">
+            <text class="resource-icon">⏱</text>
+            <text class="resource-value">{{ formatNum(userStore.wallet.time) }}</text>
+          </view>
+          <view class="resource-divider"></view>
+          <view class="resource-item">
+            <text class="resource-icon">⚡</text>
+            <text class="resource-value">{{ formatNum(userStore.wallet.energy) }}</text>
+          </view>
         </view>
-        <view class="user-avatar" @click="goToProfile">
-          <text class="avatar-text">{{ userInitial }}</text>
+        <view class="resource-capsule" v-if="isChainWorld">
+          <view class="resource-item">
+            <text class="resource-icon">🦋</text>
+            <text class="resource-value">{{ chainWallet.bfc }}</text>
+          </view>
+          <view class="resource-divider"></view>
+          <view class="resource-item">
+            <text class="resource-icon">🗳️</text>
+            <text class="resource-value">{{ chainWallet.gov }}</text>
+          </view>
+        </view>
+        
+        <!-- 用户头像 + 等级徽章 -->
+        <view class="avatar-group" @click="goToProfile">
+          <view class="avatar-ring">
+            <view class="user-avatar">
+              <text class="avatar-text">{{ userInitial }}</text>
+            </view>
+          </view>
+          <view class="level-badge">
+            <text class="level-text">L{{ userStore.currentUser.clearanceLevel }}</text>
+          </view>
+        </view>
+        
+        <!-- 通知铃铛 -->
+        <view class="notification-bell">
+          <text class="bell-icon">🔔</text>
+          <view class="bell-dot"></view>
         </view>
       </view>
     </view>
@@ -859,90 +877,158 @@ $safe-area-bottom: env(safe-area-inset-bottom, 0px);
   box-sizing: border-box;
 }
 
+// 左侧：Logo + 世界切换
 .status-left {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
   flex-shrink: 0;
 }
 
-.status-center {
+.logo-group {
   display: flex;
-  gap: 8rpx;
-  flex: 1;
-  justify-content: center;
-  min-width: 0; // 允许收缩
-}
-
-.status-right {
-  display: flex;
-  align-items: center;
-  gap: 8rpx;
-  flex-shrink: 0;
-}
-
-.wallet-item {
-  display: flex;
-  align-items: center;
-  gap: 6rpx;
-  padding: 8rpx 16rpx;
-  background: rgba($neon-cyan, 0.08);
-  border: 1rpx solid rgba($neon-cyan, 0.15);
-  border-radius: $radius-full;
+  align-items: baseline;
   
-  &.chain-currency {
-    background: rgba($neon-magenta, 0.08);
-    border: 1rpx solid rgba($neon-magenta, 0.15);
+  .logo-text {
+    font-size: 30rpx;
+    font-weight: 800;
+    color: $text-primary;
+    font-family: 'SF Mono', 'Courier New', monospace;
+    letter-spacing: -1rpx;
     
-    .wallet-value {
-      color: $neon-magenta-light;
+    &.logo-accent {
+      color: $neon-cyan;
+      @include neon-text($neon-cyan);
     }
   }
 }
 
-.clearance-badge {
+// 右侧：资源 + 头像 + 通知
+.status-right {
   display: flex;
   align-items: center;
-  padding: 8rpx 14rpx;
-  background: linear-gradient(135deg, rgba($neon-cyan, 0.2), rgba($neon-cyan, 0.1));
-  border: 1rpx solid rgba($neon-cyan, 0.3);
+  gap: 12rpx;
+  flex-shrink: 0;
+}
+
+// 资源胶囊容器
+.resource-capsule {
+  display: flex;
+  align-items: center;
+  padding: 6rpx 14rpx;
+  background: rgba($neon-cyan, 0.06);
+  border: 1rpx solid rgba($neon-cyan, 0.12);
   border-radius: $radius-full;
-  @include neon-glow($neon-cyan, 0.15);
+  gap: 0;
   
-  .clearance-text {
+  .resource-item {
+    display: flex;
+    align-items: center;
+    gap: 4rpx;
+    padding: 0 8rpx;
+  }
+  
+  .resource-icon {
+    font-size: 18rpx;
+  }
+  
+  .resource-value {
     font-size: 20rpx;
-    font-weight: bold;
-    color: $neon-cyan;
+    font-weight: 700;
+    color: $neon-cyan-light;
     font-family: 'SF Mono', 'Courier New', monospace;
-    @include neon-text($neon-cyan);
+  }
+  
+  .resource-divider {
+    width: 1rpx;
+    height: 20rpx;
+    background: rgba($neon-cyan, 0.2);
+    margin: 0 4rpx;
   }
 }
 
-.wallet-icon {
-  font-size: 20rpx;
+// 用户头像组（头像 + 等级徽章）
+.avatar-group {
+  position: relative;
+  cursor: pointer;
+  
+  .avatar-ring {
+    width: 64rpx;
+    height: 64rpx;
+    border-radius: 50%;
+    padding: 3rpx;
+    background: linear-gradient(135deg, $neon-cyan, $neon-magenta);
+    @include neon-glow($neon-cyan, 0.15);
+  }
+  
+  .user-avatar {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: linear-gradient(135deg, rgba($neon-magenta, 0.25), rgba($neon-cyan, 0.25));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2rpx solid $bg-deep;
+  }
+  
+  .avatar-text {
+    font-size: 24rpx;
+    font-weight: bold;
+    color: $neon-cyan-light;
+  }
+  
+  .level-badge {
+    position: absolute;
+    bottom: -4rpx;
+    right: -6rpx;
+    padding: 2rpx 8rpx;
+    background: linear-gradient(135deg, rgba($neon-cyan, 0.9), rgba($neon-cyan-dark, 0.9));
+    border-radius: $radius-full;
+    border: 2rpx solid $bg-deep;
+    
+    .level-text {
+      font-size: 16rpx;
+      font-weight: 800;
+      color: $text-on-neon;
+      font-family: 'SF Mono', 'Courier New', monospace;
+    }
+  }
 }
 
-.wallet-value {
-  font-size: 20rpx;
-  font-weight: 600;
-  color: $neon-cyan-light;
-}
-
-.user-avatar {
-  width: 60rpx;
-  height: 60rpx;
-  border-radius: 50%;
-  background: linear-gradient(135deg, rgba($neon-magenta, 0.3), rgba($neon-cyan, 0.3));
-  border: 1rpx solid rgba($neon-cyan, 0.3);
+// 通知铃铛
+.notification-bell {
+  position: relative;
+  width: 44rpx;
+  height: 44rpx;
   display: flex;
   align-items: center;
   justify-content: center;
-  @include neon-glow($neon-cyan, 0.2);
-  min-width: $touch-target-min;
-  min-height: $touch-target-min;
-}
-
-.avatar-text {
-  font-size: 28rpx;
-  font-weight: bold;
-  color: $neon-cyan-light;
+  cursor: pointer;
+  
+  .bell-icon {
+    font-size: 28rpx;
+    filter: grayscale(0.3);
+    transition: filter $transition-fast;
+  }
+  
+  .bell-dot {
+    position: absolute;
+    top: 6rpx;
+    right: 6rpx;
+    width: 12rpx;
+    height: 12rpx;
+    background: $color-danger;
+    border-radius: 50%;
+    border: 2rpx solid $bg-deep;
+    animation: pulse-glow 2s ease-in-out infinite;
+  }
+  
+  &:active {
+    .bell-icon {
+      filter: grayscale(0);
+    }
+  }
 }
 
 // 卡片区域 - flex:1 填充剩余空间，为底部TabBar预留空间

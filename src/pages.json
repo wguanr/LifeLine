@@ -23,28 +23,38 @@
     }
   ],
   "globalStyle": {
-    "navigationBarTextStyle": "black",
-    "navigationBarTitleText": "ChoserLife",
-    "navigationBarBackgroundColor": "#FFFFFF",
-    "backgroundColor": "#F8F8F8"
+    "navigationBarTextStyle": "white",
+    "navigationBarTitleText": "LifeLine",
+    "navigationBarBackgroundColor": "#0a0e1a",
+    "backgroundColor": "#0a0e1a"
   },
   "tabBar": {
-    "color": "#999999",
-    "selectedColor": "#4F46E5",
-    "backgroundColor": "#FFFFFF",
-    "borderStyle": "white",
+    "color": "#ffffff60",
+    "selectedColor": "#00e5ff",
+    "backgroundColor": "#0a0e1a",
+    "borderStyle": "black",
+    "height": "50px",
+    "fontSize": "10px",
+    "iconWidth": "24px",
+    "spacing": "3px",
     "list": [
       {
         "pagePath": "pages/index/index",
-        "text": "探索"
+        "text": "探索",
+        "iconPath": "static/icons/tab_explore.png",
+        "selectedIconPath": "static/icons/tab_explore_active.png"
       },
       {
         "pagePath": "pages/worldline/worldline",
-        "text": "世界线"
+        "text": "世界线",
+        "iconPath": "static/icons/tab_worldline.png",
+        "selectedIconPath": "static/icons/tab_worldline_active.png"
       },
       {
         "pagePath": "pages/profile/profile",
-        "text": "我的"
+        "text": "我的",
+        "iconPath": "static/icons/tab_profile.png",
+        "selectedIconPath": "static/icons/tab_profile_active.png"
       }
     ]
   }
