@@ -79,17 +79,12 @@
             <SwipeableCard
               :ref="(el: any) => setSwipeableCardRef(index, el)"
               :disabled="isCardActive"
-              @action="(action) => onCardAction(card, action)"
-              @openDetail="() => openDetailSheet(card)"
-              @openActions="() => openActionsSheet(card)"
             >
-              <!-- 主卡片内容 -->
               <EventCard 
                 v-if="card.type === 'event'" 
                 :event="card.data as GameEvent"
                 @stateChange="onEventStateChange"
               />
-              
               <ItemCard 
                 v-else-if="card.type === 'item'" 
                 :item="card.data as Item"
@@ -97,7 +92,6 @@
                 @buy="onItemBuy"
                 @stateChange="onItemStateChange"
               />
-              
               <UserCard 
                 v-else-if="card.type === 'user'" 
                 :user="card.data as User"
@@ -106,27 +100,27 @@
                 @viewProfile="onUserViewProfile"
                 @stateChange="onUserStateChange"
               />
-              
-              <!-- 卡片底部主操作按钮 -->
-              <template #primaryAction>
-                <template v-if="card.type === 'event'">
-                  <text class="main-action-icon">🎯</text>
-                  <text class="main-action-text">参与事件</text>
-                </template>
-                <template v-else-if="card.type === 'item'">
-                  <text class="main-action-icon">🛒</text>
-                  <text class="main-action-text">买入</text>
-                </template>
-                <template v-else-if="card.type === 'user'">
-                  <text class="main-action-icon">👋</text>
-                  <text class="main-action-text">关注</text>
-                </template>
-              </template>
-              
             </SwipeableCard>
           </view>
         </swiper-item>
       </swiper>
+    </view>
+    
+    <!-- 卡片下方操作栏（独立于 swiper 外部，滑动时隐藏） -->
+    <view class="card-actions-bar" :class="{ hidden: isSwiping }" v-if="currentCard">
+      <!-- UserCard: 关注按钮（卡片内部已移除，由外部提供） -->
+      <view class="main-action-btn" @click="onPrimaryAction" v-if="currentCard.type === 'user'">
+        <text class="main-action-icon">👋</text>
+        <text class="main-action-text">关注</text>
+      </view>
+      <!-- 详情按钮 -->
+      <view class="footer-icon-btn" @click="openDetailSheet(currentCard)">
+        <text class="footer-icon">📋</text>
+      </view>
+      <!-- 更多操作按钮 -->
+      <view class="footer-icon-btn" @click="openActionsSheet(currentCard)">
+        <text class="footer-icon">⚙️</text>
+      </view>
     </view>
     
     <!-- 加载状态 -->
@@ -536,6 +530,20 @@ const itemStore = useItemStore()
 
 const isPanelOpen = ref(false)
 const isCardActive = ref(false)
+const isSwiping = ref(false)
+
+// 当前显示的卡片
+const currentCard = computed(() => {
+  const queue = cardStore.cardQueue
+  if (!queue || queue.length === 0) return null
+  return queue[cardStore.currentIndex] || queue[0]
+})
+
+// 主操作按钮点击
+const onPrimaryAction = () => {
+  if (!currentCard.value) return
+  onCardAction(currentCard.value, 'primary')
+}
 
 
 // SwipeableCard 实例引用
@@ -752,17 +760,18 @@ const onUserStateChange = (state: string) => {
 
 // Swiper切换
 const onSwiperChange = (e: any) => {
+  isSwiping.value = true
   cardStore.currentIndex = e.detail.current
 }
 
 // Swiper过渡
 const onSwiperTransition = (e: any) => {
-  // transition
+  isSwiping.value = true
 }
 
 // Swiper动画结束
 const onSwiperAnimationFinish = (e: any) => {
-  // animation finish
+  isSwiping.value = false
 }
 
 
@@ -1098,15 +1107,15 @@ $safe-area-bottom: env(safe-area-inset-bottom, 0px);
   }
 }
 
-// 卡片区域 - flex:1 填充剩余空间，为底部TabBar预留空间
+// 卡片区域 - 不再独占全部空间，为底部操作栏预留空间
 .card-area {
-  flex: 1;
+  flex: 1 1 0;
   position: relative;
   z-index: 1;
   overflow: hidden;
   min-height: 0;
-  // 卡片悬浮形态：上下留白，不贴满全屏
-  padding: 16rpx 28rpx calc(16rpx + #{$safe-area-bottom});
+  // 卡片悬浮形态：上下留白
+  padding: 16rpx 28rpx 0;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
@@ -1808,6 +1817,73 @@ $safe-area-bottom: env(safe-area-inset-bottom, 0px);
   color: #fff;
   letter-spacing: 2rpx;
 }
+
+// ====== 卡片下方操作栏（固定在 TabBar 上方） ======
+.card-actions-bar {
+  position: fixed;
+  bottom: calc(50px + #{$safe-area-bottom}); // TabBar 高度 + 安全区
+  left: 50%;
+  transform: translateX(-50%) translateY(0);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16rpx;
+  padding: 12rpx 28rpx;
+  width: calc(100% - 56rpx); // 与卡片宽度对齐
+  max-width: 480px;
+  box-sizing: border-box;
+  z-index: 100;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+  opacity: 1;
+  
+  &.hidden {
+    opacity: 0;
+    transform: translateX(-50%) translateY(20rpx);
+    pointer-events: none;
+  }
+}
+
+.main-action-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 76rpx;
+  border-radius: $radius-full;
+  background: linear-gradient(135deg, $neon-cyan 0%, $neon-magenta 100%);
+  box-shadow: 0 4rpx 20rpx rgba($neon-cyan, 0.25), 0 4rpx 20rpx rgba($neon-magenta, 0.15);
+  transition: all 0.2s ease;
+  
+  &:active {
+    transform: scale(0.97);
+    box-shadow: 0 2rpx 12rpx rgba($neon-cyan, 0.4), 0 2rpx 12rpx rgba($neon-magenta, 0.3);
+  }
+}
+
+.footer-icon-btn {
+  width: 76rpx;
+  height: 76rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  @include glass-effect(0.12);
+  border: 1rpx solid rgba(255, 255, 255, 0.12);
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  
+  &:active {
+    transform: scale(0.92);
+    background: rgba($neon-cyan, 0.15);
+    border-color: rgba($neon-cyan, 0.3);
+  }
+  
+  .footer-icon {
+    font-size: 30rpx;
+    line-height: 1;
+  }
+}
+
 // ====== 页面级底部弹出面板 ======
 .bottom-sheet {
   position: fixed;

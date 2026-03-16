@@ -102,25 +102,7 @@
       </view>
     </scroll-view>
 
-    <!-- 底部操作区（固定在卡片底部） -->
-    <view class="card-footer">
-      <view 
-        class="follow-btn" 
-        :class="{ 'is-followed': isFollowed }"
-        @click.stop="handleFollow"
-      >
-        <text class="follow-text">{{ isFollowed ? '✅ 已关注' : '👋 关注' }}</text>
-      </view>
-      <view class="footer-icon-btn" @click.stop="$emit('click', user)">
-        <text class="icon-btn-emoji">💬</text>
-      </view>
-      <view class="footer-icon-btn" @click.stop="$emit('viewProfile', user)">
-        <text class="icon-btn-emoji">👤</text>
-      </view>
-    </view>
 
-    <!-- 底部提示 -->
-    <text class="card-hint">滑动查看更多，点击边缘查看详情</text>
   </view>
 </template>
 
