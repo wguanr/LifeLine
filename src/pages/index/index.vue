@@ -1093,10 +1093,10 @@ $safe-area-bottom: env(safe-area-inset-bottom, 0px);
 .logo-group {
   display: flex;
   align-items: center;
-  height: 48rpx;
+  height: 96rpx;
   
   .logo-image {
-    height: 40rpx;
+    height: 80rpx;
     display: block;
     filter: drop-shadow(0 0 4rpx rgba($neon-cyan, 0.3));
   }

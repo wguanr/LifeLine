@@ -125,21 +125,19 @@ const acquiredInfo = computed(() => {
 })
 
 const canBuy = computed(() => {
+  // 一张卡片只能购买一次：已拥有则不可再买
+  if (ownedQuantity.value > 0) return false
   // 检查资源是否足够
   if (!userStore.canAfford(props.item.mintCost)) return false
-  // 不可叠加物品：已拥有则不可再买
-  if (props.item.stackable === false && ownedQuantity.value > 0) return false
-  // 可叠加物品：检查是否达到最大叠加数
-  if (props.item.maxStack && ownedQuantity.value >= props.item.maxStack) return false
   // 检查铸造上限
   if (props.item.maxMint && (props.item.mintedCount || 0) >= props.item.maxMint) return false
   return true
 })
 
 const buyDisabledReason = computed(() => {
+  // 一张卡片只能购买一次
+  if (ownedQuantity.value > 0) return '已拥有'
   if (!userStore.canAfford(props.item.mintCost)) return '余额不足'
-  if (props.item.stackable === false && ownedQuantity.value > 0) return '已拥有'
-  if (props.item.maxStack && ownedQuantity.value >= props.item.maxStack) return '已达上限'
   if (props.item.maxMint && (props.item.mintedCount || 0) >= props.item.maxMint) return '已售罄'
   return ''
 })
@@ -164,7 +162,7 @@ const onBuy = () => {
   })
   if (success) {
     justBought.value = true
-    uni.showToast({ title: `买入成功！已拥有 ${ownedQuantity.value} 件`, icon: 'none' })
+    uni.showToast({ title: '买入成功！已收入背包', icon: 'none' })
     setTimeout(() => { justBought.value = false }, 1500)
   }
 }
