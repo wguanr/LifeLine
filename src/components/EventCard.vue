@@ -211,14 +211,22 @@
             </view>
           </view>
           
-          <!-- 选择提示 -->
-          <view class="choice-hint-bar" v-if="selectedChoiceId">
-            <text class="choice-hint-icon">🎯</text>
-            <text class="choice-hint-text">再次点击可加倍投入（当前 {{ selectedMultiplier }}×）</text>
+          <!-- 选择提示 + 倒计时进度条 -->
+          <view class="choice-hint-bar" :class="{ 'has-selection': selectedChoiceId, 'counting-down': isChoiceCountingDown }" v-if="selectedChoiceId">
+            <view class="choice-hint-content">
+              <text class="choice-hint-icon">🎯</text>
+              <text class="choice-hint-text">再次点击可加倍投入（当前 {{ selectedMultiplier }}×）</text>
+            </view>
+            <!-- 5s 倒计时进度条 -->
+            <view class="choice-countdown-bar" v-if="isChoiceCountingDown">
+              <view class="countdown-fill" :style="{ width: choiceTimerProgress + '%' }" />
+            </view>
           </view>
           <view class="choice-hint-bar first" v-else>
-            <text class="choice-hint-icon">👆</text>
-            <text class="choice-hint-text">点击选项做出选择</text>
+            <view class="choice-hint-content">
+              <text class="choice-hint-icon">👆</text>
+              <text class="choice-hint-text">点击选项做出选择</text>
+            </view>
           </view>
           
           <view class="options-list">
@@ -761,6 +769,46 @@ const lastBetMultiplier = ref(1)
 /** 最大倍数限制 */
 const MAX_MULTIPLIER = 10
 
+// ========== 选择倒计时自动结算 ==========
+const CHOICE_AUTO_CONFIRM_DELAY = 5000 // 5秒
+const CHOICE_TIMER_INTERVAL = 50
+let choiceConfirmTimer: ReturnType<typeof setTimeout> | null = null
+let choiceProgressTimer: ReturnType<typeof setInterval> | null = null
+const choiceTimerProgress = ref(0) // 0~100，0=未开始，100=即将确认
+const isChoiceCountingDown = ref(false)
+
+const clearChoiceTimers = () => {
+  if (choiceConfirmTimer) {
+    clearTimeout(choiceConfirmTimer)
+    choiceConfirmTimer = null
+  }
+  if (choiceProgressTimer) {
+    clearInterval(choiceProgressTimer)
+    choiceProgressTimer = null
+  }
+  isChoiceCountingDown.value = false
+  choiceTimerProgress.value = 0
+}
+
+const startChoiceCountdown = () => {
+  clearChoiceTimers()
+  choiceTimerProgress.value = 0
+  isChoiceCountingDown.value = true
+  
+  const startTime = Date.now()
+  
+  choiceProgressTimer = setInterval(() => {
+    const elapsed = Date.now() - startTime
+    choiceTimerProgress.value = Math.min(100, (elapsed / CHOICE_AUTO_CONFIRM_DELAY) * 100)
+  }, CHOICE_TIMER_INTERVAL)
+  
+  choiceConfirmTimer = setTimeout(() => {
+    clearChoiceTimers()
+    choiceTimerProgress.value = 100
+    confirmChoice()
+  }, CHOICE_AUTO_CONFIRM_DELAY)
+}
+
 /** 获取某选项的基础消耗（1倍） */
 const getChoiceBaseCost = (choice: EventChoice): { time?: number; energy?: number } | null => {
   // 入场费 + 选项自身消耗 = 基底
@@ -809,7 +857,7 @@ const canAffordNextMultiplier = computed(() => {
   return userStore.canAfford(nextCost)
 })
 
-/** 点击选项：第一次选中，后续点击加倍 */
+/** 点击选项：第一次选中，后续点击加倍，每次点击重置 5s 倒计时 */
 const handleChoiceTap = (choice: EventChoice) => {
   // 隐藏分支校验
   if (choice.hidden && !isChoiceUnlocked(choice)) {
@@ -841,10 +889,16 @@ const handleChoiceTap = (choice: EventChoice) => {
       }
     } catch (e) {}
   }
+  
+  // 每次点击都重置并启动 5s 倒计时
+  startChoiceCountdown()
 }
 
 /** 确认选择：此时才结算资源消耗并进入下一阶段 */
 const confirmChoice = () => {
+  // 清除倒计时
+  clearChoiceTimers()
+  
   if (!selectedChoiceId.value) {
     uni.showToast({ title: '请先选择一个选项', icon: 'none' })
     return
@@ -1280,6 +1334,7 @@ watch(() => props.event.id, () => {
 
 const resetCardState = () => {
   clearTimers()
+  clearChoiceTimers()
   mode.value = 'preview'
   currentStageIndex.value = 0
   lastResult.value = null
@@ -1298,6 +1353,7 @@ const resetCardState = () => {
 
 onUnmounted(() => {
   clearTimers()
+  clearChoiceTimers()
 })
 
 defineExpose({
@@ -1320,12 +1376,15 @@ defineExpose({
   btnClasses,
   ripples,
   addRipple,
-  // playing 模式操作（新选择交互方案）
+  // playing 模式操作（选择交互方案）
   confirmChoice,
   selectedChoiceId,
   selectedMultiplier,
   selectedCost,
   canAffordSelectedMultiplier,
+  // 选择倒计时状态
+  isChoiceCountingDown,
+  choiceTimerProgress,
   // encounter 模式操作
   handleEncounterFollow,
   handleEncounterSkip,
@@ -2363,18 +2422,46 @@ defineExpose({
 // 选择提示栏
 .choice-hint-bar {
   display: flex;
-  align-items: center;
-  gap: 8rpx;
+  flex-direction: column;
+  gap: 0;
   padding: 12rpx 16rpx;
   margin-bottom: 16rpx;
   background: linear-gradient(135deg, rgba($neon-cyan, 0.1), rgba($neon-magenta, 0.05));
   border-radius: $radius-lg;
   border: 1rpx solid rgba($neon-cyan, 0.2);
   animation: hint-slide-in 0.3s ease-out;
+  overflow: hidden;
   
   &.first {
     background: linear-gradient(135deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
     border-color: rgba(255,255,255,0.08);
+  }
+  
+  &.counting-down {
+    border-color: rgba($neon-cyan, 0.4);
+  }
+}
+
+.choice-hint-content {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+}
+
+// 5s 倒计时进度条
+.choice-countdown-bar {
+  width: 100%;
+  height: 4rpx;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 2rpx;
+  margin-top: 10rpx;
+  overflow: hidden;
+  
+  .countdown-fill {
+    height: 100%;
+    background: linear-gradient(90deg, $neon-cyan, $neon-magenta);
+    border-radius: 2rpx;
+    transition: width 0.08s linear;
   }
 }
 

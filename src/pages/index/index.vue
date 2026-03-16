@@ -5,7 +5,7 @@
       <!-- 左侧：LifeLine Logo + 世界切换 -->
       <view class="status-left">
         <view class="logo-group">
-          <text class="logo-text">Life</text><text class="logo-text logo-accent">Line</text>
+          <image class="logo-image" src="/static/brand/lifeline_logo.png" mode="heightFix" />
         </view>
         <WorldTrackSwitch />
       </view>
@@ -166,28 +166,35 @@
             <text class="main-action-text">{{ currentCardComponent.hasRequiredUnclaimedItems ? '请先领取必须物品' : (currentCardComponent.hasNextStage ? '继续' : '完成') }}</text>
           </view>
         </template>
-        <!-- playing 模式：显示确认选择按钮 -->
+        <!-- playing 模式：显示倒计时状态栏，选择后 5s 自动结算 -->
         <template v-else-if="currentCardComponent.mode === 'playing'">
-          <view class="main-action-btn confirm-choice-btn" 
+          <view class="main-action-btn choice-countdown-status" 
             :class="{ 
               disabled: !currentCardComponent.selectedChoiceId,
-              'cant-afford': currentCardComponent.selectedChoiceId && !currentCardComponent.canAffordSelectedMultiplier,
-              'has-selection': !!currentCardComponent.selectedChoiceId
+              'has-selection': !!currentCardComponent.selectedChoiceId,
+              'is-counting': currentCardComponent.isChoiceCountingDown
             }"
-            @click="currentCardComponent.confirmChoice()"
           >
-            <template v-if="currentCardComponent.selectedChoiceId">
-              <text class="main-action-icon confirm-icon">{{ currentCardComponent.selectedMultiplier > 1 ? '🔥' : '✅' }}</text>
-              <text class="main-action-text">确认选择 {{ currentCardComponent.selectedMultiplier }}×</text>
+            <template v-if="currentCardComponent.selectedChoiceId && currentCardComponent.isChoiceCountingDown">
+              <text class="main-action-icon">{{ currentCardComponent.selectedMultiplier > 1 ? '🔥' : '⏳' }}</text>
+              <text class="main-action-text">{{ currentCardComponent.selectedMultiplier }}× 投入中</text>
               <view class="confirm-cost-tags" v-if="currentCardComponent.selectedCost">
                 <text v-if="currentCardComponent.selectedCost.time" class="confirm-cost-tag">⏰{{ currentCardComponent.selectedCost.time }}</text>
                 <text v-if="currentCardComponent.selectedCost.energy" class="confirm-cost-tag">⚡{{ currentCardComponent.selectedCost.energy }}</text>
               </view>
             </template>
+            <template v-else-if="currentCardComponent.selectedChoiceId">
+              <text class="main-action-icon">✅</text>
+              <text class="main-action-text">{{ currentCardComponent.selectedMultiplier }}× 已选择</text>
+            </template>
             <template v-else>
               <text class="main-action-icon">👆</text>
-              <text class="main-action-text">请先选择一个选项</text>
+              <text class="main-action-text">点击卡片中的选项</text>
             </template>
+            <!-- 底部进度条 -->
+            <view class="action-timer-bar" v-if="currentCardComponent.isChoiceCountingDown">
+              <view class="timer-fill" :style="{ width: currentCardComponent.choiceTimerProgress + '%' }" />
+            </view>
           </view>
         </template>
       </template>
@@ -1085,19 +1092,13 @@ $safe-area-bottom: env(safe-area-inset-bottom, 0px);
 
 .logo-group {
   display: flex;
-  align-items: baseline;
+  align-items: center;
+  height: 48rpx;
   
-  .logo-text {
-    font-size: 30rpx;
-    font-weight: 800;
-    color: $text-primary;
-    font-family: 'SF Mono', 'Courier New', monospace;
-    letter-spacing: -1rpx;
-    
-    &.logo-accent {
-      color: $neon-cyan;
-      @include neon-text($neon-cyan);
-    }
+  .logo-image {
+    height: 40rpx;
+    display: block;
+    filter: drop-shadow(0 0 4rpx rgba($neon-cyan, 0.3));
   }
 }
 
@@ -2002,25 +2003,21 @@ $safe-area-bottom: env(safe-area-inset-bottom, 0px);
   box-shadow: none;
 }
 
-// 确认选择按钮特殊样式
-.confirm-choice-btn {
+// 选择倒计时状态栏样式
+.choice-countdown-status {
   position: relative;
   overflow: hidden;
+  cursor: default;
   
   &.has-selection {
-    background: linear-gradient(135deg, $neon-cyan 0%, $neon-magenta 100%) !important;
-    box-shadow: 0 4rpx 24rpx rgba($neon-cyan, 0.4) !important;
-    animation: confirm-glow 2s ease-in-out infinite alternate;
+    background: linear-gradient(135deg, rgba($neon-cyan, 0.25) 0%, rgba($neon-magenta, 0.15) 100%) !important;
+    border-color: rgba($neon-cyan, 0.3) !important;
   }
   
-  &.cant-afford {
-    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
-    box-shadow: 0 4rpx 20rpx rgba(239, 68, 68, 0.3) !important;
-    animation: none;
-  }
-  
-  .confirm-icon {
-    font-size: 28rpx;
+  &.is-counting {
+    background: linear-gradient(135deg, rgba($neon-cyan, 0.3) 0%, rgba($neon-magenta, 0.2) 100%) !important;
+    box-shadow: 0 4rpx 20rpx rgba($neon-cyan, 0.25) !important;
+    animation: countdown-pulse 1.5s ease-in-out infinite alternate;
   }
   
   .confirm-cost-tags {
@@ -2040,9 +2037,9 @@ $safe-area-bottom: env(safe-area-inset-bottom, 0px);
   }
 }
 
-@keyframes confirm-glow {
-  0% { box-shadow: 0 4rpx 24rpx rgba($neon-cyan, 0.3); }
-  100% { box-shadow: 0 4rpx 32rpx rgba($neon-magenta, 0.4); }
+@keyframes countdown-pulse {
+  0% { box-shadow: 0 4rpx 20rpx rgba($neon-cyan, 0.2); }
+  100% { box-shadow: 0 4rpx 28rpx rgba($neon-magenta, 0.3); }
 }
 
 .secondary-action-btn {
