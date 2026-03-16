@@ -80,7 +80,8 @@
               :ref="(el: any) => setSwipeableCardRef(index, el)"
               :disabled="isCardActive"
               @action="(action) => onCardAction(card, action)"
-              @panelChange="onPanelChange"
+              @openDetail="() => openDetailSheet(card)"
+              @openActions="() => openActionsSheet(card)"
             >
               <!-- 主卡片内容 -->
               <EventCard 
@@ -106,12 +107,49 @@
                 @stateChange="onUserStateChange"
               />
               
-              <!-- 详情面板内容 -->
-              <template #detail>
+              <!-- 卡片底部主操作按钮 -->
+              <template #primaryAction>
+                <template v-if="card.type === 'event'">
+                  <text class="main-action-icon">🎯</text>
+                  <text class="main-action-text">参与事件</text>
+                </template>
+                <template v-else-if="card.type === 'item'">
+                  <text class="main-action-icon">🛒</text>
+                  <text class="main-action-text">买入</text>
+                </template>
+                <template v-else-if="card.type === 'user'">
+                  <text class="main-action-icon">👋</text>
+                  <text class="main-action-text">关注</text>
+                </template>
+              </template>
+              
+            </SwipeableCard>
+          </view>
+        </swiper-item>
+      </swiper>
+    </view>
+    
+    <!-- 加载状态 -->
+    <view v-if="cardStore.isLoading" class="loading-overlay">
+      <view class="loading-spinner"></view>
+      <text class="loading-text">加载中...</text>
+    </view>
+    
+    <!-- ====== 页面级底部弹出面板（详情） ====== -->
+    <view class="bottom-sheet" :class="{ visible: showDetailSheet }" @click.self="closeDetailSheet">
+      <view class="sheet-content" :class="{ visible: showDetailSheet }">
+        <view class="sheet-handle" @click="closeDetailSheet">
+          <view class="handle-bar"></view>
+        </view>
+        <view class="sheet-header">
+          <text class="sheet-title">📋 详细信息</text>
+          <text class="sheet-close" @click="closeDetailSheet">✕</text>
+        </view>
+        <scroll-view class="sheet-body" scroll-y v-if="activeSheetCard">
                 <!-- 事件详情 -->
-                <view v-if="card.type === 'event'" class="detail-content">
+                <view v-if="activeSheetCard.type === 'event'" class="detail-content">
                   <!-- 已参与状态提示 -->
-                  <view class="detail-section owned-notice" v-if="eventStore.isEventCompleted((card.data as GameEvent).id)">
+                  <view class="detail-section owned-notice" v-if="eventStore.isEventCompleted((activeSheetCard.data as GameEvent).id)">
                     <view class="owned-notice-box" style="border-color: #059669; background: #ecfdf5;">
                       <text class="owned-notice-icon">✅</text>
                       <view class="owned-notice-info">
@@ -120,7 +158,7 @@
                       </view>
                     </view>
                   </view>
-                  <view class="detail-section owned-notice" v-else-if="eventStore.isEventActive((card.data as GameEvent).id)">
+                  <view class="detail-section owned-notice" v-else-if="eventStore.isEventActive((activeSheetCard.data as GameEvent).id)">
                     <view class="owned-notice-box" style="border-color: #d97706; background: #fffbeb;">
                       <text class="owned-notice-icon">⏳</text>
                       <view class="owned-notice-info">
@@ -131,46 +169,46 @@
                   </view>
                   <view class="detail-section">
                     <text class="section-title">📖 事件简介</text>
-                    <text class="section-text">{{ (card.data as GameEvent).description }}</text>
+                    <text class="section-text">{{ (activeSheetCard.data as GameEvent).description }}</text>
                   </view>
                   <view class="detail-section">
                     <text class="section-title">📊 事件信息</text>
                     <view class="info-grid">
                       <view class="info-item">
                         <text class="info-label">类型</text>
-                        <text class="info-value">{{ getEventTypeLabel((card.data as GameEvent).type) }}</text>
+                        <text class="info-value">{{ getEventTypeLabel((activeSheetCard.data as GameEvent).type) }}</text>
                       </view>
                       <view class="info-item">
                         <text class="info-label">参与人数</text>
-                        <text class="info-value">{{ (card.data as GameEvent).participantCount?.toLocaleString() || 0 }}</text>
+                        <text class="info-value">{{ (activeSheetCard.data as GameEvent).participantCount?.toLocaleString() || 0 }}</text>
                       </view>
                       <view class="info-item">
                         <text class="info-label">阶段数</text>
-                        <text class="info-value">{{ (card.data as GameEvent).stages?.length || 0 }}</text>
+                        <text class="info-value">{{ (activeSheetCard.data as GameEvent).stages?.length || 0 }}</text>
                       </view>
                       <view class="info-item">
                         <text class="info-label">状态</text>
-                        <text class="info-value">{{ getEventStatusLabel((card.data as GameEvent).status) }}</text>
+                        <text class="info-value">{{ getEventStatusLabel((activeSheetCard.data as GameEvent).status) }}</text>
                       </view>
                     </view>
                   </view>
-                  <view class="detail-section" v-if="(card.data as GameEvent).entryCost">
+                  <view class="detail-section" v-if="(activeSheetCard.data as GameEvent).entryCost">
                     <text class="section-title">💰 入场成本</text>
                     <view class="cost-list">
-                      <view class="cost-item" v-if="(card.data as GameEvent).entryCost?.time">
+                      <view class="cost-item" v-if="(activeSheetCard.data as GameEvent).entryCost?.time">
                         <text class="cost-icon">⏰</text>
-                        <text class="cost-value">{{ (card.data as GameEvent).entryCost?.time }} 分钟</text>
+                        <text class="cost-value">{{ (activeSheetCard.data as GameEvent).entryCost?.time }} 分钟</text>
                       </view>
-                      <view class="cost-item" v-if="(card.data as GameEvent).entryCost?.energy">
+                      <view class="cost-item" v-if="(activeSheetCard.data as GameEvent).entryCost?.energy">
                         <text class="cost-icon">⚡</text>
-                        <text class="cost-value">{{ (card.data as GameEvent).entryCost?.energy }} 精力</text>
+                        <text class="cost-value">{{ (activeSheetCard.data as GameEvent).entryCost?.energy }} 精力</text>
                       </view>
                     </view>
                   </view>
-                  <view class="detail-section" v-if="(card.data as GameEvent).requiredTags?.length">
+                  <view class="detail-section" v-if="(activeSheetCard.data as GameEvent).requiredTags?.length">
                     <text class="section-title">🏷️ 需要标签</text>
                     <view class="tag-list">
-                      <view class="tag-item" v-for="tag in (card.data as GameEvent).requiredTags" :key="tag">
+                      <view class="tag-item" v-for="tag in (activeSheetCard.data as GameEvent).requiredTags" :key="tag">
                         {{ tag }}
                       </view>
                     </view>
@@ -178,38 +216,38 @@
                 </view>
                 
                 <!-- 物品详情 -->
-                <view v-else-if="card.type === 'item'" class="detail-content">
+                <view v-else-if="activeSheetCard.type === 'item'" class="detail-content">
                   <!-- 已购入提示 -->
-                  <view class="detail-section owned-notice" v-if="isItemOwned(card.data as Item)">
+                  <view class="detail-section owned-notice" v-if="isItemOwned(activeSheetCard.data as Item)">
                     <view class="owned-notice-box">
                       <text class="owned-notice-icon">✅</text>
                       <view class="owned-notice-info">
                         <text class="owned-notice-title">你已拥有此物品</text>
-                        <text class="owned-notice-desc">持有 {{ getItemOwnedCount(card.data as Item) }} 件</text>
+                        <text class="owned-notice-desc">持有 {{ getItemOwnedCount(activeSheetCard.data as Item) }} 件</text>
                       </view>
                     </view>
                   </view>
                   <view class="detail-section">
                     <text class="section-title">📦 物品简介</text>
-                    <text class="section-text">{{ (card.data as Item).description }}</text>
+                    <text class="section-text">{{ (activeSheetCard.data as Item).description }}</text>
                   </view>
                   <view class="detail-section">
                     <text class="section-title">📊 物品信息</text>
                     <view class="info-grid">
                       <view class="info-item">
                         <text class="info-label">稀有度</text>
-                        <text class="info-value">{{ getRarityLabel((card.data as Item).rarity) }}</text>
+                        <text class="info-value">{{ getRarityLabel((activeSheetCard.data as Item).rarity) }}</text>
                       </view>
                       <view class="info-item">
                         <text class="info-label">已铸造</text>
-                        <text class="info-value">{{ (card.data as Item).mintedCount }} / {{ (card.data as Item).maxMint }}</text>
+                        <text class="info-value">{{ (activeSheetCard.data as Item).mintedCount }} / {{ (activeSheetCard.data as Item).maxMint }}</text>
                       </view>
                     </view>
                   </view>
-                  <view class="detail-section" v-if="(card.data as Item).effects?.length">
+                  <view class="detail-section" v-if="(activeSheetCard.data as Item).effects?.length">
                     <text class="section-title">✨ 物品效果</text>
                     <view class="effect-list">
-                      <view class="effect-item" v-for="(effect, idx) in (card.data as Item).effects" :key="idx">
+                      <view class="effect-item" v-for="(effect, idx) in (activeSheetCard.data as Item).effects" :key="idx">
                         <text class="effect-type">{{ effect.type === 'attribute' ? '属性加成' : '解锁事件' }}</text>
                         <text class="effect-value" v-if="effect.type === 'attribute'">{{ effect.attribute }} +{{ effect.value }}</text>
                         <text class="effect-value" v-else>{{ effect.eventId }}</text>
@@ -219,19 +257,19 @@
                 </view>
                 
                 <!-- 用户详情 -->
-                <view v-else-if="card.type === 'user'" class="detail-content">
+                <view v-else-if="activeSheetCard.type === 'user'" class="detail-content">
                   <!-- 座右铭 -->
-                  <view class="detail-section" v-if="(card.data as User).motto">
+                  <view class="detail-section" v-if="(activeSheetCard.data as User).motto">
                     <view class="detail-motto-card">
                       <text class="detail-motto-mark">“</text>
-                      <text class="detail-motto-text">{{ (card.data as User).motto }}</text>
+                      <text class="detail-motto-text">{{ (activeSheetCard.data as User).motto }}</text>
                       <text class="detail-motto-mark end">”</text>
                     </view>
                   </view>
                   
                   <view class="detail-section">
                     <text class="section-title">👤 关于 TA</text>
-                    <text class="section-text">{{ (card.data as User).bio || '这个人很懒，什么都没写~' }}</text>
+                    <text class="section-text">{{ (activeSheetCard.data as User).bio || '这个人很懒，什么都没写~' }}</text>
                   </view>
                   
                   <!-- 资源概览 -->
@@ -241,21 +279,21 @@
                       <view class="resource-item">
                         <text class="resource-icon">⏰</text>
                         <view class="resource-info">
-                          <text class="resource-value">{{ (card.data as User).wallet?.time || 0 }}</text>
+                          <text class="resource-value">{{ (activeSheetCard.data as User).wallet?.time || 0 }}</text>
                           <text class="resource-label">时间</text>
                         </view>
                       </view>
                       <view class="resource-item">
                         <text class="resource-icon">⚡</text>
                         <view class="resource-info">
-                          <text class="resource-value">{{ (card.data as User).wallet?.energy || 0 }}</text>
+                          <text class="resource-value">{{ (activeSheetCard.data as User).wallet?.energy || 0 }}</text>
                           <text class="resource-label">精力</text>
                         </view>
                       </view>
                       <view class="resource-item">
                         <text class="resource-icon">🌟</text>
                         <view class="resource-info">
-                          <text class="resource-value">{{ (card.data as User).wallet?.reputation || 0 }}</text>
+                          <text class="resource-value">{{ (activeSheetCard.data as User).wallet?.reputation || 0 }}</text>
                           <text class="resource-label">声望</text>
                         </view>
                       </view>
@@ -263,12 +301,12 @@
                   </view>
                   
                   <!-- 标签展示 - 带权重进度条 -->
-                  <view class="detail-section" v-if="(card.data as User).tags?.length">
+                  <view class="detail-section" v-if="(activeSheetCard.data as User).tags?.length">
                     <text class="section-title">🏷️ TA 的标签</text>
                     <view class="user-tag-list">
                       <view 
                         class="user-tag-item" 
-                        v-for="(tag, idx) in (card.data as User).tags" 
+                        v-for="(tag, idx) in (activeSheetCard.data as User).tags" 
                         :key="tag.tagId"
                       >
                         <view class="tag-icon-wrap" :class="'tag-bg-' + (idx % 5)">
@@ -292,10 +330,10 @@
                   </view>
                   
                   <!-- 成就展示 -->
-                  <view class="detail-section" v-if="(card.data as User).history?.achievements?.length">
+                  <view class="detail-section" v-if="(activeSheetCard.data as User).history?.achievements?.length">
                     <text class="section-title">🏆 成就徽章</text>
                     <view class="detail-achievement-grid">
-                      <view class="detail-achievement-item" v-for="achId in (card.data as User).history.achievements" :key="achId">
+                      <view class="detail-achievement-item" v-for="achId in (activeSheetCard.data as User).history.achievements" :key="achId">
                         <text class="detail-ach-icon">{{ getAchievementIcon(achId) }}</text>
                         <text class="detail-ach-name">{{ getAchievementName(achId) }}</text>
                       </view>
@@ -303,10 +341,10 @@
                   </view>
                   
                   <!-- 共同点 -->
-                  <view class="detail-section" v-if="getCommonTags(card.data as User).length">
+                  <view class="detail-section" v-if="getCommonTags(activeSheetCard.data as User).length">
                     <text class="section-title">🤝 你们的共同点</text>
                     <view class="common-tag-list">
-                      <view class="common-tag" v-for="tag in getCommonTags(card.data as User)" :key="tag">
+                      <view class="common-tag" v-for="tag in getCommonTags(activeSheetCard.data as User)" :key="tag">
                         {{ tag }}
                       </view>
                     </view>
@@ -317,31 +355,31 @@
                     <text class="section-title">📝 生活足迹</text>
                     <view class="life-stats">
                       <view class="stat-item">
-                        <text class="stat-value">{{ (card.data as User).history?.completedEvents?.length || 0 }}</text>
+                        <text class="stat-value">{{ (activeSheetCard.data as User).history?.completedEvents?.length || 0 }}</text>
                         <text class="stat-label">完成事件</text>
                       </view>
                       <view class="stat-item">
-                        <text class="stat-value">{{ (card.data as User).history?.currentEvents?.length || 0 }}</text>
+                        <text class="stat-value">{{ (activeSheetCard.data as User).history?.currentEvents?.length || 0 }}</text>
                         <text class="stat-label">进行中</text>
                       </view>
                       <view class="stat-item">
-                        <text class="stat-value">{{ (card.data as User).inventory?.length || 0 }}</text>
+                        <text class="stat-value">{{ (activeSheetCard.data as User).inventory?.length || 0 }}</text>
                         <text class="stat-label">物品数</text>
                       </view>
                     </view>
                   </view>
                   
                   <!-- 历史选择记录 -->
-                  <view class="detail-section" v-if="(card.data as User).history?.choiceHistory?.length">
+                  <view class="detail-section" v-if="(activeSheetCard.data as User).history?.choiceHistory?.length">
                     <text class="section-title">📜 历史选择</text>
                     <view class="choice-timeline">
                       <view 
                         class="timeline-item" 
-                        v-for="(ch, idx) in (card.data as User).history.choiceHistory.slice(-6).reverse()" 
+                        v-for="(ch, idx) in (activeSheetCard.data as User).history.choiceHistory.slice(-6).reverse()" 
                         :key="idx"
                       >
                         <view class="timeline-dot" :class="'dot-color-' + (idx % 3)" />
-                        <view class="timeline-line" v-if="idx < Math.min((card.data as User).history.choiceHistory.length, 6) - 1" />
+                        <view class="timeline-line" v-if="idx < Math.min((activeSheetCard.data as User).history.choiceHistory.length, 6) - 1" />
                         <view class="timeline-content">
                           <text class="timeline-choice">{{ ch.choiceId }}</text>
                           <text class="timeline-time" v-if="ch.timestamp">{{ formatChoiceTime(ch.timestamp) }}</text>
@@ -351,10 +389,10 @@
                   </view>
                   
                   <!-- 物品收藏 - 增强版，显示稀有度和图标 -->
-                  <view class="detail-section" v-if="(card.data as User).inventory?.length">
+                  <view class="detail-section" v-if="(activeSheetCard.data as User).inventory?.length">
                     <text class="section-title">🎒 物品收藏</text>
                     <view class="detail-inventory-list">
-                      <view class="detail-inv-item" v-for="inv in (card.data as User).inventory.slice(0, 8)" :key="inv.itemId">
+                      <view class="detail-inv-item" v-for="inv in (activeSheetCard.data as User).inventory.slice(0, 8)" :key="inv.itemId">
                         <text class="detail-inv-icon">{{ getItemIcon(inv.itemId) }}</text>
                         <view class="detail-inv-info">
                           <text class="detail-inv-name">{{ getItemName(inv.itemId) }}</text>
@@ -369,109 +407,109 @@
                   <view class="detail-section">
                     <text class="section-title">⏰ 活跃状态</text>
                     <view class="activity-info">
-                      <text class="activity-text">{{ getLastActiveText(card.data as User) }}</text>
+                      <text class="activity-text">{{ getLastActiveText(activeSheetCard.data as User) }}</text>
                     </view>
                   </view>
                 </view>
-              </template>
-              
-              <!-- 操作面板内容 -->
-              <template #actions>
-                <view v-if="card.type === 'event'" class="action-list">
+        </scroll-view>
+      </view>
+    </view>
+    
+    <!-- ====== 页面级底部弹出面板（操作） ====== -->
+    <view class="bottom-sheet" :class="{ visible: showActionsSheet }" @click.self="closeActionsSheet">
+      <view class="sheet-content" :class="{ visible: showActionsSheet }">
+        <view class="sheet-handle" @click="closeActionsSheet">
+          <view class="handle-bar"></view>
+        </view>
+        <view class="sheet-header">
+          <text class="sheet-title">⚙️ 更多操作</text>
+          <text class="sheet-close" @click="closeActionsSheet">✕</text>
+        </view>
+        <scroll-view class="sheet-body" scroll-y v-if="activeSheetCard">
+                <view v-if="activeSheetCard.type === 'event'" class="action-list">
                   <!-- 已完成事件 -->
-                  <template v-if="eventStore.isEventCompleted((card.data as GameEvent).id)">
-                    <view class="action-item" @click="onCardAction(card, 'viewHistory')">
+                  <template v-if="eventStore.isEventCompleted((activeSheetCard.data as GameEvent).id)">
+                    <view class="action-item" @click="onCardAction(activeSheetCard, 'viewHistory')">
                       <text class="action-icon">📜</text>
                       <text class="action-text">查看历史抉择</text>
                     </view>
-                    <view class="action-item" @click="onCardAction(card, 'replay')">
+                    <view class="action-item" @click="onCardAction(activeSheetCard, 'replay')">
                       <text class="action-icon">🔄</text>
                       <text class="action-text">重新体验</text>
                     </view>
                   </template>
                   <!-- 进行中事件 -->
-                  <template v-else-if="eventStore.isEventActive((card.data as GameEvent).id)">
-                    <view class="action-item" @click="onCardAction(card, 'continue')">
+                  <template v-else-if="eventStore.isEventActive((activeSheetCard.data as GameEvent).id)">
+                    <view class="action-item" @click="onCardAction(activeSheetCard, 'continue')">
                       <text class="action-icon">▶️</text>
                       <text class="action-text">继续事件</text>
                     </view>
-                    <view class="action-item" @click="onCardAction(card, 'viewHistory')">
+                    <view class="action-item" @click="onCardAction(activeSheetCard, 'viewHistory')">
                       <text class="action-icon">📜</text>
                       <text class="action-text">查看已做抉择</text>
                     </view>
                   </template>
                   <!-- 未参与事件 -->
                   <template v-else>
-                    <view class="action-item" @click="onCardAction(card, 'join')">
+                    <view class="action-item" @click="onCardAction(activeSheetCard, 'join')">
                       <text class="action-icon">🎯</text>
                       <text class="action-text">立即参与</text>
                     </view>
                   </template>
-                  <view class="action-item" @click="onCardAction(card, 'save')">
+                  <view class="action-item" @click="onCardAction(activeSheetCard, 'save')">
                     <text class="action-icon">📌</text>
                     <text class="action-text">收藏事件</text>
                   </view>
-                  <view class="action-item" @click="onCardAction(card, 'share')">
+                  <view class="action-item" @click="onCardAction(activeSheetCard, 'share')">
                     <text class="action-icon">📤</text>
                     <text class="action-text">分享给好友</text>
                   </view>
-                  <view class="action-item danger" @click="onCardAction(card, 'report')">
+                  <view class="action-item danger" @click="onCardAction(activeSheetCard, 'report')">
                     <text class="action-icon">⚠️</text>
                     <text class="action-text">举报问题</text>
                   </view>
                 </view>
                 
-                <view v-else-if="card.type === 'item'" class="action-list">
-                  <view class="action-item" v-if="!isItemOwned(card.data as Item)" @click="onCardAction(card, 'buy')">
+                <view v-else-if="activeSheetCard.type === 'item'" class="action-list">
+                  <view class="action-item" v-if="!isItemOwned(activeSheetCard.data as Item)" @click="onCardAction(activeSheetCard, 'buy')">
                     <text class="action-icon">🛒</text>
                     <text class="action-text">买入物品</text>
                   </view>
                   <view class="action-item owned-action-hint" v-else>
                     <text class="action-icon">✅</text>
-                    <text class="action-text" style="color: #059669;">已拥有 {{ getItemOwnedCount(card.data as Item) }} 件</text>
+                    <text class="action-text" style="color: #059669;">已拥有 {{ getItemOwnedCount(activeSheetCard.data as Item) }} 件</text>
                   </view>
-                  <view class="action-item" @click="onCardAction(card, 'save')">
+                  <view class="action-item" @click="onCardAction(activeSheetCard, 'save')">
                     <text class="action-icon">📌</text>
                     <text class="action-text">收藏物品</text>
                   </view>
-                  <view class="action-item" @click="onCardAction(card, 'share')">
+                  <view class="action-item" @click="onCardAction(activeSheetCard, 'share')">
                     <text class="action-icon">📤</text>
                     <text class="action-text">分享给好友</text>
                   </view>
                 </view>
                 
-                <view v-else-if="card.type === 'user'" class="action-list">
-                  <view class="action-item" @click="onCardAction(card, 'follow')">
+                <view v-else-if="activeSheetCard.type === 'user'" class="action-list">
+                  <view class="action-item" @click="onCardAction(activeSheetCard, 'follow')">
                     <text class="action-icon">👋</text>
                     <text class="action-text">关注 TA</text>
                   </view>
-                  <view class="action-item" @click="onCardAction(card, 'message')">
+                  <view class="action-item" @click="onCardAction(activeSheetCard, 'message')">
                     <text class="action-icon">💬</text>
                     <text class="action-text">发送消息</text>
                   </view>
-                  <view class="action-item" @click="onCardAction(card, 'profile')">
+                  <view class="action-item" @click="onCardAction(activeSheetCard, 'profile')">
                     <text class="action-icon">👤</text>
                     <text class="action-text">查看主页</text>
                   </view>
-                  <view class="action-item danger" @click="onCardAction(card, 'block')">
+                  <view class="action-item danger" @click="onCardAction(activeSheetCard, 'block')">
                     <text class="action-icon">🚫</text>
                     <text class="action-text">屏蔽用户</text>
                   </view>
                 </view>
-              </template>
-            </SwipeableCard>
-          </view>
-        </swiper-item>
-      </swiper>
+        </scroll-view>
+      </view>
     </view>
-    
-    <!-- 加载状态 -->
-    <view v-if="cardStore.isLoading" class="loading-overlay">
-      <view class="loading-spinner"></view>
-      <text class="loading-text">加载中...</text>
-    </view>
-    
-    <!-- 物品全屏展示使用纯 JS DOM 方案，无需 Vue 组件 -->
   </view>
 </template>
 
@@ -663,8 +701,37 @@ const getItemOwnedCount = (item: Item): number => {
   return inv?.quantity ?? 0
 }
 
-// 面板状态变化
-const onPanelChange = (panel: 'left' | 'right' | null) => {
+// ====== 页面级底部弹出面板状态 ======
+const showDetailSheet = ref(false)
+const showActionsSheet = ref(false)
+const activeSheetCard = ref<Card | null>(null)
+
+const openDetailSheet = (card: Card) => {
+  activeSheetCard.value = card
+  showDetailSheet.value = true
+  showActionsSheet.value = false
+  isPanelOpen.value = true
+}
+
+const openActionsSheet = (card: Card) => {
+  activeSheetCard.value = card
+  showActionsSheet.value = true
+  showDetailSheet.value = false
+  isPanelOpen.value = true
+}
+
+const closeDetailSheet = () => {
+  showDetailSheet.value = false
+  isPanelOpen.value = false
+}
+
+const closeActionsSheet = () => {
+  showActionsSheet.value = false
+  isPanelOpen.value = false
+}
+
+// 面板状态变化（兼容旧接口）
+const onPanelChange = (panel: 'detail' | 'action' | 'left' | 'right' | null) => {
   isPanelOpen.value = panel !== null
 }
 
@@ -1070,26 +1137,74 @@ $safe-area-bottom: env(safe-area-inset-bottom, 0px);
   height: 100%;
   min-height: 0;
   border-radius: $radius-2xl;
-  overflow: hidden;
+  overflow: visible;
   transition: transform $transition-normal;
   display: flex;
   flex-direction: column;
   touch-action: pan-y;
+  position: relative;
   
   // 玻璃态卡片背景 - 暗色半透明 + 微光边框
   background: linear-gradient(160deg, rgba(20, 26, 48, 0.92) 0%, rgba(10, 14, 26, 0.96) 100%);
   backdrop-filter: blur(40rpx) saturate(150%);
   -webkit-backdrop-filter: blur(40rpx) saturate(150%);
-  border: 1.5rpx solid rgba(255, 255, 255, 0.1);
+  border: 1.5rpx solid rgba(255, 255, 255, 0.08);
   box-shadow:
     0 8rpx 48rpx rgba(0, 0, 0, 0.5),
     0 0 60rpx rgba($neon-cyan, 0.05),
     0 0 120rpx rgba($neon-magenta, 0.03),
     inset 0 1rpx 0 rgba(255, 255, 255, 0.08);
   
-  &:active {
-    transform: scale(0.998);
+  // 彩色流光边缘效果 - 旋转渐变伪元素
+  &::before {
+    content: '';
+    position: absolute;
+    top: -2rpx;
+    left: -2rpx;
+    right: -2rpx;
+    bottom: -2rpx;
+    border-radius: calc(#{$radius-2xl} + 2rpx);
+    background: conic-gradient(
+      from var(--glow-angle, 0deg),
+      transparent 0%,
+      rgba($neon-cyan, 0.6) 10%,
+      transparent 20%,
+      rgba($neon-magenta, 0.5) 35%,
+      transparent 45%,
+      rgba($neon-amber, 0.4) 55%,
+      transparent 65%,
+      rgba($neon-cyan, 0.5) 80%,
+      transparent 90%
+    );
+    z-index: -1;
+    animation: glow-rotate 6s linear infinite;
+    opacity: 0.7;
   }
+  
+  // 内层遮罩，只留边缘发光
+  &::after {
+    content: '';
+    position: absolute;
+    top: 2rpx;
+    left: 2rpx;
+    right: 2rpx;
+    bottom: 2rpx;
+    border-radius: calc(#{$radius-2xl} - 1rpx);
+    background: linear-gradient(160deg, rgba(20, 26, 48, 0.97) 0%, rgba(10, 14, 26, 0.99) 100%);
+    z-index: -1;
+  }
+}
+
+@keyframes glow-rotate {
+  0% { --glow-angle: 0deg; }
+  100% { --glow-angle: 360deg; }
+}
+
+// 注册 CSS 自定义属性以支持动画
+@property --glow-angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
 }
 
 // 详情面板内容样式 - 暗色主题
@@ -1679,5 +1794,148 @@ $safe-area-bottom: env(safe-area-inset-bottom, 0px);
 .loading-text {
   font-size: 28rpx;
   color: $text-secondary;
+}
+
+// 卡片底部主操作按钮文字样式
+.main-action-icon {
+  font-size: 30rpx;
+  margin-right: 8rpx;
+}
+
+.main-action-text {
+  font-size: 30rpx;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 2rpx;
+}
+// ====== 页面级底部弹出面板 ======
+.bottom-sheet {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 9999;
+  background: rgba(0, 0, 0, 0);
+  pointer-events: none;
+  transition: background 0.3s ease;
+  
+  &.visible {
+    background: rgba(0, 0, 0, 0.5);
+    pointer-events: auto;
+  }
+}
+
+.sheet-content {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  max-height: 75vh;
+  background: linear-gradient(180deg, rgba(20, 26, 48, 0.98) 0%, rgba(10, 14, 26, 0.99) 100%);
+  backdrop-filter: blur(40rpx) saturate(150%);
+  -webkit-backdrop-filter: blur(40rpx) saturate(150%);
+  border-top: 1rpx solid rgba(255, 255, 255, 0.1);
+  border-radius: 32rpx 32rpx 0 0;
+  transform: translateY(100%);
+  transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+  display: flex;
+  flex-direction: column;
+  
+  &.visible {
+    transform: translateY(0);
+  }
+}
+
+.sheet-handle {
+  display: flex;
+  justify-content: center;
+  padding: 16rpx 0 8rpx;
+  cursor: pointer;
+  
+  .handle-bar {
+    width: 64rpx;
+    height: 6rpx;
+    border-radius: 3rpx;
+    background: rgba(255, 255, 255, 0.2);
+  }
+}
+
+.sheet-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16rpx 32rpx 20rpx;
+  border-bottom: 1rpx solid rgba(255, 255, 255, 0.08);
+  
+  .sheet-title {
+    font-size: 32rpx;
+    font-weight: bold;
+    color: #fff;
+  }
+  
+  .sheet-close {
+    font-size: 32rpx;
+    color: rgba(255, 255, 255, 0.5);
+    padding: 10rpx;
+    min-width: 44px;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    
+    &:active {
+      color: rgba(255, 255, 255, 0.8);
+    }
+  }
+}
+
+.sheet-body {
+  flex: 1;
+  padding: 24rpx 32rpx;
+  padding-bottom: calc(24rpx + env(safe-area-inset-bottom, 0px));
+  overflow-y: auto;
+  min-height: 0;
+}
+
+// 操作列表样式
+.action-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.action-item {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  padding: 24rpx;
+  @include glass-effect(0.06);
+  border: 1rpx solid rgba(255, 255, 255, 0.06);
+  border-radius: 16rpx;
+  transition: all 0.2s;
+  
+  &:active {
+    background: rgba($neon-cyan, 0.1);
+    border-color: rgba($neon-cyan, 0.2);
+  }
+  
+  &.danger {
+    background: rgba($color-danger, 0.08);
+    border-color: rgba($color-danger, 0.15);
+    
+    .action-text {
+      color: $color-danger;
+    }
+  }
+  
+  .action-icon {
+    font-size: 36rpx;
+  }
+  
+  .action-text {
+    font-size: 28rpx;
+    color: $text-primary;
+  }
 }
 </style>
