@@ -1,9 +1,5 @@
 <template>
   <view class="event-card">
-    <!-- 顶部装饰条 -->
-    <view class="card-accent" :class="event.type" />
-    
-    
     <!-- 内容区 -->
     <view class="card-content">
       <!-- 顶部信息 -->
@@ -1425,22 +1421,6 @@ defineExpose({
     @include glass-effect(0.06);
     .urgency-text { color: $text-tertiary; }
   }
-}
-
-// 顶部装饰条
-.card-accent {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 6rpx;
-  
-  &.story { background: $gradient-primary; }
-  &.challenge { background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%); }
-  &.craft { background: linear-gradient(135deg, rgba($neon-magenta, 0.6), rgba($neon-magenta, 0.4)); }
-  &.social { background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%); }
-  &.exploration { background: linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%); }
-  &.creation { background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%); }
 }
 
 .card-content {
