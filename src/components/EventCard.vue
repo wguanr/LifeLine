@@ -1,6 +1,5 @@
 <template>
-  <view class="event-card">
-    <!-- 内容区 -->
+  <BaseCard extra-class="event-card">
     <view class="card-content">
       <!-- 顶部信息 -->
       <view class="card-header">
@@ -416,11 +415,12 @@
         </template>
       </view>
     </view>
-  </view>
+  </BaseCard>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, watch, onUnmounted, reactive } from 'vue'
+import BaseCard from '@/components/BaseCard.vue'
 import { useEventStore } from '@/stores/event'
 import { useUserStore } from '@/stores/user'
 import { useItemStore } from '@/stores/item'
@@ -1339,16 +1339,9 @@ defineExpose({
 
 <style lang="scss" scoped>
 
+// event-card 特有样式（基础布局已由 BaseCard 提供）
 .event-card {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  min-height: 0;
-  background: transparent;
-  border-radius: $radius-2xl;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
+  // BaseCard 已提供基础布局，此处仅放置 EventCard 特有样式
 }
 
 // AIGC来源标记
@@ -1416,14 +1409,13 @@ defineExpose({
   }
 }
 
+// card-content 在 BaseCard 的 base-card-content 内部，继承其 flex 布局
 .card-content {
   flex: 1;
   min-height: 0;
   display: flex;
   flex-direction: column;
-  padding: 32rpx 32rpx 28rpx;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
+  padding: 4rpx 4rpx 0; // 微调内距（外层 BaseCard 已提供 28rpx padding）
 }
 
 .card-header {

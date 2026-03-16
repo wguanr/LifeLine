@@ -1,5 +1,5 @@
 <template>
-  <view class="user-card">
+  <BaseCard extra-class="user-card">
     <!-- 头像 + 用户信息区 -->
     <view class="profile-header">
       <view class="avatar-area">
@@ -99,11 +99,12 @@
         </view>
       </scroll-view>
     </view>
-  </view>
+  </BaseCard>
 </template>
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
+import BaseCard from '@/components/BaseCard.vue'
 import type { User } from '@/types'
 import { getTagDefinition } from '@/data/tags'
 import { useInfluencerStore } from '@/stores/influencer'
@@ -224,15 +225,9 @@ defineExpose({
 <style lang="scss" scoped>
 @import '@/styles/theme.scss';
 
-// ==================== 卡片根容器 ====================
+// user-card 特有样式（基础布局已由 BaseCard 提供）
 .user-card {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  padding: 28rpx;
-  box-sizing: border-box;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
+  // BaseCard 已提供基础布局、padding、滚动
 }
 
 // ==================== 头像 + 信息区 ====================

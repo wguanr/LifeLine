@@ -1,8 +1,5 @@
 <template>
-  <view class="item-card" :class="item.rarity">
-    <!-- 稀有度装饰边框 -->
-    <view class="rarity-glow" :class="item.rarity" />
-    
+  <BaseCard :rarity="item.rarity" extra-class="item-card">
     <view class="card-content">
       <!-- 顶部：图标 + 名称 + 稀有度 -->
       <view class="item-header">
@@ -88,11 +85,12 @@
         </view>
       </view>
     </view>
-  </view>
+  </BaseCard>
 </template>
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import BaseCard from '@/components/BaseCard.vue'
 import type { Item } from '@/types'
 import { useUserStore } from '@/stores/user'
 
@@ -197,61 +195,18 @@ defineExpose({
 
 <style lang="scss" scoped>
 
+// item-card 特有样式（基础布局 + 稀有度光效已由 BaseCard 提供）
 .item-card {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  background: transparent;
-  border-radius: $radius-2xl;
-  overflow: hidden;
-  
-  // 稀有度霓虹光晕
-  &.legendary {
-    @include neon-glow($neon-amber, 0.15);
-  }
-  &.epic {
-    @include neon-glow($neon-magenta, 0.12);
-  }
-  &.rare {
-    @include neon-glow($color-info, 0.1);
-  }
+  // BaseCard 已提供基础布局和稀有度光效
 }
 
-// 稀有度顶部装饰
-.rarity-glow {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 6rpx;
-  
-  &.common { background: rgba(255,255,255,0.15); }
-  &.uncommon { background: linear-gradient(90deg, $neon-cyan, rgba($neon-cyan, 0.5)); }
-  &.rare { background: linear-gradient(90deg, $color-info, rgba($color-info, 0.5)); }
-  &.epic { background: linear-gradient(90deg, $neon-magenta, rgba($neon-magenta, 0.5)); }
-  &.legendary {
-    height: 8rpx;
-    background: linear-gradient(90deg, $neon-amber, rgba($neon-amber, 0.5), $neon-amber);
-    background-size: 200% 100%;
-    animation: shimmer-gold 2s linear infinite;
-  }
-}
-
-@keyframes shimmer-gold {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
-}
-
+// card-content 在 BaseCard 的 base-card-content 内部
 .card-content {
   flex: 1;
   min-height: 0;
   display: flex;
   flex-direction: column;
-  padding: 32rpx 28rpx 28rpx;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
+  padding: 4rpx 0 0; // 微调内距（外层 BaseCard 已提供 28rpx padding）
 }
 
 // ==================== 头部 ====================
