@@ -103,33 +103,25 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
 import BaseCard from '@/components/BaseCard.vue'
 import type { User } from '@/types'
-import { getTagDefinition } from '@/data/tags'
 import { useInfluencerStore } from '@/stores/influencer'
 import { useUserStore } from '@/stores/user'
 import { useItemStore } from '@/stores/item'
+import { getTagName, formatRelativeTime, RARITY_ORDER, ACHIEVEMENT_DEFS } from '@/utils/formatters'
 
 const props = defineProps<{
   user: User
 }>()
 
 const emit = defineEmits<{
-  (e: 'click', user: User): void
   (e: 'follow', user: User): void
-  (e: 'viewProfile', user: User): void
-  (e: 'stateChange', state: string): void
 }>()
 
 const influencerStore = useInfluencerStore()
 const userStore = useUserStore()
 const itemStore = useItemStore()
-
-const getTagName = (tagId: string): string => {
-  const def = getTagDefinition(tagId)
-  return def?.name || tagId
-}
 
 const isRecentlyActive = computed(() => {
   const lastActive = props.user.lastActive || props.user.lastActiveAt
@@ -139,21 +131,12 @@ const isRecentlyActive = computed(() => {
 
 const activeTimeText = computed(() => {
   const lastActive = props.user.lastActive || props.user.lastActiveAt
-  if (!lastActive) return '未知'
-  const diff = Date.now() - lastActive
-  if (diff < 60000) return '刚刚活跃'
-  if (diff < 3600000) return `${Math.floor(diff / 60000)} 分钟前`
-  if (diff < 86400000) return `${Math.floor(diff / 3600000)} 小时前`
-  return `${Math.floor(diff / 86400000)} 天前`
+  return formatRelativeTime(lastActive)
 })
 
 const isFollowed = computed(() => {
   return influencerStore.isFollowing(props.user.id)
 })
-
-const rarityOrder: Record<string, number> = {
-  legendary: 5, epic: 4, rare: 3, uncommon: 2, common: 1
-}
 
 const bestItems = computed(() => {
   if (!props.user.inventory?.length) return []
@@ -164,29 +147,15 @@ const bestItems = computed(() => {
       return { id: itemDef.id, name: itemDef.name, icon: itemDef.icon, rarity: itemDef.rarity, quantity: inv.quantity }
     })
     .filter(Boolean) as Array<{ id: string; name: string; icon: string; rarity: string; quantity: number }>
-  resolved.sort((a, b) => (rarityOrder[b.rarity] || 0) - (rarityOrder[a.rarity] || 0))
+  resolved.sort((a, b) => (RARITY_ORDER[b.rarity] || 0) - (RARITY_ORDER[a.rarity] || 0))
   return resolved.slice(0, 3)
 })
-
-const achievementDefs: Record<string, { icon: string; name: string }> = {
-  first_choice: { icon: '🎯', name: '初次抉择' },
-  bookworm: { icon: '📖', name: '书虫' },
-  early_adopter: { icon: '🌅', name: '先行者' },
-  fitness_master: { icon: '🏋️', name: '健身大师' },
-  early_bird: { icon: '🐦', name: '早起鸟' },
-  iron_will: { icon: '🔥', name: '钢铁意志' },
-  streak_7: { icon: '📅', name: '连续7天' },
-  social_star: { icon: '⭐', name: '社交之星' },
-  party_king: { icon: '👑', name: '派对之王' },
-  wanderer: { icon: '🗺️', name: '漫游者' },
-  collector: { icon: '💎', name: '收藏家' }
-}
 
 const achievementBadges = computed(() => {
   const achievements = props.user.history?.achievements || []
   return achievements
     .map(id => {
-      const def = achievementDefs[id]
+      const def = ACHIEVEMENT_DEFS[id]
       return def ? { id, ...def } : { id, icon: '🏅', name: id }
     })
     .slice(0, 6)
@@ -223,7 +192,6 @@ defineExpose({
 </script>
 
 <style lang="scss" scoped>
-@import '@/styles/theme.scss';
 
 // user-card 特有样式（基础布局已由 BaseCard 提供）
 .user-card {

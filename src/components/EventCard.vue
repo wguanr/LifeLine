@@ -4,8 +4,8 @@
       <!-- 顶部信息 -->
       <view class="card-header">
         <view class="event-type" :class="event.type">
-          <text class="type-icon">{{ getTypeIcon(event.type) }}</text>
-          <text class="type-text">{{ getTypeName(event.type) }}</text>
+          <text class="type-icon">{{ getEventTypeIcon(event.type) }}</text>
+          <text class="type-text">{{ getEventTypeLabel(event.type) }}</text>
         </view>
         <view class="header-right">
           <view class="header-badges-row" v-if="isAigcEvent">
@@ -18,7 +18,7 @@
             </view>
           </view>
           <view class="event-status" :class="event.status">
-            {{ getStatusText(event.status) }}
+            {{ getEventStatusLabel(event.status) }}
           </view>
         </view>
       </view>
@@ -28,7 +28,7 @@
         <template v-if="mode === 'preview'">
           <!-- 氛围区：大图标 + 渐变背景 -->
           <view class="atmosphere-zone" :class="event.type">
-            <text class="atmo-icon">{{ getTypeIcon(event.type) }}</text>
+            <text class="atmo-icon">{{ getEventTypeIcon(event.type) }}</text>
             <view class="atmo-particles">
               <view class="particle" v-for="i in 5" :key="i" :class="'p-' + i" />
             </view>
@@ -437,6 +437,7 @@ import { useInfluencerStore, costToValue } from '@/stores/influencer'
 import { showItemDrops } from '@/utils/itemShowcase'
 import { generateSimulatedParticipation } from '@/data/simulated_users'
 import { getTagDefinition } from '@/data/tags'
+import { getEventTypeIcon, getEventTypeLabel, getEventStatusLabel, formatNumber, normalizeTagIds, getTagName as getTagDisplayName, getTagIcon } from '@/utils/formatters'
 import type { GameEvent, EventStage, EventChoice, EventOutcome, ClaimableItem, InfluencerInfo, ItemDrop } from '@/types'
 
 const props = defineProps<{
@@ -1018,24 +1019,6 @@ const confirmChoice = () => {
   }
 }
 
-/** 兼容旧的 canAffordBetLevel */
-const canAffordBetLevel = (choice: EventChoice, m: number): boolean => {
-  if (choice.cost) {
-    const cost = {
-      time: choice.cost.time ? choice.cost.time * m : 0,
-      energy: choice.cost.energy ? choice.cost.energy * m : 0
-    }
-    return userStore.canAfford(cost)
-  }
-  if (m > 1) {
-    const cost = {
-      time: BASE_CHOICE_COST.time * (m - 1),
-      energy: BASE_CHOICE_COST.energy * (m - 1)
-    }
-    return userStore.canAfford(cost)
-  }
-  return true
-}
 
 const totalCost = computed(() => {
   const fee = props.event.entryFee
@@ -1189,59 +1172,15 @@ const handleToggleFollow = (inf: InfluencerInfo) => {
 }
 
 // ========== 辅助函数 ==========
-const getTypeIcon = (type: string): string => {
-  const icons: Record<string, string> = {
-    story: '📖', challenge: '💼', craft: '🎯', social: '💬', exploration: '🔍', creation: '✨'
-  }
-  return icons[type] || '📅'
-}
-
-const getTypeName = (type: string): string => {
-  const names: Record<string, string> = {
-    story: '生活', challenge: '挑战', craft: '制作', social: '社交', exploration: '探索', creation: '创造'
-  }
-  return names[type] || '事件'
-}
-
-const getStatusText = (status: string): string => {
-  const texts: Record<string, string> = {
-    upcoming: '即将开始', active: '进行中', ended: '已结束'
-  }
-  return texts[status] || status
-}
-
-const formatNumber = (num: number): string => {
-  if (num >= 10000) return (num / 10000).toFixed(1) + 'w'
-  if (num >= 1000) return (num / 1000).toFixed(1) + 'k'
-  return num.toString()
-}
+// 通用工具函数已统一迁移到 @/utils/formatters.ts
+// 以下为 EventCard 专用的辅助函数
 
 const getItemName = (itemId: string): string => {
   const item = itemStore.getItem(itemId)
   return item?.name || itemId
 }
 
-// 统一标签格式：兼容 string[], {id,value}[], {tagId: weight} 三种格式
-const normalizeTagIds = (tags: any): string[] => {
-  if (!tags) return []
-  if (Array.isArray(tags)) {
-    return tags.map((t: any) => typeof t === 'string' ? t : t.id).filter(Boolean)
-  }
-  if (typeof tags === 'object') {
-    return Object.keys(tags)
-  }
-  return []
-}
 
-const getTagDisplayName = (tagId: string): string => {
-  const def = getTagDefinition(tagId)
-  return def?.name || tagId
-}
-
-const getTagIcon = (tagId: string): string => {
-  const def = getTagDefinition(tagId)
-  return def?.icon || '🏷️'
-}
 
 // ========== ClaimItem 处理 ==========
 const handleClaimItem = (ci: ClaimableItem, idx: number) => {
@@ -1269,8 +1208,6 @@ const getClaimItemIcon = (itemId: string): string => {
   const item = itemStore.getItem(itemId)
   return item?.icon || '🎁'
 }
-
-// handleSelectChoice 已被 confirmChoice 替代
 
 const handleContinue = () => {
   // 检查是否有必须领取的物品未领取

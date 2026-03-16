@@ -90,18 +90,12 @@
                 v-else-if="card.type === 'item'" 
                 :ref="(el: any) => setCardComponentRef(index, el)"
                 :item="card.data as Item"
-                @click="onItemClick"
-                @buy="onItemBuy"
-                @stateChange="onItemStateChange"
               />
               <UserCard 
                 v-else-if="card.type === 'user'" 
                 :ref="(el: any) => setCardComponentRef(index, el)"
                 :user="card.data as User"
-                @click="onUserClick"
                 @follow="onUserFollow"
-                @viewProfile="onUserViewProfile"
-                @stateChange="onUserStateChange"
               />
             </SwipeableCard>
           </view>
@@ -634,7 +628,12 @@ import EventCard from '@/components/EventCard.vue'
 import ItemCard from '@/components/ItemCard.vue'
 import UserCard from '@/components/UserCard.vue'
 import type { GameEvent, Item, User, Card } from '@/types'
-import { getTagDefinition } from '@/data/tags'
+import {
+  formatNumber, formatRelativeTime, formatChoiceTime,
+  getTagName, getTagIcon, getRarityLabel,
+  getEventTypeLabel, getEventStatusLabel,
+  getAchievementIcon, getAchievementName
+} from '@/utils/formatters'
 
 const cardStore = useCardStore()
 const userStore = useUserStore()
@@ -685,23 +684,8 @@ const currentCardComponent = computed(() => {
   return cardComponentRefs.value[cardStore.currentIndex] || null
 })
 
-// 标签工具方法
-const getTagName = (tagId: string): string => {
-  const def = getTagDefinition(tagId)
-  return def?.name || tagId
-}
-
-const getTagIcon = (tagId: string): string => {
-  const def = getTagDefinition(tagId)
-  return def?.icon || '🏷️'
-}
-
-// 数字格式化（大数字缩写）
-const formatNum = (n: number): string => {
-  if (n >= 9950_0000) return (n / 1e8).toFixed(1).replace(/\.0$/, '') + '亿'
-  if (n >= 1e4) return (n / 1e4).toFixed(n >= 1e7 ? 0 : 1).replace(/\.0$/, '') + '万'
-  return n.toString()
-}
+// 通用工具函数已统一迁移到 @/utils/formatters.ts
+const formatNum = formatNumber  // 别名兼容模板中的引用
 
 // 链世界钱包
 const chainWallet = computed(() => ({
@@ -725,91 +709,8 @@ const getCommonTags = (user: User): string[] => {
   return myTags.filter(tag => theirTags.includes(tag))
 }
 
-// 获取最后活跃时间文本
 const getLastActiveText = (user: User): string => {
-  if (!user.lastActive) return '未知'
-  const now = new Date()
-  const lastActive = new Date(user.lastActive)
-  const diff = now.getTime() - lastActive.getTime()
-  const minutes = Math.floor(diff / 60000)
-  const hours = Math.floor(minutes / 60)
-  const days = Math.floor(hours / 24)
-  
-  if (minutes < 5) return '刚刚活跃'
-  if (minutes < 60) return `${minutes}分钟前`
-  if (hours < 24) return `${hours}小时前`
-  if (days < 7) return `${days}天前`
-  return '一周前'
-}
-
-// 格式化选择时间
-const formatChoiceTime = (timestamp: number): string => {
-  if (!timestamp) return ''
-  const d = new Date(timestamp)
-  const now = new Date()
-  const diff = now.getTime() - d.getTime()
-  if (diff < 3600000) return `${Math.floor(diff / 60000)}分钟前`
-  if (diff < 86400000) return `${Math.floor(diff / 3600000)}小时前`
-  if (diff < 604800000) return `${Math.floor(diff / 86400000)}天前`
-  return `${d.getMonth() + 1}/${d.getDate()}`
-}
-
-// 事件类型标签
-const getEventTypeLabel = (type: string): string => {
-  const labels: Record<string, string> = {
-    'story': '剧情',
-    'social': '社交',
-    'challenge': '挑战',
-    'exploration': '探索',
-    'creation': '创作'
-  }
-  return labels[type] || type
-}
-
-// 事件状态标签
-const getEventStatusLabel = (status: string): string => {
-  const labels: Record<string, string> = {
-    'active': '进行中',
-    'upcoming': '即将开始',
-    'ended': '已结束',
-    'draft': '草稿'
-  }
-  return labels[status] || status
-}
-
-// 稀有度标签
-const getRarityLabel = (rarity: string): string => {
-  const labels: Record<string, string> = {
-    'common': '普通',
-    'uncommon': '稀有',
-    'rare': '精良',
-    'epic': '史诗',
-    'legendary': '传说'
-  }
-  return labels[rarity] || rarity
-}
-
-// 成就定义
-const achievementDefs: Record<string, { icon: string; name: string }> = {
-  first_choice: { icon: '🎯', name: '初次抉择' },
-  bookworm: { icon: '📖', name: '书虫' },
-  early_adopter: { icon: '🌅', name: '先行者' },
-  fitness_master: { icon: '🏋️', name: '健身大师' },
-  early_bird: { icon: '🐦', name: '早起鸟' },
-  iron_will: { icon: '🔥', name: '钢铁意志' },
-  streak_7: { icon: '📅', name: '连续7天' },
-  social_star: { icon: '⭐', name: '社交之星' },
-  party_king: { icon: '👑', name: '派对之王' },
-  wanderer: { icon: '🗺️', name: '漫游者' },
-  collector: { icon: '💎', name: '收藏家' }
-}
-
-const getAchievementIcon = (id: string): string => {
-  return achievementDefs[id]?.icon || '🏅'
-}
-
-const getAchievementName = (id: string): string => {
-  return achievementDefs[id]?.name || id
+  return formatRelativeTime(user.lastActive)
 }
 
 // 物品信息辅助函数
@@ -843,6 +744,11 @@ const showDetailSheet = ref(false)
 const showActionsSheet = ref(false)
 const activeSheetCard = ref<Card | null>(null)
 
+// 类型安全的计算属性，避免模板中重复断言
+const sheetEvent = computed(() => activeSheetCard.value?.type === 'event' ? activeSheetCard.value.data as GameEvent : null)
+const sheetItem = computed(() => activeSheetCard.value?.type === 'item' ? activeSheetCard.value.data as Item : null)
+const sheetUser = computed(() => activeSheetCard.value?.type === 'user' ? activeSheetCard.value.data as User : null)
+
 const openDetailSheet = (card: Card) => {
   activeSheetCard.value = card
   showDetailSheet.value = true
@@ -867,25 +773,11 @@ const closeActionsSheet = () => {
   isPanelOpen.value = false
 }
 
-// 面板状态变化（兼容旧接口）
-const onPanelChange = (panel: 'detail' | 'action' | 'left' | 'right' | null) => {
-  isPanelOpen.value = panel !== null
-}
-
 // 事件状态变化
 const onEventStateChange = (state: string) => {
   isCardActive.value = state === 'playing' || state === 'result'
 }
 
-// 物品状态变化
-const onItemStateChange = (state: string) => {
-  isCardActive.value = state === 'detail'
-}
-
-// 用户状态变化
-const onUserStateChange = (state: string) => {
-  isCardActive.value = state === 'detail'
-}
 
 // Swiper切换
 const onSwiperChange = (e: any) => {
@@ -950,53 +842,9 @@ const onCardAction = (card: Card, action: string) => {
   }
 }
 
-// 物品点击
-const onItemClick = (item: Item) => {
-  // item click
-}
-
-// 物品买入
-const onItemBuy = (item: Item) => {
-  // item buy
-}
-
-// 用户点击
-const onUserClick = (user: User) => {
-  // 用户卡片内部已处理点击
-}
-
-// 用户关注（UserCard 内部已处理 influencerStore 逻辑）
-const onUserFollow = (user: User) => {
-  console.log('[Index] User follow/unfollow:', user.nickname)
-}
-
-// 查看用户主页 - 打开 SwipeableCard 的详情面板
-const onUserViewProfile = (user: User) => {
-  console.log('[Index] View profile:', user.nickname)
-  // 遍历所有 ref，找到包含用户卡片的 SwipeableCard
-  for (const key of Object.keys(swipeableCardRefs.value)) {
-    const ref = swipeableCardRefs.value[Number(key)]
-    if (ref?.$el) {
-      const userCard = ref.$el.querySelector('.user-card')
-      if (userCard && userCard.offsetParent !== null) {
-        ref.openLeftPanel()
-        return
-      }
-    }
-  }
-  // 备用方案：通过 DOM 找到包含可见 user-card 的 swipeable-card
-  const userCardEl = document.querySelector('.user-card')
-  if (userCardEl) {
-    const swipeCard = userCardEl.closest('.swipeable-card')
-    const detailPanel = swipeCard?.querySelector('.detail-panel')
-    if (detailPanel) {
-      detailPanel.classList.add('visible')
-      const overlay = swipeCard?.querySelector('.overlay')
-      overlay?.classList.add('visible')
-      const cardContent = swipeCard?.querySelector('.card-content')
-      cardContent?.classList.add('panel-open')
-    }
-  }
+// 用户关注回调（UserCard 内部已处理 influencerStore 逻辑）
+const onUserFollow = (_user: User) => {
+  // UserCard 内部已处理，此处保留接口以便后续扩展
 }
 
 // 跳转到个人中心

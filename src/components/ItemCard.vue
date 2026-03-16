@@ -93,14 +93,10 @@ import { ref, computed } from 'vue'
 import BaseCard from '@/components/BaseCard.vue'
 import type { Item } from '@/types'
 import { useUserStore } from '@/stores/user'
+import { getRarityLabel, getEffectIcon, formatRelativeTime } from '@/utils/formatters'
 
 const props = defineProps<{ item: Item }>()
 
-defineEmits<{
-  (e: 'click', item: Item): void
-  (e: 'buy', item: Item): void
-  (e: 'stateChange', state: string): void
-}>()
 
 const userStore = useUserStore()
 
@@ -112,16 +108,7 @@ const ownedQuantity = computed(() => {
 const acquiredInfo = computed(() => {
   const inv = userStore.inventory.find(i => i.itemId === props.item.id)
   if (!inv?.acquiredAt) return ''
-  const date = new Date(inv.acquiredAt)
-  const now = new Date()
-  const diffMs = now.getTime() - date.getTime()
-  const diffMin = Math.floor(diffMs / 60000)
-  if (diffMin < 1) return '刚刚'
-  if (diffMin < 60) return `${diffMin} 分钟前`
-  const diffHour = Math.floor(diffMin / 60)
-  if (diffHour < 24) return `${diffHour} 小时前`
-  const diffDay = Math.floor(diffHour / 24)
-  return `${diffDay} 天前`
+  return formatRelativeTime(inv.acquiredAt)
 })
 
 const canBuy = computed(() => {
@@ -167,19 +154,7 @@ const onBuy = () => {
   }
 }
 
-const getRarityLabel = (rarity: string): string => {
-  const labels: Record<string, string> = {
-    common: '普通', uncommon: '稀有', rare: '精良', epic: '史诗', legendary: '传说'
-  }
-  return labels[rarity] || rarity
-}
-
-const getEffectIcon = (type: string): string => {
-  const icons: Record<string, string> = {
-    energy: '⚡', time: '⏰', reputation: '⭐', attribute: '📊', unlock: '🔓'
-  }
-  return icons[type] || '✨'
-}
+// 通用工具函数已迁移到 @/utils/formatters.ts
 
 defineExpose({
   // 暴露给外部操作栏使用
