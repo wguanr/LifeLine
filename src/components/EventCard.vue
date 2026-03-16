@@ -212,71 +212,64 @@
             </view>
           </view>
           
-          <!-- 下注提示信息 -->
-          <view class="bet-hint-bar" v-if="hasAnyBetBoosted">
-            <text class="bet-hint-icon">🔥</text>
-            <text class="bet-hint-text">加码投入可提升你的影响力占比</text>
-            <text class="bet-hint-total" v-if="totalBetExtraCost">额外消耗: {{ totalBetExtraCostText }}</text>
+          <!-- 选择提示 -->
+          <view class="choice-hint-bar" v-if="selectedChoiceId">
+            <text class="choice-hint-icon">🎯</text>
+            <text class="choice-hint-text">再次点击可加倍投入（当前 {{ selectedMultiplier }}×）</text>
+          </view>
+          <view class="choice-hint-bar first" v-else>
+            <text class="choice-hint-icon">👆</text>
+            <text class="choice-hint-text">点击选项做出选择</text>
           </view>
           
           <view class="options-list">
-            <!-- 普通选项 -->
             <view 
               v-for="choice in visibleChoices" 
               :key="choice.id"
               class="option-item"
               :class="{ 
-                disabled: !canAffordBet(choice),
+                disabled: choice.hidden && !isChoiceUnlocked(choice),
                 'hidden-choice': choice.hidden,
                 'hidden-unlocked': choice.hidden && isChoiceUnlocked(choice),
-                'bet-boosted': getChoiceBet(choice.id) > 1
+                'is-selected': selectedChoiceId === choice.id,
+                'is-not-selected': selectedChoiceId && selectedChoiceId !== choice.id,
+                'cant-afford': selectedChoiceId === choice.id && !canAffordSelectedMultiplier
               }"
+              @click="handleChoiceTap(choice)"
             >
-              <view class="option-main" @click="handleSelectChoice(choice)">
+              <view class="option-main">
                 <view class="option-text-row">
                   <text class="hidden-badge" v-if="choice.hidden">🔓 隐藏</text>
                   <text class="option-text">{{ choice.text }}</text>
                 </view>
                 <text class="hidden-hint" v-if="choice.hidden && choice.hiddenHint">{{ choice.hiddenHint }}</text>
-                <view class="option-cost-row">
-                  <view class="option-cost" v-if="getChoiceTotalCost(choice)">
-                    <text v-if="getChoiceTotalCost(choice).time" class="cost-tag time">
-                      ⏰ {{ getChoiceTotalCost(choice).time }}
-                    </text>
-                    <text v-if="getChoiceTotalCost(choice).energy" class="cost-tag energy">
-                      ⚡ {{ getChoiceTotalCost(choice).energy }}
-                    </text>
-                    <text v-if="getChoiceBet(choice.id) > 1" class="cost-multiplier-badge">
-                      {{ getChoiceBet(choice.id) }}× 加码
-                    </text>
+                
+                <!-- 选中状态：显示倍数和预计消耗 -->
+                <view class="option-selected-info" v-if="selectedChoiceId === choice.id">
+                  <view class="multiplier-badge">
+                    <text class="multiplier-text">{{ selectedMultiplier }}×</text>
                   </view>
-                  <text v-if="!canAffordBet(choice)" class="cant-afford-hint">资源不足</text>
+                  <view class="estimated-cost" v-if="selectedCost">
+                    <text v-if="selectedCost.time" class="cost-tag time">⏰ {{ selectedCost.time }}</text>
+                    <text v-if="selectedCost.energy" class="cost-tag energy">⚡ {{ selectedCost.energy }}</text>
+                  </view>
+                  <text class="tap-more-hint" v-if="canAffordNextMultiplier">点击 +1×</text>
+                  <text class="max-hint" v-else>🔝 已达上限</text>
                 </view>
+                
+                <!-- 未选中状态：显示基础消耗 -->
+                <view class="option-cost-row" v-else-if="getChoiceBaseCost(choice)">
+                  <view class="option-cost">
+                    <text v-if="getChoiceBaseCost(choice).time" class="cost-tag time">⏰ {{ getChoiceBaseCost(choice).time }}</text>
+                    <text v-if="getChoiceBaseCost(choice).energy" class="cost-tag energy">⚡ {{ getChoiceBaseCost(choice).energy }}</text>
+                  </view>
+                </view>
+                
                 <view class="requires-items" v-if="choice.hidden && choice.requiresItems">
                   <text class="requires-label">需要持有：</text>
                   <view class="requires-item" v-for="reqId in choice.requiresItems" :key="reqId" :class="{ owned: userStore.hasItem(reqId) }">
                     <text class="req-icon">{{ userStore.hasItem(reqId) ? '✅' : '❌' }}</text>
                     <text class="req-name">{{ getItemName(reqId) }}</text>
-                  </view>
-                </view>
-              </view>
-              
-              <!-- 下注倍数选择器 -->
-              <view class="bet-selector">
-                <text class="bet-label">下注</text>
-                <view class="bet-chips">
-                  <view 
-                    v-for="m in betOptions" 
-                    :key="m"
-                    class="bet-chip"
-                    :class="{ 
-                      active: getChoiceBet(choice.id) === m,
-                      'cant-afford': !canAffordBetLevel(choice, m),
-                      'is-boost': m > 1
-                    }"
-                    @click.stop="handleSetBet(choice.id, m)"
-                  >
-                    <text class="bet-chip-text">{{ m }}×</text>
                   </view>
                 </view>
               </view>
@@ -756,98 +749,222 @@ const canAffordChoice = (choice: EventChoice): boolean => {
   return userStore.canAfford(choice.cost)
 }
 
-// ========== 多倍下注系统 ==========
-/** 可选的下注倍数 */
-const betOptions = [1, 2, 3, 5]
-/** 无cost选项的基础下注额 */
-const BASE_BET = { time: 5, energy: 3 }
-/** 每个选项的当前下注倍数：choiceId -> multiplier */
-const choiceBets = ref<Record<string, number>>({})
+// ========== 选择交互方案 ==========
+/** 基底资源（参与事件时的入场费，不立即结算） */
+const BASE_CHOICE_COST = { time: 5, energy: 3 }
+/** 当前选中的选项 ID */
+const selectedChoiceId = ref<string | null>(null)
+/** 当前选中选项的倍数（点击次数） */
+const selectedMultiplier = ref(1)
 /** 上一次选择的下注倍数（用于result页面展示） */
 const lastBetMultiplier = ref(1)
+/** 最大倍数限制 */
+const MAX_MULTIPLIER = 10
 
-/** 获取某选项的当前下注倍数 */
-const getChoiceBet = (choiceId: string): number => {
-  return choiceBets.value[choiceId] || 1
+/** 获取某选项的基础消耗（1倍） */
+const getChoiceBaseCost = (choice: EventChoice): { time?: number; energy?: number } | null => {
+  // 入场费 + 选项自身消耗 = 基底
+  const entryFee = props.event.entryFee
+  const choiceCost = choice.cost
+  const time = (entryFee?.time || 0) + (choiceCost?.time || 0)
+  const energy = (entryFee?.energy || 0) + (choiceCost?.energy || 0)
+  if (time === 0 && energy === 0) {
+    // 无任何消耗时使用默认基底
+    return { time: BASE_CHOICE_COST.time, energy: BASE_CHOICE_COST.energy }
+  }
+  return { time: time || undefined, energy: energy || undefined }
 }
 
-/** 设置某选项的下注倍数 */
-const setChoiceBet = (choiceId: string, m: number) => {
-  choiceBets.value[choiceId] = m
-}
-
-/** 设置下注倍数（带触觉反馈） */
-const handleSetBet = (choiceId: string, m: number) => {
-  if (!canAffordBetLevel(visibleChoices.value.find(c => c.id === choiceId)!, m)) return
-  setChoiceBet(choiceId, m)
-  // 触觉反馈
-  try {
-    if (navigator && navigator.vibrate) {
-      navigator.vibrate(m > 1 ? [20, 10, 20] : 10)
-    }
-  } catch (e) {}
-}
-
-/** 是否有任何选项被加码 */
-const hasAnyBetBoosted = computed(() => {
-  return Object.values(choiceBets.value).some(m => m > 1)
+/** 当前选中选项的总消耗（倍数 × 基底） */
+const selectedCost = computed(() => {
+  if (!selectedChoiceId.value) return null
+  const choice = visibleChoices.value.find(c => c.id === selectedChoiceId.value)
+  if (!choice) return null
+  const base = getChoiceBaseCost(choice)
+  if (!base) return null
+  return {
+    time: base.time ? base.time * selectedMultiplier.value : undefined,
+    energy: base.energy ? base.energy * selectedMultiplier.value : undefined
+  }
 })
 
-/** 当前所有选项的额外消耗总和 */
-const totalBetExtraCost = computed(() => {
-  let extraTime = 0
-  let extraEnergy = 0
-  for (const choice of visibleChoices.value) {
-    const m = getChoiceBet(choice.id)
-    if (m <= 1) continue
-    if (choice.cost) {
-      extraTime += (choice.cost.time || 0) * (m - 1)
-      extraEnergy += (choice.cost.energy || 0) * (m - 1)
+/** 是否能负担得起当前倍数的消耗 */
+const canAffordSelectedMultiplier = computed(() => {
+  if (!selectedCost.value) return true
+  return userStore.canAfford(selectedCost.value)
+})
+
+/** 是否能负担得起下一个倍数 */
+const canAffordNextMultiplier = computed(() => {
+  if (!selectedChoiceId.value) return false
+  if (selectedMultiplier.value >= MAX_MULTIPLIER) return false
+  const choice = visibleChoices.value.find(c => c.id === selectedChoiceId.value)
+  if (!choice) return false
+  const base = getChoiceBaseCost(choice)
+  if (!base) return true
+  const nextCost = {
+    time: base.time ? base.time * (selectedMultiplier.value + 1) : 0,
+    energy: base.energy ? base.energy * (selectedMultiplier.value + 1) : 0
+  }
+  return userStore.canAfford(nextCost)
+})
+
+/** 点击选项：第一次选中，后续点击加倍 */
+const handleChoiceTap = (choice: EventChoice) => {
+  // 隐藏分支校验
+  if (choice.hidden && !isChoiceUnlocked(choice)) {
+    uni.showToast({ title: '需要持有特定物品才能解锁', icon: 'none' })
+    return
+  }
+  
+  if (selectedChoiceId.value === choice.id) {
+    // 已选中同一选项：加倍
+    if (canAffordNextMultiplier.value) {
+      selectedMultiplier.value++
+      // 触觉反馈
+      try {
+        if (navigator && navigator.vibrate) {
+          navigator.vibrate(selectedMultiplier.value > 3 ? [20, 10, 20] : 10)
+        }
+      } catch (e) {}
     } else {
-      extraTime += BASE_BET.time * (m - 1)
-      extraEnergy += BASE_BET.energy * (m - 1)
+      uni.showToast({ title: '资源不足，无法继续加倍', icon: 'none' })
     }
+  } else {
+    // 选中新选项：重置倍数为 1
+    selectedChoiceId.value = choice.id
+    selectedMultiplier.value = 1
+    // 触觉反馈
+    try {
+      if (navigator && navigator.vibrate) {
+        navigator.vibrate(15)
+      }
+    } catch (e) {}
   }
-  if (extraTime === 0 && extraEnergy === 0) return null
-  return { time: extraTime, energy: extraEnergy }
-})
-
-/** 额外消耗文本 */
-const totalBetExtraCostText = computed(() => {
-  if (!totalBetExtraCost.value) return ''
-  const parts: string[] = []
-  if (totalBetExtraCost.value.time) parts.push(`⏰${totalBetExtraCost.value.time}`)
-  if (totalBetExtraCost.value.energy) parts.push(`⚡${totalBetExtraCost.value.energy}`)
-  return parts.join(' ')
-})
-
-/** 获取某选项在当前下注倍数下的总消耗 */
-const getChoiceTotalCost = (choice: EventChoice): { time?: number; energy?: number } | null => {
-  const m = getChoiceBet(choice.id)
-  if (choice.cost) {
-    return {
-      time: choice.cost.time ? choice.cost.time * m : undefined,
-      energy: choice.cost.energy ? choice.cost.energy * m : undefined
-    }
-  }
-  // 无cost选项：倍数>1时使用基础下注额
-  if (m > 1) {
-    return {
-      time: BASE_BET.time * (m - 1),
-      energy: BASE_BET.energy * (m - 1)
-    }
-  }
-  return null
 }
 
-/** 检查当前下注倍数下是否负担得起 */
-const canAffordBet = (choice: EventChoice): boolean => {
-  const cost = getChoiceTotalCost(choice)
-  if (!cost) return true
-  return userStore.canAfford(cost)
+/** 确认选择：此时才结算资源消耗并进入下一阶段 */
+const confirmChoice = () => {
+  if (!selectedChoiceId.value) {
+    uni.showToast({ title: '请先选择一个选项', icon: 'none' })
+    return
+  }
+  
+  const choice = visibleChoices.value.find(c => c.id === selectedChoiceId.value)
+  if (!choice) return
+  
+  const actualCost = selectedCost.value
+  lastBetMultiplier.value = selectedMultiplier.value
+  
+  // 检查资源是否足够
+  if (actualCost && !userStore.canAfford(actualCost)) {
+    uni.showToast({ title: '时间或精力不足', icon: 'none' })
+    return
+  }
+  
+  // ✅ 此时才结算资源消耗
+  if (actualCost) {
+    userStore.pay(actualCost)
+    const investType: 'boost' | 'choice_cost' = selectedMultiplier.value > 1 ? 'boost' : 'choice_cost'
+    const desc = selectedMultiplier.value > 1 
+      ? `选择“${choice.text}”并${selectedMultiplier.value}倍加码` 
+      : `选择“${choice.text}”的消耗`
+    recordMyInvestment(investType, actualCost, currentStage.value?.id, desc)
+  }
+  
+  // Influencer系统：记录用户选择
+  if (currentStage.value) {
+    recordMyChoice(currentStage.value.id, choice.id, choice.text, choice.outcome.resultText)
+  }
+  
+  const result = choice.outcome
+  lastResult.value = result
+  nextStageId.value = result.nextStageId || null
+  
+  if (result.rewards) {
+    if (result.rewards.time) userStore.updateWallet({ time: result.rewards.time })
+    if (result.rewards.energy) userStore.updateWallet({ energy: result.rewards.energy })
+    if (result.rewards.reputation) userStore.updateWallet({ reputation: result.rewards.reputation })
+    
+    if (result.rewards.tags) {
+      const totalCostVal = {
+        time: (props.event.entryFee?.time || 0) + (choice.cost?.time || 0),
+        energy: (props.event.entryFee?.energy || 0) + (choice.cost?.energy || 0)
+      }
+      if (Array.isArray(result.rewards.tags)) {
+        result.rewards.tags.forEach((t: any) => {
+          if (typeof t === 'string') {
+            userStore.updateTagWeight(t, 5, 'event', props.event.id, props.event.title, totalCostVal)
+          } else if (t && typeof t === 'object' && t.id) {
+            userStore.updateTagWeight(t.id, t.value || 5, 'event', props.event.id, props.event.title, totalCostVal)
+          }
+        })
+      } else if (typeof result.rewards.tags === 'object') {
+        Object.entries(result.rewards.tags).forEach(([tagId, weight]) => {
+          userStore.updateTagWeight(tagId, weight as number, 'event', props.event.id, props.event.title, totalCostVal)
+        })
+      }
+    }
+    
+    if (result.rewards.items) {
+      result.rewards.items.forEach(itemId => userStore.addItem({
+          itemId,
+          quantity: 1,
+          acquiredAt: Date.now(),
+          source: props.event.id
+        }))
+    }
+    
+    if (result.rewards.itemDrops && result.rewards.itemDrops.length > 0) {
+      const drops = rollItemDrops(result.rewards.itemDrops)
+      droppedItems.value = drops
+      drops.forEach(drop => {
+        userStore.addItem({
+          itemId: drop.itemId,
+          quantity: drop.quantity,
+          acquiredAt: Date.now(),
+          source: props.event.id
+        })
+      })
+      if (drops.length > 0) {
+        showItemDrops(drops)
+      }
+    } else {
+      droppedItems.value = []
+    }
+  }
+  
+  if (result.penalties) {
+    if (result.penalties.time) userStore.pay({ time: result.penalties.time })
+    if (result.penalties.energy) userStore.pay({ energy: result.penalties.energy })
+    if (result.penalties.reputation) userStore.pay({ reputation: result.penalties.reputation })
+    
+    if (result.penalties.tags) {
+      Object.entries(result.penalties.tags).forEach(([tagId, weight]) => {
+        userStore.decreaseTagWeight(tagId, weight as number)
+      })
+    }
+  }
+  
+  worldStore.recordChoice(props.event.id, props.event.title, choice.text)
+  
+  claimedItemIds.value.clear()
+  skippedItemIds.value.clear()
+  
+  // 重置选择状态
+  selectedChoiceId.value = null
+  selectedMultiplier.value = 1
+  
+  if (tryTriggerEncounter()) {
+    mode.value = 'encounter'
+    emit('stateChange', 'encounter')
+  } else {
+    mode.value = 'result'
+    emit('stateChange', 'result')
+  }
 }
 
-/** 检查某个特定倍数是否负担得起 */
+/** 兼容旧的 canAffordBetLevel */
 const canAffordBetLevel = (choice: EventChoice, m: number): boolean => {
   if (choice.cost) {
     const cost = {
@@ -858,8 +975,8 @@ const canAffordBetLevel = (choice: EventChoice, m: number): boolean => {
   }
   if (m > 1) {
     const cost = {
-      time: BASE_BET.time * (m - 1),
-      energy: BASE_BET.energy * (m - 1)
+      time: BASE_CHOICE_COST.time * (m - 1),
+      energy: BASE_CHOICE_COST.energy * (m - 1)
     }
     return userStore.canAfford(cost)
   }
@@ -970,31 +1087,18 @@ const handleTapJoin = () => {
 }
 
 const confirmJoin = () => {
-  if (!canJoin.value || !canAffordCurrent.value) return
+  if (!canJoin.value) return
   
-  const finalMultiplier = Math.max(multiplier.value, 1)
-  
-  if (props.event.entryFee && hasEntryFee.value) {
-    userStore.pay(totalCost.value)
-  }
+  // ✅ 入场费不再立即扣除，将在选择确认时一并结算
   
   // Influencer系统：初始化虚拟用户数据
   initSimulatedUsers()
-  
-  // Influencer系统：记录当前用户的入场费投入
-  if (props.event.entryFee && hasEntryFee.value) {
-    const fee = {
-      time: (props.event.entryFee.time || 0) * finalMultiplier,
-      energy: (props.event.entryFee.energy || 0) * finalMultiplier
-    }
-    recordMyInvestment('entry_fee', fee, undefined, `参与事件入场费${finalMultiplier > 1 ? ` (${finalMultiplier}倍)` : ''}`)
-  }
   
   eventStore.startEvent(props.event.id)
   
   worldStore.recordEvent(
     props.event.id, 
-    props.event.title + (finalMultiplier > 1 ? ` (${finalMultiplier}倍投入)` : '')
+    props.event.title
   )
   
   mode.value = 'playing'
@@ -1112,126 +1216,7 @@ const getClaimItemIcon = (itemId: string): string => {
   return item?.icon || '🎁'
 }
 
-// ========== 选项选择 ==========
-const handleSelectChoice = (choice: EventChoice) => {
-  // 隐藏分支校验
-  if (choice.hidden && !isChoiceUnlocked(choice)) {
-    uni.showToast({ title: '需要持有特定物品才能解锁', icon: 'none' })
-    return
-  }
-  
-  // 使用多倍下注的实际消耗
-  const betMultiplier = getChoiceBet(choice.id)
-  lastBetMultiplier.value = betMultiplier
-  const actualCost = getChoiceTotalCost(choice)
-  
-  if (actualCost && !userStore.canAfford(actualCost)) {
-    uni.showToast({ title: '时间或精力不足', icon: 'none' })
-    return
-  }
-  
-  if (actualCost) {
-    userStore.pay(actualCost)
-    // Influencer系统：记录选择消耗
-    const investType: 'boost' | 'choice_cost' = betMultiplier > 1 ? 'boost' : 'choice_cost'
-    const desc = betMultiplier > 1 
-      ? `选择“${choice.text}”并${betMultiplier}倍加码` 
-      : `选择“${choice.text}”的消耗`
-    recordMyInvestment(investType, actualCost, currentStage.value?.id, desc)
-  }
-  
-  // Influencer系统：记录用户选择
-  if (currentStage.value) {
-    recordMyChoice(currentStage.value.id, choice.id, choice.text, choice.outcome.resultText)
-  }
-  
-  const result = choice.outcome
-  lastResult.value = result
-  nextStageId.value = result.nextStageId || null
-  
-  if (result.rewards) {
-    if (result.rewards.time) userStore.updateWallet({ time: result.rewards.time })
-    if (result.rewards.energy) userStore.updateWallet({ energy: result.rewards.energy })
-    if (result.rewards.reputation) userStore.updateWallet({ reputation: result.rewards.reputation })
-    
-    if (result.rewards.tags) {
-      const totalCostVal = {
-        time: (props.event.entryFee?.time || 0) + (choice.cost?.time || 0),
-        energy: (props.event.entryFee?.energy || 0) + (choice.cost?.energy || 0)
-      }
-      if (Array.isArray(result.rewards.tags)) {
-        result.rewards.tags.forEach((t: any) => {
-          if (typeof t === 'string') {
-            userStore.updateTagWeight(t, 5, 'event', props.event.id, props.event.title, totalCostVal)
-          } else if (t && typeof t === 'object' && t.id) {
-            userStore.updateTagWeight(t.id, t.value || 5, 'event', props.event.id, props.event.title, totalCostVal)
-          }
-        })
-      } else if (typeof result.rewards.tags === 'object') {
-        Object.entries(result.rewards.tags).forEach(([tagId, weight]) => {
-          userStore.updateTagWeight(tagId, weight as number, 'event', props.event.id, props.event.title, totalCostVal)
-        })
-      }
-    }
-    
-    if (result.rewards.items) {
-      result.rewards.items.forEach(itemId => userStore.addItem({
-          itemId,
-          quantity: 1,
-          acquiredAt: Date.now(),
-          source: props.event.id
-        }))
-    }
-    
-    // 概率掉落物品处理
-    if (result.rewards.itemDrops && result.rewards.itemDrops.length > 0) {
-      const drops = rollItemDrops(result.rewards.itemDrops)
-      droppedItems.value = drops
-      // 先添加到背包
-      drops.forEach(drop => {
-        userStore.addItem({
-          itemId: drop.itemId,
-          quantity: drop.quantity,
-          acquiredAt: Date.now(),
-          source: props.event.id
-        })
-      })
-      // 触发全屏展示
-      if (drops.length > 0) {
-        showItemDrops(drops)
-      }
-    } else {
-      droppedItems.value = []
-    }
-  }
-  
-  if (result.penalties) {
-    if (result.penalties.time) userStore.pay({ time: result.penalties.time })
-    if (result.penalties.energy) userStore.pay({ energy: result.penalties.energy })
-    if (result.penalties.reputation) userStore.pay({ reputation: result.penalties.reputation })
-    
-    if (result.penalties.tags) {
-      Object.entries(result.penalties.tags).forEach(([tagId, weight]) => {
-        userStore.decreaseTagWeight(tagId, weight as number)
-      })
-    }
-  }
-  
-  worldStore.recordChoice(props.event.id, props.event.title, choice.text)
-  
-  // 重置ClaimItem状态
-  claimedItemIds.value.clear()
-  skippedItemIds.value.clear()
-  
-  // 尝试触发“与玩家相遇”偶发子事件
-  if (tryTriggerEncounter()) {
-    mode.value = 'encounter'
-    emit('stateChange', 'encounter')
-  } else {
-    mode.value = 'result'
-    emit('stateChange', 'result')
-  }
-}
+// handleSelectChoice 已被 confirmChoice 替代
 
 const handleContinue = () => {
   // 检查是否有必须领取的物品未领取
@@ -1259,7 +1244,8 @@ const handleContinue = () => {
     mode.value = 'playing'
     lastResult.value = null
     nextStageId.value = null
-    choiceBets.value = {}
+    selectedChoiceId.value = null
+    selectedMultiplier.value = 1
     lastBetMultiplier.value = 1
     emit('stateChange', 'playing')
   } else {
@@ -1304,7 +1290,8 @@ const resetCardState = () => {
   skippedItemIds.value.clear()
   droppedItems.value = []
   influencerExpanded.value = false
-  choiceBets.value = {}
+  selectedChoiceId.value = null
+  selectedMultiplier.value = 1
   lastBetMultiplier.value = 1
   emit('stateChange', 'preview')
 }
@@ -1333,6 +1320,12 @@ defineExpose({
   btnClasses,
   ripples,
   addRipple,
+  // playing 模式操作（新选择交互方案）
+  confirmChoice,
+  selectedChoiceId,
+  selectedMultiplier,
+  selectedCost,
+  canAffordSelectedMultiplier,
   // encounter 模式操作
   handleEncounterFollow,
   handleEncounterSkip,
@@ -2375,17 +2368,22 @@ defineExpose({
   100% { box-shadow: 0 0 16rpx rgba(245, 158, 11, 0.3); }
 }
 
-// 下注提示栏
-.bet-hint-bar {
+// 选择提示栏
+.choice-hint-bar {
   display: flex;
   align-items: center;
   gap: 8rpx;
   padding: 12rpx 16rpx;
   margin-bottom: 16rpx;
-  background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(239, 68, 68, 0.05));
+  background: linear-gradient(135deg, rgba($neon-cyan, 0.1), rgba($neon-magenta, 0.05));
   border-radius: $radius-lg;
-  border: 1rpx solid rgba(245, 158, 11, 0.2);
+  border: 1rpx solid rgba($neon-cyan, 0.2);
   animation: hint-slide-in 0.3s ease-out;
+  
+  &.first {
+    background: linear-gradient(135deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+    border-color: rgba(255,255,255,0.08);
+  }
 }
 
 @keyframes hint-slide-in {
@@ -2393,23 +2391,20 @@ defineExpose({
   to { opacity: 1; transform: translateY(0); }
 }
 
-.bet-hint-icon {
+.choice-hint-icon {
   font-size: 24rpx;
   flex-shrink: 0;
 }
 
-.bet-hint-text {
+.choice-hint-text {
   font-size: 22rpx;
-  color: rgba($neon-amber, 0.8);
+  color: rgba($neon-cyan, 0.8);
   font-weight: 500;
   flex: 1;
-}
-
-.bet-hint-total {
-  font-size: 22rpx;
-  color: $neon-amber;
-  font-weight: 700;
-  white-space: nowrap;
+  
+  .first & {
+    color: $text-tertiary;
+  }
 }
 
 // 选项消耗行
@@ -2418,138 +2413,100 @@ defineExpose({
   align-items: center;
   justify-content: space-between;
   gap: 8rpx;
+  margin-top: 8rpx;
 }
 
-.cost-multiplier-badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 2rpx 10rpx;
-  background: linear-gradient(135deg, #f59e0b, #d97706);
-  color: white;
-  font-size: 18rpx;
-  font-weight: 700;
-  border-radius: $radius-full;
-  animation: badge-pop 0.3s ease;
-}
-
-@keyframes badge-pop {
-  0% { transform: scale(0.5); opacity: 0; }
-  60% { transform: scale(1.1); }
-  100% { transform: scale(1); opacity: 1; }
-}
-
-.cant-afford-hint {
-  font-size: 20rpx;
-  color: #ef4444;
-  font-weight: 600;
-  white-space: nowrap;
-}
-
-.bet-selector {
+// 选中状态信息
+.option-selected-info {
   display: flex;
-  flex-direction: row;
   align-items: center;
   gap: 12rpx;
-  margin-top: 12rpx;
-  padding-top: 10rpx;
-  border-top: 1rpx solid rgba(255, 255, 255, 0.06);
+  margin-top: 10rpx;
+  padding: 8rpx 12rpx;
+  background: linear-gradient(135deg, rgba($neon-cyan, 0.1), rgba($neon-magenta, 0.05));
+  border-radius: $radius-md;
+  border: 1rpx solid rgba($neon-cyan, 0.2);
+  animation: selected-info-in 0.3s ease-out;
 }
 
-.bet-label {
-  font-size: 20rpx;
-  color: $text-tertiary;
-  font-weight: 500;
-  letter-spacing: 1rpx;
+@keyframes selected-info-in {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
 }
 
-.bet-chips {
-  display: flex;
-  align-items: center;
-  gap: 10rpx;
-}
-
-.bet-chip {
+.multiplier-badge {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-width: 64rpx;
-  height: 44rpx;
-  padding: 0 14rpx;
-  border-radius: 22rpx;
-  border: 1rpx solid rgba(255,255,255,0.08);
-  @include glass-effect(0.05);
-  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
-  touch-action: manipulation;
-  -webkit-tap-highlight-color: transparent;
-  
-  &.active {
-    border-color: #f59e0b;
-    background: linear-gradient(135deg, #f59e0b, #d97706);
-    box-shadow: 0 2rpx 12rpx rgba(245, 158, 11, 0.4);
-    transform: scale(1.08);
-    
-    .bet-chip-text {
-      color: white;
-      font-weight: 700;
-    }
+  min-width: 52rpx;
+  height: 40rpx;
+  padding: 0 10rpx;
+  background: linear-gradient(135deg, $neon-cyan, $neon-magenta);
+  border-radius: $radius-full;
+  animation: multiplier-pop 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes multiplier-pop {
+  0% { transform: scale(0.7); }
+  60% { transform: scale(1.15); }
+  100% { transform: scale(1); }
+}
+
+.multiplier-text {
+  font-size: 22rpx;
+  font-weight: 800;
+  color: white;
+  text-shadow: 0 1rpx 4rpx rgba(0,0,0,0.3);
+}
+
+.estimated-cost {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+}
+
+.tap-more-hint {
+  font-size: 20rpx;
+  color: rgba($neon-cyan, 0.6);
+  font-weight: 500;
+  margin-left: auto;
+  animation: tap-hint-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes tap-hint-pulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+.max-hint {
+  font-size: 20rpx;
+  color: rgba($neon-amber, 0.7);
+  font-weight: 600;
+  margin-left: auto;
+}
+
+// 选项选中/未选中状态
+.option-item {
+  &.is-selected {
+    border-color: rgba($neon-cyan, 0.5) !important;
+    background: rgba($neon-cyan, 0.08) !important;
+    box-shadow: 0 0 20rpx rgba($neon-cyan, 0.15), inset 0 0 20rpx rgba($neon-cyan, 0.05);
+    transform: scale(1.02);
   }
   
-  &.active.is-boost {
-    background: linear-gradient(135deg, #ef4444, #dc2626);
-    border-color: #ef4444;
-    box-shadow: 0 2rpx 12rpx rgba(239, 68, 68, 0.4);
+  &.is-not-selected {
+    opacity: 0.45;
+    transform: scale(0.97);
+    filter: grayscale(0.3);
   }
   
   &.cant-afford {
-    opacity: 0.3;
-    pointer-events: none;
-    filter: grayscale(1);
+    border-color: rgba(#ef4444, 0.4) !important;
+    
+    .multiplier-badge {
+      background: linear-gradient(135deg, #ef4444, #dc2626);
+    }
   }
-  
-  &:active:not(.cant-afford) {
-    transform: scale(0.92);
-  }
-}
-
-.bet-chip-text {
-  font-size: 22rpx;
-  color: $text-secondary;
-  font-weight: 500;
-}
-
-.cost-multiplier {
-  font-size: 20rpx;
-  color: #f59e0b;
-  font-weight: 600;
-}
-
-.bet-boost-info {
-  display: flex;
-  align-items: center;
-  gap: 12rpx;
-  margin-top: 16rpx;
-  padding: 12rpx 16rpx;
-  background: linear-gradient(135deg, rgba(245, 158, 11, 0.12), rgba(245, 158, 11, 0.04));
-  border-radius: 12rpx;
-  border: 1rpx solid rgba(245, 158, 11, 0.3);
-  animation: boost-info-in 0.4s ease;
-}
-
-@keyframes boost-info-in {
-  from { opacity: 0; transform: translateY(10rpx); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.bet-boost-badge {
-  font-size: 24rpx;
-  font-weight: 700;
-  color: $neon-amber;
-  white-space: nowrap;
-}
-
-.bet-boost-desc {
-  font-size: 22rpx;
-  color: rgba($neon-amber, 0.7);
 }
 
 // ==================== “与玩家相遇”偶发子事件 ====================

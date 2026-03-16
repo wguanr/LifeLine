@@ -1,113 +1,109 @@
 <template>
   <view class="user-card">
-    <scroll-view class="card-scroll" scroll-y>
-      <!-- 头像 + 用户信息区 -->
-      <view class="profile-header">
-        <view class="avatar-area">
-          <view class="avatar-ring" :class="'ring-level-' + Math.min(user.clearanceLevel, 5)">
-            <view class="avatar-inner">
-              <text class="avatar-char" v-if="user.avatar">{{ user.avatar }}</text>
-              <text class="avatar-char" v-else>{{ user.nickname.charAt(0) }}</text>
-            </view>
+    <!-- 头像 + 用户信息区 -->
+    <view class="profile-header">
+      <view class="avatar-area">
+        <view class="avatar-ring" :class="'ring-level-' + Math.min(user.clearanceLevel, 5)">
+          <view class="avatar-inner">
+            <text class="avatar-char" v-if="user.avatar">{{ user.avatar }}</text>
+            <text class="avatar-char" v-else>{{ user.nickname.charAt(0) }}</text>
           </view>
-          <view class="online-dot" v-if="isRecentlyActive"></view>
         </view>
-        <view class="profile-info">
-          <view class="name-line">
-            <text class="user-name">{{ user.nickname }}</text>
-            <view class="level-pill" :class="'pill-level-' + Math.min(user.clearanceLevel, 5)">
-              <text class="level-text">L{{ user.clearanceLevel }}</text>
-            </view>
+        <view class="online-dot" v-if="isRecentlyActive"></view>
+      </view>
+      <view class="profile-info">
+        <view class="name-line">
+          <text class="user-name">{{ user.nickname }}</text>
+          <view class="level-pill" :class="'pill-level-' + Math.min(user.clearanceLevel, 5)">
+            <text class="level-text">L{{ user.clearanceLevel }}</text>
           </view>
-          <text class="user-bio">{{ user.bio || '这个人很懒，什么都没写~' }}</text>
-          <text class="active-time">{{ activeTimeText }}</text>
         </view>
+        <text class="user-bio">{{ user.bio || '这个人很懒，什么都没写~' }}</text>
+        <text class="active-time">{{ activeTimeText }}</text>
       </view>
+    </view>
 
-      <!-- 座右铭 -->
-      <view class="motto-bar" v-if="user.motto">
-        <view class="motto-accent"></view>
-        <text class="motto-prefix">偶于：</text>
-        <text class="motto-text">{{ user.motto }}</text>
+    <!-- 座右铭 -->
+    <view class="motto-bar" v-if="user.motto">
+      <view class="motto-accent"></view>
+      <text class="motto-prefix">偶于：</text>
+      <text class="motto-text">{{ user.motto }}</text>
+    </view>
+
+    <!-- 标签药丸 -->
+    <view class="tag-row" v-if="user.tags && user.tags.length">
+      <view 
+        class="tag-pill" 
+        v-for="(tag, idx) in user.tags.slice(0, 4)" 
+        :key="tag.tagId"
+        :class="'pill-color-' + (idx % 4)"
+      >
+        <text class="tag-label">{{ getTagName(tag.tagId) }}</text>
       </view>
+    </view>
 
-      <!-- 标签药丸 -->
-      <view class="tag-row" v-if="user.tags && user.tags.length">
+    <!-- 统计四格 -->
+    <view class="stats-row">
+      <view class="stat-cell">
+        <text class="stat-title">标签</text>
+        <text class="stat-num">{{ user.tags?.length || 0 }}</text>
+      </view>
+      <view class="stat-divider"></view>
+      <view class="stat-cell">
+        <text class="stat-title">事件</text>
+        <text class="stat-num">{{ user.history?.completedEvents?.length || 0 }}</text>
+      </view>
+      <view class="stat-divider"></view>
+      <view class="stat-cell">
+        <text class="stat-title">声望</text>
+        <text class="stat-num">{{ user.wallet?.reputation || 0 }}</text>
+      </view>
+      <view class="stat-divider"></view>
+      <view class="stat-cell">
+        <text class="stat-title">道具</text>
+        <text class="stat-num">{{ user.inventory?.length || 0 }}</text>
+      </view>
+    </view>
+
+    <!-- 宝物展示 -->
+    <view class="showcase-section" v-if="bestItems.length > 0">
+      <text class="section-title">宝物展示</text>
+      <view class="showcase-grid">
         <view 
-          class="tag-pill" 
-          v-for="(tag, idx) in user.tags.slice(0, 4)" 
-          :key="tag.tagId"
-          :class="'pill-color-' + (idx % 4)"
+          class="showcase-item" 
+          v-for="item in bestItems" 
+          :key="item.id"
+          :class="'border-' + item.rarity"
         >
-          <text class="tag-label">{{ getTagName(tag.tagId) }}</text>
+          <view class="item-icon-box" :class="'bg-' + item.rarity">
+            <text class="item-emoji">{{ item.icon }}</text>
+          </view>
+          <text class="item-label">{{ item.name }}</text>
         </view>
       </view>
+    </view>
 
-      <!-- 统计四格 -->
-      <view class="stats-row">
-        <view class="stat-cell">
-          <text class="stat-title">标签</text>
-          <text class="stat-num">{{ user.tags?.length || 0 }}</text>
-        </view>
-        <view class="stat-divider"></view>
-        <view class="stat-cell">
-          <text class="stat-title">事件</text>
-          <text class="stat-num">{{ user.history?.completedEvents?.length || 0 }}</text>
-        </view>
-        <view class="stat-divider"></view>
-        <view class="stat-cell">
-          <text class="stat-title">声望</text>
-          <text class="stat-num">{{ user.wallet?.reputation || 0 }}</text>
-        </view>
-        <view class="stat-divider"></view>
-        <view class="stat-cell">
-          <text class="stat-title">道具</text>
-          <text class="stat-num">{{ user.inventory?.length || 0 }}</text>
-        </view>
-      </view>
-
-      <!-- 宝物展示 -->
-      <view class="showcase-section" v-if="bestItems.length > 0">
-        <text class="section-title">宝物展示</text>
-        <view class="showcase-grid">
+    <!-- 成就概念 -->
+    <view class="achievements-section" v-if="achievementBadges.length > 0">
+      <text class="section-title">成就概念</text>
+      <scroll-view class="badge-scroll" scroll-x>
+        <view class="badge-track">
           <view 
-            class="showcase-item" 
-            v-for="item in bestItems" 
-            :key="item.id"
-            :class="'border-' + item.rarity"
+            class="badge-pill" 
+            v-for="badge in achievementBadges" 
+            :key="badge.id"
           >
-            <view class="item-icon-box" :class="'bg-' + item.rarity">
-              <text class="item-emoji">{{ item.icon }}</text>
-            </view>
-            <text class="item-label">{{ item.name }}</text>
+            <text class="badge-icon">{{ badge.icon }}</text>
+            <text class="badge-name">{{ badge.name }}</text>
           </view>
         </view>
-      </view>
-
-      <!-- 成就概念 -->
-      <view class="achievements-section" v-if="achievementBadges.length > 0">
-        <text class="section-title">成就概念</text>
-        <scroll-view class="badge-scroll" scroll-x>
-          <view class="badge-track">
-            <view 
-              class="badge-pill" 
-              v-for="badge in achievementBadges" 
-              :key="badge.id"
-            >
-              <text class="badge-icon">{{ badge.icon }}</text>
-              <text class="badge-name">{{ badge.name }}</text>
-            </view>
-          </view>
-        </scroll-view>
-      </view>
-    </scroll-view>
-
-
+      </scroll-view>
+    </view>
   </view>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import type { User } from '@/types'
 import { getTagDefinition } from '@/data/tags'
 import { useInfluencerStore } from '@/stores/influencer'
@@ -195,6 +191,7 @@ const achievementBadges = computed(() => {
     .slice(0, 6)
 })
 
+// 主操作：关注/取消关注
 const handleFollow = () => {
   if (isFollowed.value) {
     influencerStore.unfollowInfluencer(props.user.id)
@@ -205,23 +202,37 @@ const handleFollow = () => {
   }
   emit('follow', props.user)
 }
+
+// 主操作按钮文字
+const primaryActionText = computed(() => {
+  return isFollowed.value ? '✓ 已关注' : '👋 关注'
+})
+
+// 主操作按钮是否禁用
+const primaryActionDisabled = computed(() => false)
+
+// 暴露给父组件的接口
+defineExpose({
+  handleFollow,
+  handlePrimaryAction: handleFollow,
+  primaryActionText,
+  primaryActionDisabled,
+  isFollowed
+})
 </script>
 
 <style lang="scss" scoped>
+@import '@/styles/theme.scss';
 
 // ==================== 卡片根容器 ====================
 .user-card {
   width: 100%;
-  height: 100%;
   display: flex;
   flex-direction: column;
-  gap: 0;
-}
-
-.card-scroll {
-  flex: 1;
-  min-height: 0;
-  padding: 28rpx 28rpx 0;
+  padding: 28rpx;
+  box-sizing: border-box;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 // ==================== 头像 + 信息区 ====================
@@ -230,6 +241,7 @@ const handleFollow = () => {
   align-items: flex-start;
   gap: 24rpx;
   margin-bottom: 24rpx;
+  flex-shrink: 0;
 }
 
 .avatar-area {
@@ -245,8 +257,6 @@ const handleFollow = () => {
   display: flex;
   align-items: center;
   justify-content: center;
-
-  // 默认渐变环
   background: linear-gradient(135deg, $neon-cyan, $neon-magenta);
 
   &.ring-level-0 { background: rgba(255,255,255,0.2); }
@@ -346,6 +356,7 @@ const handleFollow = () => {
   margin-bottom: 20rpx;
   border-radius: $radius-lg;
   background: linear-gradient(135deg, rgba($neon-magenta, 0.06), rgba($neon-magenta, 0.02));
+  flex-shrink: 0;
 }
 
 .motto-accent {
@@ -377,6 +388,7 @@ const handleFollow = () => {
   flex-wrap: wrap;
   gap: 12rpx;
   margin-bottom: 20rpx;
+  flex-shrink: 0;
 }
 
 .tag-pill {
@@ -419,6 +431,7 @@ const handleFollow = () => {
   margin-bottom: 20rpx;
   border-top: 1rpx solid rgba(255, 255, 255, 0.06);
   border-bottom: 1rpx solid rgba(255, 255, 255, 0.06);
+  flex-shrink: 0;
 }
 
 .stat-cell {
@@ -449,6 +462,7 @@ const handleFollow = () => {
 // ==================== 宝物展示 ====================
 .showcase-section {
   margin-bottom: 20rpx;
+  flex-shrink: 0;
 }
 
 .section-title {
@@ -477,7 +491,6 @@ const handleFollow = () => {
   position: relative;
   overflow: hidden;
 
-  // 稀有度边框颜色
   &.border-legendary {
     border-color: rgba($rarity-legendary, 0.5);
     background: linear-gradient(180deg, rgba($rarity-legendary, 0.08) 0%, rgba($rarity-legendary, 0.02) 100%);
@@ -545,6 +558,7 @@ const handleFollow = () => {
 // ==================== 成就概念 ====================
 .achievements-section {
   margin-bottom: 16rpx;
+  flex-shrink: 0;
 }
 
 .badge-scroll {
@@ -569,74 +583,4 @@ const handleFollow = () => {
   .badge-icon { font-size: 24rpx; }
   .badge-name { font-size: 22rpx; font-weight: 600; color: $neon-amber; }
 }
-
-// ==================== 底部操作区 ====================
-.card-footer {
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  gap: 12rpx;
-  padding: 16rpx 28rpx;
-}
-
-.follow-btn {
-  flex: 1;
-  height: 80rpx;
-  border-radius: $radius-full;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg, $neon-cyan, $neon-magenta);
-  transition: all 0.2s ease;
-
-  &:active {
-    transform: scale(0.97);
-    opacity: 0.9;
-  }
-
-  &.is-followed {
-    background: rgba(255, 255, 255, 0.08);
-    border: 1rpx solid rgba(255, 255, 255, 0.15);
-
-    .follow-text { color: $text-secondary; }
-  }
-}
-
-.follow-text {
-  font-size: 30rpx;
-  font-weight: 700;
-  color: #fff;
-}
-
-.footer-icon-btn {
-  width: 80rpx;
-  height: 80rpx;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1rpx solid rgba(255, 255, 255, 0.1);
-  transition: all 0.2s ease;
-
-  &:active {
-    transform: scale(0.93);
-    background: rgba(255, 255, 255, 0.12);
-  }
-}
-
-.icon-btn-emoji {
-  font-size: 32rpx;
-}
-
-// ==================== 底部提示 ====================
-.card-hint {
-  display: block;
-  text-align: center;
-  font-size: 22rpx;
-  color: $text-tertiary;
-  padding: 8rpx 0 16rpx;
-  opacity: 0.6;
-}
-
 </style>

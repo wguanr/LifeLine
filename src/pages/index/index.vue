@@ -166,7 +166,30 @@
             <text class="main-action-text">{{ currentCardComponent.hasRequiredUnclaimedItems ? '请先领取必须物品' : (currentCardComponent.hasNextStage ? '继续' : '完成') }}</text>
           </view>
         </template>
-        <!-- playing 模式不显示主操作按钮（选项在卡片内部） -->
+        <!-- playing 模式：显示确认选择按钮 -->
+        <template v-else-if="currentCardComponent.mode === 'playing'">
+          <view class="main-action-btn confirm-choice-btn" 
+            :class="{ 
+              disabled: !currentCardComponent.selectedChoiceId,
+              'cant-afford': currentCardComponent.selectedChoiceId && !currentCardComponent.canAffordSelectedMultiplier,
+              'has-selection': !!currentCardComponent.selectedChoiceId
+            }"
+            @click="currentCardComponent.confirmChoice()"
+          >
+            <template v-if="currentCardComponent.selectedChoiceId">
+              <text class="main-action-icon confirm-icon">{{ currentCardComponent.selectedMultiplier > 1 ? '🔥' : '✅' }}</text>
+              <text class="main-action-text">确认选择 {{ currentCardComponent.selectedMultiplier }}×</text>
+              <view class="confirm-cost-tags" v-if="currentCardComponent.selectedCost">
+                <text v-if="currentCardComponent.selectedCost.time" class="confirm-cost-tag">⏰{{ currentCardComponent.selectedCost.time }}</text>
+                <text v-if="currentCardComponent.selectedCost.energy" class="confirm-cost-tag">⚡{{ currentCardComponent.selectedCost.energy }}</text>
+              </view>
+            </template>
+            <template v-else>
+              <text class="main-action-icon">👆</text>
+              <text class="main-action-text">请先选择一个选项</text>
+            </template>
+          </view>
+        </template>
       </template>
       
       <!-- ===== ItemCard 操作按钮 ===== -->
@@ -187,10 +210,13 @@
       </template>
       
       <!-- ===== UserCard 操作按钮 ===== -->
-      <template v-else-if="currentCard.type === 'user'">
-        <view class="main-action-btn" @click="onPrimaryAction">
-          <text class="main-action-icon">👋</text>
-          <text class="main-action-text">关注</text>
+      <template v-else-if="currentCard.type === 'user' && currentCardComponent">
+        <view class="main-action-btn" 
+          :class="{ 'is-followed': currentCardComponent.isFollowed }"
+          @click="currentCardComponent.handlePrimaryAction()"
+        >
+          <text class="main-action-icon">{{ currentCardComponent.isFollowed ? '✓' : '👋' }}</text>
+          <text class="main-action-text">{{ currentCardComponent.isFollowed ? '已关注' : '关注' }}</text>
         </view>
       </template>
       
@@ -1968,6 +1994,55 @@ $safe-area-bottom: env(safe-area-inset-bottom, 0px);
 .main-action-btn.just-bought {
   background: linear-gradient(135deg, $color-success 0%, darken($color-success, 10%) 100%);
   box-shadow: 0 4rpx 20rpx rgba($color-success, 0.3);
+}
+
+.main-action-btn.is-followed {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1rpx solid rgba(255, 255, 255, 0.15);
+  box-shadow: none;
+}
+
+// 确认选择按钮特殊样式
+.confirm-choice-btn {
+  position: relative;
+  overflow: hidden;
+  
+  &.has-selection {
+    background: linear-gradient(135deg, $neon-cyan 0%, $neon-magenta 100%) !important;
+    box-shadow: 0 4rpx 24rpx rgba($neon-cyan, 0.4) !important;
+    animation: confirm-glow 2s ease-in-out infinite alternate;
+  }
+  
+  &.cant-afford {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
+    box-shadow: 0 4rpx 20rpx rgba(239, 68, 68, 0.3) !important;
+    animation: none;
+  }
+  
+  .confirm-icon {
+    font-size: 28rpx;
+  }
+  
+  .confirm-cost-tags {
+    display: flex;
+    align-items: center;
+    gap: 6rpx;
+    margin-left: 8rpx;
+    
+    .confirm-cost-tag {
+      font-size: 20rpx;
+      color: rgba(255, 255, 255, 0.85);
+      background: rgba(0, 0, 0, 0.2);
+      padding: 2rpx 8rpx;
+      border-radius: 8rpx;
+      font-weight: 600;
+    }
+  }
+}
+
+@keyframes confirm-glow {
+  0% { box-shadow: 0 4rpx 24rpx rgba($neon-cyan, 0.3); }
+  100% { box-shadow: 0 4rpx 32rpx rgba($neon-magenta, 0.4); }
 }
 
 .secondary-action-btn {
