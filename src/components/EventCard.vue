@@ -1382,10 +1382,9 @@ defineExpose({
   width: 100%;
   height: 100%;
   min-height: 0;
-  background: $white;
+  background: transparent;
   border-radius: $radius-2xl;
   overflow: hidden;
-  box-shadow: $shadow-lg;
   display: flex;
   flex-direction: column;
 }
@@ -1466,7 +1465,7 @@ defineExpose({
   
   &.story { background: $gradient-primary; }
   &.challenge { background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%); }
-  &.craft { background: $gradient-secondary; }
+  &.craft { background: linear-gradient(135deg, rgba($neon-magenta, 0.6), rgba($neon-magenta, 0.4)); }
   &.social { background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%); }
   &.exploration { background: linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%); }
   &.creation { background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%); }
@@ -1508,28 +1507,34 @@ defineExpose({
   background: $gray-50;
   
   &.story { 
-    background: rgba(16, 185, 129, 0.08);
-    .type-text { color: $primary-dark; }
+    background: rgba($neon-cyan, 0.1);
+    border: 1rpx solid rgba($neon-cyan, 0.2);
+    .type-text { color: $neon-cyan; }
   }
   &.challenge { 
-    background: rgba(239, 68, 68, 0.08);
-    .type-text { color: #DC2626; }
+    background: rgba($color-danger, 0.1);
+    border: 1rpx solid rgba($color-danger, 0.2);
+    .type-text { color: $color-danger; }
   }
   &.craft { 
-    background: rgba(251, 191, 36, 0.08);
-    .type-text { color: $accent-dark; }
+    background: rgba(255,255,255, 0.06);
+    border: 1rpx solid rgba(255,255,255, 0.1);
+    .type-text { color: $text-secondary; }
   }
   &.social { 
-    background: rgba(59, 130, 246, 0.08);
-    .type-text { color: #2563EB; }
+    background: rgba($color-info, 0.1);
+    border: 1rpx solid rgba($color-info, 0.2);
+    .type-text { color: $color-info; }
   }
   &.exploration {
-    background: rgba(139, 92, 246, 0.08);
-    .type-text { color: #7C3AED; }
+    background: rgba($neon-magenta, 0.1);
+    border: 1rpx solid rgba($neon-magenta, 0.2);
+    .type-text { color: $neon-magenta; }
   }
   &.creation {
-    background: rgba(245, 158, 11, 0.08);
-    .type-text { color: #D97706; }
+    background: rgba($neon-amber, 0.1);
+    border: 1rpx solid rgba($neon-amber, 0.2);
+    .type-text { color: $neon-amber; }
   }
 }
 
@@ -1542,9 +1547,9 @@ defineExpose({
   font-size: 22rpx;
   font-weight: 600;
   
-  &.active { background: $gradient-primary; color: $white; }
-  &.upcoming { background: $gray-100; color: $text-secondary; }
-  &.ended { background: $gray-100; color: $text-tertiary; }
+  &.active { background: linear-gradient(135deg, rgba($neon-cyan, 0.2), rgba($neon-cyan, 0.1)); color: $neon-cyan; border: 1rpx solid rgba($neon-cyan, 0.3); }
+  &.upcoming { @include glass-effect(0.06); color: $text-secondary; }
+  &.ended { @include glass-effect(0.04); color: $text-tertiary; }
 }
 
 .card-body {
@@ -1568,12 +1573,12 @@ defineExpose({
   overflow: hidden;
   flex-shrink: 0;
 
-  &.story { background: linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, rgba(52, 211, 153, 0.08) 100%); }
-  &.challenge { background: linear-gradient(135deg, rgba(239, 68, 68, 0.12) 0%, rgba(248, 113, 113, 0.08) 100%); }
-  &.craft { background: linear-gradient(135deg, rgba(107, 114, 128, 0.12) 0%, rgba(156, 163, 175, 0.08) 100%); }
-  &.social { background: linear-gradient(135deg, rgba(59, 130, 246, 0.12) 0%, rgba(96, 165, 250, 0.08) 100%); }
-  &.exploration { background: linear-gradient(135deg, rgba(139, 92, 246, 0.12) 0%, rgba(167, 139, 250, 0.08) 100%); }
-  &.creation { background: linear-gradient(135deg, rgba(245, 158, 11, 0.12) 0%, rgba(252, 211, 77, 0.08) 100%); }
+  &.story { background: linear-gradient(135deg, rgba($neon-cyan, 0.08) 0%, rgba($neon-cyan, 0.03) 100%); }
+  &.challenge { background: linear-gradient(135deg, rgba($color-danger, 0.08) 0%, rgba($color-danger, 0.03) 100%); }
+  &.craft { background: linear-gradient(135deg, rgba(255,255,255, 0.06) 0%, rgba(255,255,255, 0.02) 100%); }
+  &.social { background: linear-gradient(135deg, rgba($color-info, 0.08) 0%, rgba($color-info, 0.03) 100%); }
+  &.exploration { background: linear-gradient(135deg, rgba($neon-magenta, 0.08) 0%, rgba($neon-magenta, 0.03) 100%); }
+  &.creation { background: linear-gradient(135deg, rgba($neon-amber, 0.08) 0%, rgba($neon-amber, 0.03) 100%); }
 }
 
 .atmo-icon {
@@ -1594,7 +1599,7 @@ defineExpose({
   width: 8rpx;
   height: 8rpx;
   border-radius: 50%;
-  background: rgba(0, 0, 0, 0.05);
+  background: rgba(255, 255, 255, 0.06);
   animation: float-particle 4s ease-in-out infinite;
 
   &.p-1 { top: 20%; left: 15%; animation-delay: 0s; }
@@ -1638,18 +1643,17 @@ defineExpose({
   align-items: center;
   gap: 6rpx;
   padding: 8rpx 16rpx;
-  background: $gray-50;
+  @include glass-effect(0.05);
   border-radius: $radius-full;
-  border: 1rpx solid $gray-100;
 }
 
 .meta-icon { font-size: 20rpx; }
 .meta-text { font-size: 22rpx; color: $text-secondary; font-weight: 500; }
 
 .participants-chip {
-  background: rgba($primary-color, 0.06);
-  border-color: rgba($primary-color, 0.12);
-  .meta-text { color: $primary-color; font-weight: 600; }
+  background: rgba($neon-cyan, 0.08);
+  border-color: rgba($neon-cyan, 0.15);
+  .meta-text { color: $neon-cyan; font-weight: 600; }
 }
 
 // ==================== 标签预览 ====================
@@ -1679,14 +1683,14 @@ defineExpose({
   padding: 6rpx 16rpx;
   border-radius: $radius-full;
   
-  &.tag-color-0 { background: rgba(#6366F1, 0.08); .preview-tag-name { color: #4F46E5; } .preview-tag-icon { color: #4F46E5; } }
-  &.tag-color-1 { background: rgba(#10B981, 0.08); .preview-tag-name { color: #059669; } .preview-tag-icon { color: #059669; } }
-  &.tag-color-2 { background: rgba(#F59E0B, 0.08); .preview-tag-name { color: #D97706; } .preview-tag-icon { color: #D97706; } }
-  &.tag-color-3 { background: rgba(#EF4444, 0.08); .preview-tag-name { color: #DC2626; } .preview-tag-icon { color: #DC2626; } }
-  &.tag-color-4 { background: rgba(#8B5CF6, 0.08); .preview-tag-name { color: #7C3AED; } .preview-tag-icon { color: #7C3AED; } }
+  &.tag-color-0 { background: rgba($neon-magenta, 0.08); border: 1rpx solid rgba($neon-magenta, 0.15); .preview-tag-name { color: $neon-magenta; } .preview-tag-icon { color: $neon-magenta; } }
+  &.tag-color-1 { background: rgba($neon-cyan, 0.08); border: 1rpx solid rgba($neon-cyan, 0.15); .preview-tag-name { color: $neon-cyan; } .preview-tag-icon { color: $neon-cyan; } }
+  &.tag-color-2 { background: rgba($neon-amber, 0.08); border: 1rpx solid rgba($neon-amber, 0.15); .preview-tag-name { color: $neon-amber; } .preview-tag-icon { color: $neon-amber; } }
+  &.tag-color-3 { background: rgba($color-danger, 0.08); border: 1rpx solid rgba($color-danger, 0.15); .preview-tag-name { color: $color-danger; } .preview-tag-icon { color: $color-danger; } }
+  &.tag-color-4 { background: rgba($color-info, 0.08); border: 1rpx solid rgba($color-info, 0.15); .preview-tag-name { color: $color-info; } .preview-tag-icon { color: $color-info; } }
   
   &.more {
-    background: $gray-100;
+    @include glass-effect(0.04);
     .preview-tag-name { color: $text-tertiary; }
   }
 }
@@ -1699,9 +1703,10 @@ defineExpose({
   position: relative;
   width: 100%;
   height: 36rpx;
-  background: $gray-100;
+  background: rgba(255, 255, 255, 0.06);
   border-radius: $radius-full;
   margin-bottom: 24rpx;
+  border: 1rpx solid rgba(255, 255, 255, 0.08);
   overflow: hidden;
   flex-shrink: 0;
 }
@@ -1711,9 +1716,10 @@ defineExpose({
   top: 0;
   left: 0;
   height: 100%;
-  background: $gradient-primary;
+  background: $gradient-cyan;
   border-radius: $radius-full;
   transition: width 0.5s ease;
+  @include neon-glow($neon-cyan, 0.15);
 }
 
 .stage-progress-text {
@@ -1788,7 +1794,7 @@ defineExpose({
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: $shadow-primary;
+  box-shadow: $shadow-md;
   transition: all 0.15s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
@@ -1926,18 +1932,18 @@ defineExpose({
   flex-direction: column;
   padding: 24rpx 28rpx;
   min-height: 88rpx;
-  background: $gray-50;
+  @include glass-effect(0.05);
   border-radius: $radius-xl;
-  border: 2rpx solid transparent;
+  border: 1rpx solid rgba(255, 255, 255, 0.06);
   transition: all 0.25s ease;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
   
   &:active {
-    background: $white;
-    border-color: $primary-color;
+    background: rgba($neon-cyan, 0.08);
+    border-color: rgba($neon-cyan, 0.3);
     transform: scale(0.98);
-    box-shadow: 0 2rpx 12rpx rgba(16, 185, 129, 0.15);
+    @include neon-glow($neon-cyan, 0.1);
   }
   &.disabled { opacity: 0.5; pointer-events: none; }
 }
@@ -1985,14 +1991,15 @@ defineExpose({
 
 // ==================== 结果奖励 ====================
 .result-rewards {
-  background: rgba(16, 185, 129, 0.06);
+  background: rgba($neon-cyan, 0.06);
+  border: 1rpx solid rgba($neon-cyan, 0.15);
   border-radius: $radius-xl;
   padding: 24rpx;
   margin-bottom: 20rpx;
 }
 
 .rewards-header { margin-bottom: 16rpx; }
-.rewards-title { font-size: 26rpx; font-weight: 600; color: $primary-dark; }
+.rewards-title { font-size: 26rpx; font-weight: 600; color: $neon-cyan; }
 
 .rewards-grid {
   display: flex;
@@ -2005,23 +2012,23 @@ defineExpose({
   align-items: center;
   gap: 8rpx;
   padding: 10rpx 18rpx;
-  background: $white;
+  @include glass-effect(0.08);
   border-radius: $radius-lg;
-  box-shadow: $shadow-xs;
 }
 
 .tag-icon, .item-icon { font-size: 22rpx; }
 .tag-name, .item-name { font-size: 24rpx; color: $text-primary; font-weight: 500; }
 
 .result-penalties {
-  background: rgba(239, 68, 68, 0.06);
+  background: rgba($color-danger, 0.06);
+  border: 1rpx solid rgba($color-danger, 0.15);
   border-radius: $radius-xl;
   padding: 24rpx;
   margin-bottom: 20rpx;
 }
 
 .penalties-header { margin-bottom: 16rpx; }
-.penalties-title { font-size: 26rpx; font-weight: 600; color: #DC2626; }
+.penalties-title { font-size: 26rpx; font-weight: 600; color: $color-danger; }
 .penalties-grid { display: flex; flex-wrap: wrap; gap: 12rpx; }
 
 .penalty-tag {
@@ -2029,18 +2036,17 @@ defineExpose({
   align-items: center;
   gap: 8rpx;
   padding: 10rpx 18rpx;
-  background: $white;
+  @include glass-effect(0.08);
   border-radius: $radius-lg;
-  box-shadow: $shadow-xs;
-  .tag-name { color: #DC2626; }
+  .tag-name { color: $color-danger; }
 }
 
 // ==================== 历史抉择摘要 ====================
 .history-summary {
   padding: 20rpx;
-  background: rgba(99, 102, 241, 0.04);
+  @include glass-effect(0.04);
   border-radius: $radius-xl;
-  border: 2rpx solid rgba(99, 102, 241, 0.12);
+  border: 1rpx solid rgba($neon-magenta, 0.12);
 }
 
 .history-badge {
@@ -2052,12 +2058,14 @@ defineExpose({
   margin-bottom: 12rpx;
   
   &.completed {
-    background: rgba(16, 185, 129, 0.1);
-    .history-badge-text { color: #059669; }
+    background: rgba($neon-cyan, 0.1);
+    border: 1rpx solid rgba($neon-cyan, 0.2);
+    .history-badge-text { color: $neon-cyan; }
   }
   &.in-progress {
-    background: rgba(245, 158, 11, 0.1);
-    .history-badge-text { color: #D97706; }
+    background: rgba($neon-amber, 0.1);
+    border: 1rpx solid rgba($neon-amber, 0.2);
+    .history-badge-text { color: $neon-amber; }
   }
 }
 
@@ -2076,7 +2084,7 @@ defineExpose({
   align-items: center;
   gap: 12rpx;
   padding: 10rpx 16rpx;
-  background: rgba(255, 255, 255, 0.8);
+  @include glass-effect(0.06);
   border-radius: $radius-lg;
   
   .choice-index {
@@ -2085,11 +2093,11 @@ defineExpose({
     display: flex;
     align-items: center;
     justify-content: center;
-    background: rgba(99, 102, 241, 0.1);
+    background: rgba($neon-magenta, 0.1);
     border-radius: 50%;
     font-size: 20rpx;
     font-weight: 700;
-    color: #4F46E5;
+    color: $neon-magenta;
     flex-shrink: 0;
   }
   
@@ -2124,19 +2132,19 @@ defineExpose({
 
 // ==================== 状态按钮 ====================
 .history-btn {
-  background: linear-gradient(135deg, #6366F1 0%, #4F46E5 100%) !important;
-  box-shadow: 0 4rpx 16rpx rgba(99, 102, 241, 0.3) !important;
+  background: linear-gradient(135deg, rgba($neon-magenta, 0.8), rgba($neon-magenta, 0.6)) !important;
+  @include neon-glow($neon-magenta, 0.15);
 }
 
 .continue-btn {
-  background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%) !important;
-  box-shadow: 0 4rpx 16rpx rgba(245, 158, 11, 0.3) !important;
+  background: linear-gradient(135deg, rgba($neon-amber, 0.8), rgba($neon-amber, 0.6)) !important;
+  @include neon-glow($neon-amber, 0.15);
 }
 
 // ==================== 隐藏分支选项 ====================
 .hidden-choice {
-  border: 2rpx solid rgba(168, 85, 247, 0.3) !important;
-  background: linear-gradient(135deg, rgba(168, 85, 247, 0.05) 0%, rgba(139, 92, 246, 0.08) 100%) !important;
+  border: 1rpx solid rgba($neon-magenta, 0.3) !important;
+  background: linear-gradient(135deg, rgba($neon-magenta, 0.05) 0%, rgba($neon-magenta, 0.08) 100%) !important;
   position: relative;
   overflow: hidden;
   
@@ -2144,13 +2152,13 @@ defineExpose({
     content: '';
     position: absolute;
     top: 0; left: 0; right: 0; bottom: 0;
-    background: linear-gradient(45deg, transparent 40%, rgba(168, 85, 247, 0.06) 50%, transparent 60%);
+    background: linear-gradient(45deg, transparent 40%, rgba($neon-magenta, 0.06) 50%, transparent 60%);
     animation: shimmer 3s infinite;
   }
   
   &:active {
-    border-color: rgba(168, 85, 247, 0.6) !important;
-    box-shadow: 0 2rpx 16rpx rgba(168, 85, 247, 0.2) !important;
+    border-color: rgba($neon-magenta, 0.6) !important;
+    @include neon-glow($neon-magenta, 0.15);
   }
 }
 
@@ -2170,7 +2178,7 @@ defineExpose({
   display: inline-flex;
   align-items: center;
   padding: 2rpx 12rpx;
-  background: linear-gradient(135deg, #A855F7 0%, #7C3AED 100%);
+  background: linear-gradient(135deg, $neon-magenta, darken($neon-magenta, 15%));
   color: white;
   font-size: 18rpx;
   font-weight: 700;
@@ -2182,7 +2190,7 @@ defineExpose({
 .hidden-hint {
   display: block;
   font-size: 22rpx;
-  color: #7C3AED;
+  color: $neon-magenta;
   font-style: italic;
   margin: 6rpx 0;
   padding-left: 4rpx;
@@ -2208,13 +2216,13 @@ defineExpose({
   align-items: center;
   gap: 4rpx;
   padding: 4rpx 12rpx;
-  background: rgba(239, 68, 68, 0.08);
+  background: rgba($color-danger, 0.08);
   border-radius: $radius-lg;
-  border: 1rpx solid rgba(239, 68, 68, 0.2);
+  border: 1rpx solid rgba($color-danger, 0.2);
   
   &.owned {
-    background: rgba(16, 185, 129, 0.08);
-    border-color: rgba(16, 185, 129, 0.2);
+    background: rgba($neon-cyan, 0.08);
+    border-color: rgba($neon-cyan, 0.2);
   }
 }
 
@@ -2223,8 +2231,8 @@ defineExpose({
 
 // ==================== ClaimItem 领取面板 ====================
 .claim-items-panel {
-  background: linear-gradient(135deg, rgba(251, 191, 36, 0.08) 0%, rgba(245, 158, 11, 0.12) 100%);
-  border: 2rpx solid rgba(245, 158, 11, 0.2);
+  background: linear-gradient(135deg, rgba($neon-amber, 0.06) 0%, rgba($neon-amber, 0.1) 100%);
+  border: 1rpx solid rgba($neon-amber, 0.2);
   border-radius: $radius-xl;
   padding: 24rpx;
   margin-bottom: 20rpx;
@@ -2240,12 +2248,12 @@ defineExpose({
 .claim-title {
   font-size: 28rpx;
   font-weight: 700;
-  color: #B45309;
+  color: $neon-amber;
 }
 
 .claim-subtitle {
   font-size: 22rpx;
-  color: #D97706;
+  color: rgba($neon-amber, 0.7);
 }
 
 .claim-items-list {
@@ -2255,27 +2263,27 @@ defineExpose({
 }
 
 .claim-item {
-  background: $white;
+  @include glass-effect(0.06);
   border-radius: $radius-lg;
   padding: 20rpx;
-  border: 2rpx solid rgba(245, 158, 11, 0.15);
+  border: 1rpx solid rgba($neon-amber, 0.15);
   transition: all 0.3s ease;
   
   &.claimed {
-    background: rgba(16, 185, 129, 0.06);
-    border-color: rgba(16, 185, 129, 0.2);
+    background: rgba($neon-cyan, 0.06);
+    border-color: rgba($neon-cyan, 0.2);
     opacity: 0.8;
   }
   
   &.required {
-    border-color: rgba(239, 68, 68, 0.3);
+    border-color: rgba($color-danger, 0.3);
     &::after {
       content: '必须领取';
       position: absolute;
       top: 8rpx;
       right: 12rpx;
       font-size: 18rpx;
-      color: #DC2626;
+      color: $color-danger;
       font-weight: 600;
     }
   }
@@ -2295,7 +2303,7 @@ defineExpose({
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(251, 191, 36, 0.1);
+  background: rgba($neon-amber, 0.1);
   border-radius: $radius-lg;
   flex-shrink: 0;
 }
@@ -2314,7 +2322,7 @@ defineExpose({
 
 .claim-item-qty {
   font-size: 24rpx;
-  color: #D97706;
+  color: $neon-amber;
   font-weight: 700;
 }
 
@@ -2339,7 +2347,7 @@ defineExpose({
   font-size: 24rpx !important;
   font-weight: 600 !important;
   color: white !important;
-  background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%) !important;
+  background: linear-gradient(135deg, rgba($neon-amber, 0.8), rgba($neon-amber, 0.6)) !important;
   border-radius: $radius-lg !important;
   border: none !important;
   line-height: 1.4 !important;
@@ -2356,16 +2364,16 @@ defineExpose({
   font-size: 24rpx !important;
   font-weight: 500 !important;
   color: $text-tertiary !important;
-  background: $gray-100 !important;
+  @include glass-effect(0.06);
   border-radius: $radius-lg !important;
-  border: none !important;
+  border: 1rpx solid rgba(255,255,255,0.08) !important;
   line-height: 1.4 !important;
   min-height: 0 !important;
 }
 
 .claimed-text {
   font-size: 24rpx;
-  color: #059669;
+  color: $neon-cyan;
   font-weight: 600;
 }
 
@@ -2374,9 +2382,9 @@ defineExpose({
 .followed-hint-bar {
   margin-bottom: 16rpx;
   padding: 12rpx 16rpx;
-  background: rgba(59, 130, 246, 0.05);
+  background: rgba($color-info, 0.05);
   border-radius: $radius-lg;
-  border: 2rpx solid rgba(59, 130, 246, 0.12);
+  border: 1rpx solid rgba($color-info, 0.12);
   display: flex;
   flex-direction: column;
   gap: 8rpx;
@@ -2440,14 +2448,14 @@ defineExpose({
 
 .bet-hint-text {
   font-size: 22rpx;
-  color: #92400e;
+  color: rgba($neon-amber, 0.8);
   font-weight: 500;
   flex: 1;
 }
 
 .bet-hint-total {
   font-size: 22rpx;
-  color: #d97706;
+  color: $neon-amber;
   font-weight: 700;
   white-space: nowrap;
 }
@@ -2516,8 +2524,8 @@ defineExpose({
   height: 44rpx;
   padding: 0 14rpx;
   border-radius: 22rpx;
-  border: 2rpx solid #e5e7eb;
-  background: #f9fafb;
+  border: 1rpx solid rgba(255,255,255,0.08);
+  @include glass-effect(0.05);
   transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
@@ -2553,7 +2561,7 @@ defineExpose({
 
 .bet-chip-text {
   font-size: 22rpx;
-  color: #6b7280;
+  color: $text-secondary;
   font-weight: 500;
 }
 
@@ -2583,13 +2591,13 @@ defineExpose({
 .bet-boost-badge {
   font-size: 24rpx;
   font-weight: 700;
-  color: #d97706;
+  color: $neon-amber;
   white-space: nowrap;
 }
 
 .bet-boost-desc {
   font-size: 22rpx;
-  color: #92400e;
+  color: rgba($neon-amber, 0.7);
 }
 
 // ==================== “与玩家相遇”偶发子事件 ====================
@@ -2712,7 +2720,7 @@ defineExpose({
   display: flex;
   align-items: center;
   justify-content: center;
-  background: $white;
+  background: rgba($surface-elevated, 0.9);
   border-radius: 50%;
 }
 
@@ -2760,7 +2768,7 @@ defineExpose({
   align-items: center;
   gap: 6rpx;
   padding: 6rpx 16rpx;
-  background: $gray-100;
+  @include glass-effect(0.06);
   border-radius: 20rpx;
 }
 
@@ -2859,12 +2867,12 @@ defineExpose({
   font-size: 28rpx !important;
   font-weight: 700 !important;
   color: $white !important;
-  background: linear-gradient(135deg, #f59e0b, #ef4444) !important;
+  background: linear-gradient(135deg, $neon-amber, $neon-magenta) !important;
   border: none !important;
   border-radius: $radius-xl !important;
   line-height: 1.4 !important;
   min-height: 0 !important;
-  box-shadow: 0 6rpx 20rpx rgba(245, 158, 11, 0.3);
+  @include neon-glow($neon-amber, 0.2);
   transition: all 0.3s ease;
   
   &:active {
@@ -2879,8 +2887,8 @@ defineExpose({
   font-size: 28rpx !important;
   font-weight: 600 !important;
   color: $text-tertiary !important;
-  background: $gray-100 !important;
-  border: 2rpx solid rgba(0, 0, 0, 0.06) !important;
+  @include glass-effect(0.06);
+  border: 1rpx solid rgba(255,255,255,0.08) !important;
   border-radius: $radius-xl !important;
   line-height: 1.4 !important;
   min-height: 0 !important;
@@ -2888,7 +2896,7 @@ defineExpose({
   
   &:active {
     transform: scale(0.96);
-    background: $gray-200 !important;
+    background: rgba(255,255,255,0.1) !important;
   }
 }
 
@@ -2959,9 +2967,9 @@ defineExpose({
   align-items: center;
   gap: 14rpx;
   padding: 14rpx 18rpx;
-  background: rgba(255, 255, 255, 0.85);
+  @include glass-effect(0.06);
   border-radius: $radius-md;
-  border: 2rpx solid rgba(245, 158, 11, 0.15);
+  border: 1rpx solid rgba($neon-amber, 0.15);
   position: relative;
   overflow: hidden;
   animation: drop-slide-in 0.5s ease-out backwards;
@@ -3045,7 +3053,7 @@ defineExpose({
 .no-drops-hint {
   margin-top: 16rpx;
   padding: 14rpx 20rpx;
-  background: rgba(0, 0, 0, 0.02);
+  @include glass-effect(0.03);
   border-radius: $radius-md;
   text-align: center;
 }

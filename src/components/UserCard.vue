@@ -325,18 +325,18 @@ const handleFollow = () => {
   align-items: center;
   justify-content: center;
   font-size: 48rpx;
-  border: 4rpx solid rgba(0,0,0,0.06);
+  border: 2rpx solid rgba(255, 255, 255, 0.1);
   
-  &.level-0 { background: linear-gradient(135deg, #f5f5f5, #e0e0e0); }
-  &.level-1 { background: linear-gradient(135deg, #e8f5e9, #c8e6c9); }
-  &.level-2 { background: linear-gradient(135deg, #e3f2fd, #bbdefb); }
-  &.level-3 { background: linear-gradient(135deg, #f3e5f5, #ce93d8); }
-  &.level-4 { background: linear-gradient(135deg, #fff3e0, #ffcc80); }
-  &.level-5 { background: linear-gradient(135deg, #fce4ec, #f48fb1); }
+  &.level-0 { background: linear-gradient(135deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03)); }
+  &.level-1 { background: linear-gradient(135deg, rgba($color-success, 0.15), rgba($color-success, 0.05)); @include neon-glow($color-success, 0.1); }
+  &.level-2 { background: linear-gradient(135deg, rgba($neon-cyan, 0.15), rgba($neon-cyan, 0.05)); @include neon-glow($neon-cyan, 0.1); }
+  &.level-3 { background: linear-gradient(135deg, rgba($neon-magenta, 0.15), rgba($neon-magenta, 0.05)); @include neon-glow($neon-magenta, 0.1); }
+  &.level-4 { background: linear-gradient(135deg, rgba($neon-amber, 0.15), rgba($neon-amber, 0.05)); @include neon-glow($neon-amber, 0.15); }
+  &.level-5 { background: linear-gradient(135deg, rgba($color-danger, 0.15), rgba($neon-amber, 0.1)); @include neon-glow($color-danger, 0.15); }
 }
 
 .avatar-emoji { font-size: 52rpx; }
-.avatar-initial { font-size: 44rpx; font-weight: 700; color: rgba(0,0,0,0.5); }
+.avatar-initial { font-size: 44rpx; font-weight: 700; color: $text-secondary; }
 
 .level-badge {
   position: absolute;
@@ -344,19 +344,19 @@ const handleFollow = () => {
   right: -4rpx;
   padding: 2rpx 10rpx;
   border-radius: 16rpx;
-  border: 3rpx solid $white;
+  border: 2rpx solid rgba(0, 0, 0, 0.3);
   
-  &.level-0 { background: #9e9e9e; }
-  &.level-1 { background: #66bb6a; }
-  &.level-2 { background: #42a5f5; }
-  &.level-3 { background: #ab47bc; }
-  &.level-4 { background: #ffa726; }
-  &.level-5 { background: #ef5350; }
+  &.level-0 { background: rgba(255,255,255,0.2); }
+  &.level-1 { background: rgba($color-success, 0.8); @include neon-glow($color-success, 0.2); }
+  &.level-2 { background: rgba($neon-cyan, 0.8); @include neon-glow($neon-cyan, 0.2); }
+  &.level-3 { background: rgba($neon-magenta, 0.8); @include neon-glow($neon-magenta, 0.2); }
+  &.level-4 { background: rgba($neon-amber, 0.8); @include neon-glow($neon-amber, 0.2); }
+  &.level-5 { background: rgba($color-danger, 0.8); @include neon-glow($color-danger, 0.2); }
   
   .level-text {
     font-size: 20rpx;
     font-weight: 700;
-    color: $white;
+    color: $text-primary;
   }
 }
 
@@ -367,14 +367,15 @@ const handleFollow = () => {
   width: 20rpx;
   height: 20rpx;
   border-radius: 50%;
-  background: #4caf50;
-  border: 3rpx solid $white;
+  background: $color-success;
+  border: 2rpx solid $bg-deep;
   animation: pulse-online 2s infinite;
+  @include neon-glow($color-success, 0.3);
 }
 
 @keyframes pulse-online {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.4); }
-  50% { box-shadow: 0 0 0 6rpx rgba(76, 175, 80, 0); }
+  0%, 100% { box-shadow: 0 0 0 0 rgba($color-success, 0.4); }
+  50% { box-shadow: 0 0 0 6rpx rgba($color-success, 0); }
 }
 
 .user-info {
@@ -430,18 +431,18 @@ const handleFollow = () => {
   align-items: flex-start;
   gap: 4rpx;
   padding: 16rpx 20rpx;
-  background: linear-gradient(135deg, rgba(#f3e5f5, 0.6), rgba(#e8eaf6, 0.6));
+  background: linear-gradient(135deg, rgba($neon-magenta, 0.06), rgba($neon-magenta, 0.02));
   border-radius: 16rpx;
-  border-left: 6rpx solid #ab47bc;
+  border-left: 4rpx solid rgba($neon-magenta, 0.5);
   position: relative;
 }
 
 .motto-quote-mark {
   font-size: 36rpx;
   font-weight: 700;
-  color: #ab47bc;
+  color: $neon-magenta;
   line-height: 1;
-  opacity: 0.6;
+  opacity: 0.4;
   flex-shrink: 0;
   
   &.end {
@@ -451,7 +452,7 @@ const handleFollow = () => {
 
 .motto-text {
   font-size: 24rpx;
-  color: $text-primary;
+  color: $text-secondary;
   line-height: 1.6;
   font-style: italic;
   flex: 1;
@@ -483,19 +484,20 @@ const handleFollow = () => {
   padding: 8rpx 16rpx;
   border-radius: 24rpx;
   font-size: 22rpx;
+  border: 1rpx solid transparent;
   
-  &.tag-color-0 { background: #e8f5e9; color: #2e7d32; }
-  &.tag-color-1 { background: #e3f2fd; color: #1565c0; }
-  &.tag-color-2 { background: #fce4ec; color: #c62828; }
-  &.tag-color-3 { background: #fff3e0; color: #e65100; }
-  &.tag-color-4 { background: #f3e5f5; color: #6a1b9a; }
+  &.tag-color-0 { background: rgba($color-success, 0.08); color: $color-success; border-color: rgba($color-success, 0.2); }
+  &.tag-color-1 { background: rgba($neon-cyan, 0.08); color: $neon-cyan; border-color: rgba($neon-cyan, 0.2); }
+  &.tag-color-2 { background: rgba($color-danger, 0.08); color: $color-danger; border-color: rgba($color-danger, 0.2); }
+  &.tag-color-3 { background: rgba($neon-amber, 0.08); color: $neon-amber; border-color: rgba($neon-amber, 0.2); }
+  &.tag-color-4 { background: rgba($neon-magenta, 0.08); color: $neon-magenta; border-color: rgba($neon-magenta, 0.2); }
 }
 
 .tag-icon { font-size: 24rpx; }
 .tag-name { font-weight: 600; }
 
 .tag-weight {
-  background: rgba(0,0,0,0.08);
+  background: rgba(255, 255, 255, 0.08);
   padding: 2rpx 8rpx;
   border-radius: 10rpx;
   
@@ -520,7 +522,7 @@ const handleFollow = () => {
   align-items: center;
   gap: 4rpx;
   padding: 16rpx 8rpx;
-  background: $gray-50;
+  @include glass-effect(0.06);
   border-radius: $radius-lg;
 }
 
@@ -555,24 +557,26 @@ const handleFollow = () => {
   padding: 16rpx 8rpx;
   border-radius: $radius-lg;
   position: relative;
-  background: $gray-50;
-  border: 2rpx solid transparent;
+  @include glass-effect(0.04);
+  border: 1rpx solid transparent;
   
   &.rarity-legendary {
-    background: linear-gradient(135deg, rgba(#ff9800, 0.08), rgba(#f44336, 0.08));
-    border-color: rgba(#ff9800, 0.3);
+    background: linear-gradient(135deg, rgba($rarity-legendary, 0.08), rgba($rarity-legendary, 0.03));
+    border-color: rgba($rarity-legendary, 0.25);
+    @include neon-glow($rarity-legendary, 0.08);
   }
   &.rarity-epic {
-    background: linear-gradient(135deg, rgba(#9c27b0, 0.08), rgba(#673ab7, 0.08));
-    border-color: rgba(#9c27b0, 0.3);
+    background: linear-gradient(135deg, rgba($rarity-epic, 0.08), rgba($rarity-epic, 0.03));
+    border-color: rgba($rarity-epic, 0.25);
+    @include neon-glow($rarity-epic, 0.08);
   }
   &.rarity-rare {
-    background: linear-gradient(135deg, rgba(#2196f3, 0.08), rgba(#1565c0, 0.08));
-    border-color: rgba(#2196f3, 0.3);
+    background: linear-gradient(135deg, rgba($rarity-rare, 0.08), rgba($rarity-rare, 0.03));
+    border-color: rgba($rarity-rare, 0.25);
   }
   &.rarity-uncommon {
-    background: linear-gradient(135deg, rgba(#4caf50, 0.08), rgba(#2e7d32, 0.08));
-    border-color: rgba(#4caf50, 0.3);
+    background: linear-gradient(135deg, rgba($rarity-uncommon, 0.06), rgba($rarity-uncommon, 0.02));
+    border-color: rgba($rarity-uncommon, 0.2);
   }
 }
 
@@ -584,11 +588,11 @@ const handleFollow = () => {
   align-items: center;
   justify-content: center;
   
-  &.rarity-bg-legendary { background: linear-gradient(135deg, #fff3e0, #ffe0b2); }
-  &.rarity-bg-epic { background: linear-gradient(135deg, #f3e5f5, #e1bee7); }
-  &.rarity-bg-rare { background: linear-gradient(135deg, #e3f2fd, #bbdefb); }
-  &.rarity-bg-uncommon { background: linear-gradient(135deg, #e8f5e9, #c8e6c9); }
-  &.rarity-bg-common { background: $gray-100; }
+  &.rarity-bg-legendary { background: rgba($rarity-legendary, 0.15); }
+  &.rarity-bg-epic { background: rgba($rarity-epic, 0.15); }
+  &.rarity-bg-rare { background: rgba($rarity-rare, 0.15); }
+  &.rarity-bg-uncommon { background: rgba($rarity-uncommon, 0.15); }
+  &.rarity-bg-common { background: rgba(255, 255, 255, 0.06); }
 }
 
 .item-icon { font-size: 28rpx; }
@@ -609,11 +613,11 @@ const handleFollow = () => {
   height: 10rpx;
   border-radius: 50%;
   
-  &.rarity-legendary { background: #ff9800; box-shadow: 0 0 8rpx rgba(#ff9800, 0.5); }
-  &.rarity-epic { background: #9c27b0; box-shadow: 0 0 8rpx rgba(#9c27b0, 0.5); }
-  &.rarity-rare { background: #2196f3; box-shadow: 0 0 8rpx rgba(#2196f3, 0.5); }
-  &.rarity-uncommon { background: #4caf50; box-shadow: 0 0 8rpx rgba(#4caf50, 0.5); }
-  &.rarity-common { background: #9e9e9e; }
+  &.rarity-legendary { background: $rarity-legendary; box-shadow: 0 0 8rpx rgba($rarity-legendary, 0.5); }
+  &.rarity-epic { background: $rarity-epic; box-shadow: 0 0 8rpx rgba($rarity-epic, 0.5); }
+  &.rarity-rare { background: $rarity-rare; box-shadow: 0 0 8rpx rgba($rarity-rare, 0.5); }
+  &.rarity-uncommon { background: $rarity-uncommon; box-shadow: 0 0 8rpx rgba($rarity-uncommon, 0.5); }
+  &.rarity-common { background: $rarity-common; }
 }
 
 // ==================== 成就徽章 ====================
@@ -632,8 +636,8 @@ const handleFollow = () => {
   align-items: center;
   gap: 6rpx;
   padding: 8rpx 14rpx;
-  background: linear-gradient(135deg, rgba(#ffd54f, 0.15), rgba(#ffb300, 0.15));
-  border: 1rpx solid rgba(#ffb300, 0.25);
+  background: linear-gradient(135deg, rgba($neon-amber, 0.08), rgba($neon-amber, 0.03));
+  border: 1rpx solid rgba($neon-amber, 0.2);
   border-radius: 20rpx;
   
   .badge-icon {
@@ -643,7 +647,7 @@ const handleFollow = () => {
   .badge-name {
     font-size: 20rpx;
     font-weight: 600;
-    color: #f57f17;
+    color: $neon-amber;
   }
 }
 
@@ -657,13 +661,13 @@ const handleFollow = () => {
   align-items: center;
   gap: 10rpx;
   padding: 14rpx 20rpx;
-  background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
+  background: linear-gradient(135deg, rgba($color-success, 0.06), rgba($color-success, 0.02));
   border-radius: $radius-lg;
-  border: 1rpx solid rgba(76, 175, 80, 0.2);
+  border: 1rpx solid rgba($color-success, 0.2);
 }
 
 .shared-icon { font-size: 28rpx; }
-.shared-text { font-size: 24rpx; color: #2e7d32; font-weight: 500; }
+.shared-text { font-size: 24rpx; color: $color-success; font-weight: 500; }
 
 // ==================== 操作按钮 ====================
 .action-buttons {
@@ -685,24 +689,24 @@ const handleFollow = () => {
   transition: all 0.2s ease;
   
   &.primary {
-    background: linear-gradient(135deg, $primary-color, $primary-dark);
-    box-shadow: 0 4rpx 12rpx rgba($primary-color, 0.3);
+    background: linear-gradient(135deg, rgba($neon-cyan, 0.2), rgba($neon-cyan, 0.1));
+    border: 1rpx solid rgba($neon-cyan, 0.4);
+    @include neon-glow($neon-cyan, 0.1);
     
-    .btn-text { color: $white; }
+    .btn-text { color: $neon-cyan; }
     
     &:active {
       transform: scale(0.97);
-      box-shadow: 0 2rpx 6rpx rgba($primary-color, 0.2);
+      background: rgba($neon-cyan, 0.25);
     }
   }
   
   &.followed {
-    background: $gray-100;
-    border: 1rpx solid $gray-200;
+    @include glass-effect(0.06);
     
     .btn-text { color: $text-secondary; }
     
-    &:active { background: $gray-200; }
+    &:active { background: rgba(255, 255, 255, 0.1); }
   }
   
 }
@@ -728,8 +732,8 @@ const handleFollow = () => {
 }
 
 @keyframes swipeHintPulse {
-  0%, 100% { opacity: 0.5; transform: translateX(0); }
-  50% { opacity: 1; transform: translateX(-8rpx); }
+  0%, 100% { opacity: 0.3; transform: translateX(0); }
+  50% { opacity: 0.7; transform: translateX(-8rpx); }
 }
 
 </style>

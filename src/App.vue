@@ -19,32 +19,16 @@ onHide(() => {
 <style lang="scss">
 @import '@/styles/theme.scss';
 
-/* 全局样式 - 极简主义白色系 */
+/* 全局样式 - Lofi Cyberpunk 暗色主题 */
 page {
   font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Helvetica Neue', Arial, sans-serif;
   font-size: 28rpx;
   line-height: 1.6;
   color: $text-primary;
-  background: $white;
+  background: $bg-deep;
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  
-  // 柔和的背景渐变
-  &::before {
-    content: '';
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: 
-      radial-gradient(ellipse at 0% 0%, rgba($green-400, 0.08) 0%, transparent 50%),
-      radial-gradient(ellipse at 100% 100%, rgba($gold-400, 0.06) 0%, transparent 50%),
-      linear-gradient(180deg, $white 0%, $gray-50 100%);
-    pointer-events: none;
-    z-index: -1;
-  }
 }
 
 /* 重置样式 */
@@ -64,23 +48,23 @@ button {
   }
 }
 
-/* 滚动条美化 - 白色系 */
+/* 滚动条美化 - 暗色系 */
 ::-webkit-scrollbar {
-  width: 8rpx;
-  height: 8rpx;
+  width: 6rpx;
+  height: 6rpx;
 }
 
 ::-webkit-scrollbar-track {
-  background: $gray-100;
-  border-radius: 4rpx;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 3rpx;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: $gray-300;
-  border-radius: 4rpx;
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 3rpx;
   
   &:hover {
-    background: $gray-400;
+    background: rgba(255, 255, 255, 0.2);
   }
 }
 
@@ -115,19 +99,19 @@ button {
 }
 
 .text-gradient {
-  background: linear-gradient(135deg, #10B981 0%, #FBBF24 100%);
+  background: $gradient-cyan;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
-/* 玻璃卡片效果 - 增强版 */
+/* 玻璃卡片效果 */
 .glass-card {
   @include glass-card;
 }
 
 .glass-surface {
-  @include glass-effect(0.8);
+  @include glass-effect(0.06);
 }
 
 .glass-panel {
@@ -135,20 +119,20 @@ button {
 }
 
 .glass-tinted {
-  @include glass-tinted($primary-color);
+  @include glass-tinted($neon-cyan);
 }
 
 /* 发光效果 */
 .glow-primary {
-  @include glow-effect($primary-color, 0.25);
+  @include neon-glow($neon-cyan, 0.25);
 }
 
 .glow-accent {
-  @include glow-effect($accent-color, 0.25);
+  @include neon-glow($neon-magenta, 0.25);
 }
 
 .glow-success {
-  @include glow-effect($color-success, 0.25);
+  @include neon-glow($color-success, 0.25);
 }
 
 /* 按钮样式 */
@@ -166,11 +150,11 @@ button {
 
 /* 标签样式 */
 .tag-primary {
-  @include tag-style($primary-color);
+  @include tag-style($neon-cyan);
 }
 
 .tag-accent {
-  @include tag-style($accent-color);
+  @include tag-style($neon-magenta);
 }
 
 .tag-success {
@@ -181,7 +165,7 @@ button {
   @include tag-style($color-warning);
 }
 
-/* 安全区域适配 - 移动端优化 */
+/* 安全区域适配 */
 .safe-area-bottom {
   padding-bottom: constant(safe-area-inset-bottom);
   padding-bottom: env(safe-area-inset-bottom);
@@ -207,20 +191,20 @@ button {
   animation: scale-in 0.3s ease-out;
 }
 
-/* 分割线 - 白色系 */
+/* 分割线 - 暗色系 */
 .divider {
   height: 1rpx;
-  background: linear-gradient(90deg, transparent, $gray-200, transparent);
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
   margin: $spacing-lg 0;
 }
 
-/* 骨架屏 - 白色系 */
+/* 骨架屏 - 暗色系 */
 .skeleton {
   background: linear-gradient(
     90deg,
-    $gray-100 25%,
-    $gray-50 50%,
-    $gray-100 75%
+    rgba(255,255,255,0.04) 25%,
+    rgba(255,255,255,0.08) 50%,
+    rgba(255,255,255,0.04) 75%
   );
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;

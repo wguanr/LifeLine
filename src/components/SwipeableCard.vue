@@ -222,15 +222,16 @@ defineExpose({
   align-items: center;
   justify-content: center;
   border-radius: 10px;
-  background: rgba(0, 0, 0, 0.06);
+  background: rgba($neon-cyan, 0.08);
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
+  border: 1rpx solid rgba($neon-cyan, 0.15);
   transition: all 0.25s ease;
   opacity: 0.5;
   
   .edge-icon {
     font-size: 18px;
-    color: #999;
+    color: $neon-cyan;
     font-weight: 300;
     line-height: 1;
   }
@@ -250,11 +251,12 @@ defineExpose({
 
 .edge-tap-zone:active .edge-indicator {
   opacity: 1;
-  background: rgba(0, 0, 0, 0.12);
+  background: rgba($neon-cyan, 0.15);
   transform: scaleY(1.1);
+  @include neon-glow($neon-cyan, 0.15);
   
   .edge-icon {
-    color: #666;
+    color: $neon-cyan;
   }
 }
 
@@ -292,16 +294,13 @@ defineExpose({
   gap: 4rpx;
   padding: 8rpx 16rpx;
   border-radius: 20rpx;
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(10rpx);
-  -webkit-backdrop-filter: blur(10rpx);
-  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.08);
-  border: 1rpx solid rgba(0, 0, 0, 0.06);
+  @include glass-effect(0.08);
+  border: 1rpx solid rgba(255, 255, 255, 0.1);
   transition: all 0.2s;
   
   &:active {
     transform: scale(0.95);
-    background: rgba(255, 255, 255, 0.95);
+    background: rgba(255, 255, 255, 0.15);
   }
   
   .quick-icon {
@@ -310,7 +309,7 @@ defineExpose({
   
   .quick-text {
     font-size: 20rpx;
-    color: #666;
+    color: $text-secondary;
     font-weight: 500;
   }
 }
@@ -322,7 +321,9 @@ defineExpose({
   top: 0;
   bottom: 0;
   width: 340px;
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  background: linear-gradient(135deg, $surface-base 0%, $surface-elevated 100%);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   z-index: 5;
   
@@ -396,12 +397,14 @@ defineExpose({
   align-items: center;
   gap: 20rpx;
   padding: 24rpx;
-  background: rgba(255, 255, 255, 0.1);
+  @include glass-effect(0.06);
+  border: 1rpx solid rgba(255, 255, 255, 0.06);
   border-radius: 16rpx;
-  transition: background 0.2s;
+  transition: all 0.2s;
   
   &:active {
-    background: rgba(255, 255, 255, 0.2);
+    background: rgba($neon-cyan, 0.1);
+    border-color: rgba($neon-cyan, 0.2);
   }
   
   .action-icon {
@@ -410,7 +413,7 @@ defineExpose({
   
   .action-text {
     font-size: 28rpx;
-    color: #fff;
+    color: $text-primary;
   }
 }
 

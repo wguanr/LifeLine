@@ -224,20 +224,19 @@ const getEffectIcon = (type: string): string => {
   height: 100%;
   display: flex;
   flex-direction: column;
-  background: $white;
+  background: transparent;
   border-radius: $radius-2xl;
   overflow: hidden;
-  box-shadow: $shadow-lg;
   
-  // 稀有度边框
+  // 稀有度霓虹光晕
   &.legendary {
-    box-shadow: $shadow-lg, 0 0 20rpx rgba(#F59E0B, 0.2);
+    @include neon-glow($neon-amber, 0.15);
   }
   &.epic {
-    box-shadow: $shadow-lg, 0 0 16rpx rgba(#8B5CF6, 0.15);
+    @include neon-glow($neon-magenta, 0.12);
   }
   &.rare {
-    box-shadow: $shadow-lg, 0 0 12rpx rgba(#3B82F6, 0.12);
+    @include neon-glow($color-info, 0.1);
   }
 }
 
@@ -249,13 +248,13 @@ const getEffectIcon = (type: string): string => {
   right: 0;
   height: 6rpx;
   
-  &.common { background: $gray-300; }
-  &.uncommon { background: linear-gradient(90deg, #10B981, #34D399); }
-  &.rare { background: linear-gradient(90deg, #3B82F6, #60A5FA); }
-  &.epic { background: linear-gradient(90deg, #8B5CF6, #A78BFA); }
+  &.common { background: rgba(255,255,255,0.15); }
+  &.uncommon { background: linear-gradient(90deg, $neon-cyan, rgba($neon-cyan, 0.5)); }
+  &.rare { background: linear-gradient(90deg, $color-info, rgba($color-info, 0.5)); }
+  &.epic { background: linear-gradient(90deg, $neon-magenta, rgba($neon-magenta, 0.5)); }
   &.legendary {
     height: 8rpx;
-    background: linear-gradient(90deg, #F59E0B, #FCD34D, #F59E0B);
+    background: linear-gradient(90deg, $neon-amber, rgba($neon-amber, 0.5), $neon-amber);
     background-size: 200% 100%;
     animation: shimmer-gold 2s linear infinite;
   }
@@ -295,19 +294,19 @@ const getEffectIcon = (type: string): string => {
   justify-content: center;
   flex-shrink: 0;
 
-  &.common { background: linear-gradient(135deg, #f3f4f6, #e5e7eb); }
-  &.uncommon { background: linear-gradient(135deg, #d1fae5, #a7f3d0); }
-  &.rare { background: linear-gradient(135deg, #dbeafe, #93c5fd); }
-  &.epic { background: linear-gradient(135deg, #ede9fe, #c4b5fd); }
+  &.common { @include glass-effect(0.08); }
+  &.uncommon { background: rgba($neon-cyan, 0.1); border: 1rpx solid rgba($neon-cyan, 0.2); }
+  &.rare { background: rgba($color-info, 0.1); border: 1rpx solid rgba($color-info, 0.2); }
+  &.epic { background: rgba($neon-magenta, 0.1); border: 1rpx solid rgba($neon-magenta, 0.2); }
   &.legendary { 
-    background: linear-gradient(135deg, #fef3c7, #fcd34d);
+    background: rgba($neon-amber, 0.1); border: 1rpx solid rgba($neon-amber, 0.2);
     animation: icon-glow 2s ease-in-out infinite;
   }
 }
 
 @keyframes icon-glow {
-  0%, 100% { box-shadow: 0 0 8rpx rgba(#F59E0B, 0.3); }
-  50% { box-shadow: 0 0 20rpx rgba(#F59E0B, 0.5); }
+  0%, 100% { box-shadow: 0 0 8rpx rgba($neon-amber, 0.3); }
+  50% { box-shadow: 0 0 20rpx rgba($neon-amber, 0.5); }
 }
 
 .item-icon { font-size: 56rpx; }
@@ -319,12 +318,12 @@ const getEffectIcon = (type: string): string => {
   min-width: 36rpx;
   height: 36rpx;
   padding: 0 8rpx;
-  background: $primary-color;
+  background: $neon-cyan;
   border-radius: $radius-full;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 3rpx solid $white;
+  border: 3rpx solid $surface-elevated;
 }
 
 .owned-num {
@@ -355,11 +354,11 @@ const getEffectIcon = (type: string): string => {
 .rarity-badge {
   padding: 4rpx 14rpx;
   border-radius: $radius-full;
-  &.common { background: $gray-100; .rarity-text { color: $gray-600; } }
-  &.uncommon { background: rgba(#10B981, 0.1); .rarity-text { color: #059669; } }
-  &.rare { background: rgba(#3B82F6, 0.1); .rarity-text { color: #2563EB; } }
-  &.epic { background: rgba(#8B5CF6, 0.1); .rarity-text { color: #7C3AED; } }
-  &.legendary { background: rgba(#F59E0B, 0.1); .rarity-text { color: #D97706; } }
+  &.common { @include glass-effect(0.06); .rarity-text { color: $text-secondary; } }
+  &.uncommon { background: rgba($neon-cyan, 0.1); .rarity-text { color: $neon-cyan; } }
+  &.rare { background: rgba($color-info, 0.1); .rarity-text { color: $color-info; } }
+  &.epic { background: rgba($neon-magenta, 0.1); .rarity-text { color: $neon-magenta; } }
+  &.legendary { background: rgba($neon-amber, 0.1); .rarity-text { color: $neon-amber; } }
 }
 
 .rarity-text { font-size: 22rpx; font-weight: 600; }
@@ -384,11 +383,11 @@ const getEffectIcon = (type: string): string => {
   padding: 6rpx 18rpx;
   border-radius: $radius-full;
   
-  &.tag-color-0 { background: rgba(#6366F1, 0.08); .feature-tag-text { color: #4F46E5; } }
-  &.tag-color-1 { background: rgba(#10B981, 0.08); .feature-tag-text { color: #059669; } }
-  &.tag-color-2 { background: rgba(#F59E0B, 0.08); .feature-tag-text { color: #D97706; } }
-  &.tag-color-3 { background: rgba(#EF4444, 0.08); .feature-tag-text { color: #DC2626; } }
-  &.tag-color-4 { background: rgba(#8B5CF6, 0.08); .feature-tag-text { color: #7C3AED; } }
+  &.tag-color-0 { background: rgba($neon-cyan, 0.08); .feature-tag-text { color: $neon-cyan; } }
+  &.tag-color-1 { background: rgba($neon-magenta, 0.08); .feature-tag-text { color: $neon-magenta; } }
+  &.tag-color-2 { background: rgba($neon-amber, 0.08); .feature-tag-text { color: $neon-amber; } }
+  &.tag-color-3 { background: rgba($color-danger, 0.08); .feature-tag-text { color: $color-danger; } }
+  &.tag-color-4 { background: rgba($color-info, 0.08); .feature-tag-text { color: $color-info; } }
 }
 
 .feature-tag-text {
@@ -400,9 +399,9 @@ const getEffectIcon = (type: string): string => {
 .story-preview {
   position: relative;
   padding: 20rpx 24rpx;
-  background: $gray-50;
+  @include glass-effect(0.04);
   border-radius: $radius-lg;
-  border-left: 4rpx solid $primary-light;
+  border-left: 4rpx solid $neon-magenta;
   margin-bottom: 16rpx;
 }
 
@@ -411,10 +410,10 @@ const getEffectIcon = (type: string): string => {
   top: 4rpx;
   left: 12rpx;
   font-size: 48rpx;
-  color: $primary-light;
+  color: $neon-magenta;
   font-family: Georgia, serif;
   line-height: 1;
-  opacity: 0.5;
+  opacity: 0.4;
 }
 
 .story-text {
@@ -450,9 +449,9 @@ const getEffectIcon = (type: string): string => {
 // ==================== 已购入提示面板 ====================
 .owned-info-panel {
   padding: 20rpx;
-  background: rgba(16, 185, 129, 0.04);
+  background: rgba($neon-cyan, 0.04);
   border-radius: $radius-xl;
-  border: 2rpx solid rgba(16, 185, 129, 0.15);
+  border: 1rpx solid rgba($neon-cyan, 0.15);
   margin-bottom: 16rpx;
 }
 
@@ -468,7 +467,7 @@ const getEffectIcon = (type: string): string => {
 .owned-info-title {
   font-size: 26rpx;
   font-weight: 600;
-  color: #059669;
+  color: $neon-cyan;
 }
 
 .owned-info-body {
@@ -500,9 +499,9 @@ const getEffectIcon = (type: string): string => {
   justify-content: center;
   gap: 10rpx;
   padding: 24rpx;
-  background: rgba(16, 185, 129, 0.06);
+  @include glass-effect(0.04);
   border-radius: $radius-xl;
-  border: 2rpx dashed rgba(16, 185, 129, 0.2);
+  border: 1rpx dashed rgba($neon-cyan, 0.2);
 }
 
 .owned-hint-icon { font-size: 28rpx; }
@@ -510,7 +509,7 @@ const getEffectIcon = (type: string): string => {
 .owned-hint-text {
   font-size: 28rpx;
   font-weight: 500;
-  color: #059669;
+  color: $neon-cyan;
   letter-spacing: 2rpx;
 }
 
@@ -541,7 +540,7 @@ const getEffectIcon = (type: string): string => {
   color: $text-primary;
   font-weight: 600;
   padding: 6rpx 16rpx;
-  background: $gray-50;
+  @include glass-effect(0.06);
   border-radius: $radius-lg;
 }
 
@@ -559,7 +558,7 @@ const getEffectIcon = (type: string): string => {
   padding: 28rpx;
   border-radius: $radius-xl;
   min-height: $touch-target-min;
-  background: $gradient-primary;
+  background: linear-gradient(135deg, rgba($neon-cyan, 0.6), rgba($neon-cyan, 0.4));
   transition: all 0.2s ease;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
@@ -572,12 +571,12 @@ const getEffectIcon = (type: string): string => {
   }
 
   &.disabled {
-    background: $gray-200;
+    @include glass-effect(0.06);
     .btn-text { color: $text-tertiary; }
   }
 
   &.just-bought {
-    background: linear-gradient(135deg, #10B981, #34D399);
+    background: linear-gradient(135deg, rgba($neon-cyan, 0.7), rgba($neon-cyan, 0.5));
     transform: scale(0.97);
   }
 
@@ -587,16 +586,16 @@ const getEffectIcon = (type: string): string => {
   
   // 稀有度按钮样式
   &.legendary:not(.disabled):not(.just-bought) {
-    background: linear-gradient(135deg, #F59E0B, #D97706);
-    box-shadow: 0 4rpx 16rpx rgba(#F59E0B, 0.3);
+    background: linear-gradient(135deg, rgba($neon-amber, 0.7), rgba($neon-amber, 0.5));
+    @include neon-glow($neon-amber, 0.2);
   }
   &.epic:not(.disabled):not(.just-bought) {
-    background: linear-gradient(135deg, #8B5CF6, #7C3AED);
-    box-shadow: 0 4rpx 16rpx rgba(#8B5CF6, 0.25);
+    background: linear-gradient(135deg, rgba($neon-magenta, 0.7), rgba($neon-magenta, 0.5));
+    @include neon-glow($neon-magenta, 0.15);
   }
   &.rare:not(.disabled):not(.just-bought) {
-    background: linear-gradient(135deg, #3B82F6, #2563EB);
-    box-shadow: 0 4rpx 16rpx rgba(#3B82F6, 0.25);
+    background: linear-gradient(135deg, rgba($color-info, 0.7), rgba($color-info, 0.5));
+    @include neon-glow($color-info, 0.15);
   }
 }
 </style>

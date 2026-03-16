@@ -801,13 +801,14 @@ $safe-area-bottom: env(safe-area-inset-bottom, 0px);
 .index-container {
   width: 100%;
   height: 100vh;
-  background: $white;
+  background: $bg-deep;
   display: flex;
   flex-direction: column;
   overflow: hidden;
   box-sizing: border-box;
+  position: relative;
   
-  // 柔和的背景渐变
+  // 星空背景
   &::before {
     content: '';
     position: absolute;
@@ -816,15 +817,29 @@ $safe-area-bottom: env(safe-area-inset-bottom, 0px);
     right: 0;
     bottom: 0;
     background: 
-      radial-gradient(ellipse at 0% 0%, rgba($primary-color, 0.06) 0%, transparent 50%),
-      radial-gradient(ellipse at 100% 100%, rgba($accent-color, 0.04) 0%, transparent 50%),
-      linear-gradient(180deg, $white 0%, $gray-50 100%);
+      url('/static/bg/starfield_bg.png') center/cover no-repeat,
+      linear-gradient(180deg, $bg-deep 0%, $bg-base 50%, $bg-deep 100%);
+    pointer-events: none;
+    z-index: 0;
+  }
+  
+  // 微妙的霓虹光晕装饰
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background:
+      radial-gradient(ellipse at 20% 10%, rgba($neon-cyan, 0.04) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 90%, rgba($neon-magenta, 0.03) 0%, transparent 50%);
     pointer-events: none;
     z-index: 0;
   }
 }
 
-// 顶部状态栏 - 使用flex布局，不用fixed
+// 顶部状态栏 - 暗色玻璃效果
 .status-bar {
   position: relative;
   z-index: 100;
@@ -835,11 +850,11 @@ $safe-area-bottom: env(safe-area-inset-bottom, 0px);
   padding-top: calc(16rpx + #{$safe-area-top});
   padding-bottom: 16rpx;
   flex-shrink: 0;
-  background: rgba(255, 255, 255, 0.98);
-  backdrop-filter: blur(40rpx) saturate(180%);
-  -webkit-backdrop-filter: blur(40rpx) saturate(180%);
-  border-bottom: 1rpx solid rgba(0, 0, 0, 0.06);
-  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
+  background: rgba($bg-deep, 0.7);
+  backdrop-filter: blur(40rpx) saturate(150%);
+  -webkit-backdrop-filter: blur(40rpx) saturate(150%);
+  border-bottom: 1rpx solid rgba(255, 255, 255, 0.06);
+  box-shadow: 0 2rpx 16rpx rgba(0, 0, 0, 0.3);
   max-width: 100%;
   box-sizing: border-box;
 }
@@ -866,18 +881,18 @@ $safe-area-bottom: env(safe-area-inset-bottom, 0px);
 .wallet-item {
   display: flex;
   align-items: center;
-  gap: 4rpx;
-  padding: 6rpx 12rpx;
-  background: rgba($primary-color, 0.08);
-  border: 1rpx solid rgba($primary-color, 0.12);
+  gap: 6rpx;
+  padding: 8rpx 16rpx;
+  background: rgba($neon-cyan, 0.08);
+  border: 1rpx solid rgba($neon-cyan, 0.15);
   border-radius: $radius-full;
   
   &.chain-currency {
-    background: rgba($accent-color, 0.1);
-    border: 1rpx solid rgba($accent-color, 0.2);
+    background: rgba($neon-magenta, 0.08);
+    border: 1rpx solid rgba($neon-magenta, 0.15);
     
     .wallet-value {
-      color: $accent-dark;
+      color: $neon-magenta-light;
     }
   }
 }
@@ -885,16 +900,18 @@ $safe-area-bottom: env(safe-area-inset-bottom, 0px);
 .clearance-badge {
   display: flex;
   align-items: center;
-  padding: 6rpx 12rpx;
-  background: $gradient-primary;
+  padding: 8rpx 14rpx;
+  background: linear-gradient(135deg, rgba($neon-cyan, 0.2), rgba($neon-cyan, 0.1));
+  border: 1rpx solid rgba($neon-cyan, 0.3);
   border-radius: $radius-full;
-  box-shadow: 0 2rpx 8rpx rgba($primary-color, 0.3);
+  @include neon-glow($neon-cyan, 0.15);
   
   .clearance-text {
     font-size: 20rpx;
     font-weight: bold;
-    color: $white;
+    color: $neon-cyan;
     font-family: 'SF Mono', 'Courier New', monospace;
+    @include neon-text($neon-cyan);
   }
 }
 
@@ -905,18 +922,19 @@ $safe-area-bottom: env(safe-area-inset-bottom, 0px);
 .wallet-value {
   font-size: 20rpx;
   font-weight: 600;
-  color: $text-primary;
+  color: $neon-cyan-light;
 }
 
 .user-avatar {
   width: 60rpx;
   height: 60rpx;
   border-radius: 50%;
-  background: $gradient-primary;
+  background: linear-gradient(135deg, rgba($neon-magenta, 0.3), rgba($neon-cyan, 0.3));
+  border: 1rpx solid rgba($neon-cyan, 0.3);
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4rpx 16rpx rgba($primary-color, 0.3);
+  @include neon-glow($neon-cyan, 0.2);
   min-width: $touch-target-min;
   min-height: $touch-target-min;
 }
@@ -924,7 +942,7 @@ $safe-area-bottom: env(safe-area-inset-bottom, 0px);
 .avatar-text {
   font-size: 28rpx;
   font-weight: bold;
-  color: $white;
+  color: $neon-cyan-light;
 }
 
 // 卡片区域 - flex:1 填充剩余空间，为底部TabBar预留空间
@@ -980,7 +998,7 @@ $safe-area-bottom: env(safe-area-inset-bottom, 0px);
   }
 }
 
-// 详情面板内容样式 - 白色系
+// 详情面板内容样式 - 暗色主题
 .detail-content {
   .detail-section {
     margin-bottom: 32rpx;
@@ -988,9 +1006,10 @@ $safe-area-bottom: env(safe-area-inset-bottom, 0px);
     .section-title {
       font-size: 28rpx;
       font-weight: bold;
-      color: $text-primary;
+      color: $neon-cyan-light;
       margin-bottom: 16rpx;
       display: block;
+      letter-spacing: 1rpx;
     }
     
     .section-text {
@@ -1006,7 +1025,7 @@ $safe-area-bottom: env(safe-area-inset-bottom, 0px);
     gap: 16rpx;
     
     .info-item {
-      @include glass-effect(0.6);
+      @include glass-effect(0.06);
       padding: 20rpx;
       border-radius: $radius-lg;
       
@@ -1035,7 +1054,7 @@ $safe-area-bottom: env(safe-area-inset-bottom, 0px);
       align-items: center;
       gap: 12rpx;
       padding: 16rpx 20rpx;
-      @include glass-effect(0.6);
+      @include glass-effect(0.06);
       border-radius: $radius-lg;
       
       .cost-icon {
@@ -1061,11 +1080,11 @@ $safe-area-bottom: env(safe-area-inset-bottom, 0px);
     
     .tag-item {
       padding: 10rpx 18rpx;
-      background: rgba($primary-color, 0.1);
-      border: 1rpx solid rgba($primary-color, 0.15);
+      background: rgba($neon-cyan, 0.08);
+      border: 1rpx solid rgba($neon-cyan, 0.2);
       border-radius: $radius-full;
       font-size: 24rpx;
-      color: $primary-dark;
+      color: $neon-cyan;
     }
   }
   
@@ -1080,7 +1099,7 @@ $safe-area-bottom: env(safe-area-inset-bottom, 0px);
       align-items: center;
       gap: 16rpx;
       padding: 16rpx 20rpx;
-      @include glass-effect(0.7);
+      @include glass-effect(0.06);
       border-radius: $radius-lg;
       
       .tag-icon-wrap {
@@ -1148,7 +1167,7 @@ $safe-area-bottom: env(safe-area-inset-bottom, 0px);
     }
   }
   
-  // 空标签状态 - 白色系
+  // 空标签状态
   .empty-tags {
     .empty-text {
       font-size: 26rpx;
@@ -1157,7 +1176,7 @@ $safe-area-bottom: env(safe-area-inset-bottom, 0px);
     }
   }
   
-  // 共同标签 - 白色系
+  // 共同标签
   .common-tag-list {
     display: flex;
     flex-wrap: wrap;
@@ -1165,20 +1184,20 @@ $safe-area-bottom: env(safe-area-inset-bottom, 0px);
     
     .common-tag {
       padding: 10rpx 20rpx;
-      background: rgba($primary-color, 0.1);
-      border: 1rpx solid rgba($primary-color, 0.2);
+      background: rgba($neon-cyan, 0.08);
+      border: 1rpx solid rgba($neon-cyan, 0.2);
       border-radius: $radius-full;
       font-size: 24rpx;
-      color: $primary-dark;
+      color: $neon-cyan;
     }
   }
   
-  // 生活足迹统计 - 白色系
+  // 生活足迹统计
   .life-stats {
     display: flex;
     justify-content: space-around;
     padding: 20rpx 0;
-    @include glass-effect(0.6);
+    @include glass-effect(0.06);
     border-radius: $radius-lg;
     
     .stat-item {
@@ -1200,10 +1219,10 @@ $safe-area-bottom: env(safe-area-inset-bottom, 0px);
     }
   }
   
-  // 活跃状态 - 白色系
+  // 活跃状态
   .activity-info {
     padding: 16rpx 20rpx;
-    @include glass-effect(0.6);
+    @include glass-effect(0.06);
     border-radius: $radius-lg;
     
     .activity-text {
@@ -1280,7 +1299,7 @@ $safe-area-bottom: env(safe-area-inset-bottom, 0px);
       align-items: center;
       gap: 8rpx;
       padding: 16rpx 8rpx;
-      @include glass-effect(0.6);
+      @include glass-effect(0.06);
       border-radius: $radius-lg;
     }
     
@@ -1299,15 +1318,15 @@ $safe-area-bottom: env(safe-area-inset-bottom, 0px);
     }
   }
   
-  // 已购入提示框 - 白色系
+  // 已购入提示框
   .owned-notice {
     .owned-notice-box {
       display: flex;
       align-items: center;
       gap: 16rpx;
       padding: 20rpx 24rpx;
-      background: rgba(16, 185, 129, 0.08);
-      border: 2rpx solid rgba(16, 185, 129, 0.2);
+      background: rgba($color-success, 0.06);
+      border: 1rpx solid rgba($color-success, 0.2);
       border-radius: $radius-xl;
     }
     
@@ -1323,14 +1342,14 @@ $safe-area-bottom: env(safe-area-inset-bottom, 0px);
       display: block;
       font-size: 28rpx;
       font-weight: 600;
-      color: #059669;
+      color: $color-success;
       margin-bottom: 4rpx;
     }
     
     .owned-notice-desc {
       display: block;
       font-size: 24rpx;
-      color: #10B981;
+      color: rgba($color-success, 0.7);
     }
   }
   
@@ -1340,17 +1359,17 @@ $safe-area-bottom: env(safe-area-inset-bottom, 0px);
     align-items: flex-start;
     gap: 6rpx;
     padding: 20rpx 24rpx;
-    background: linear-gradient(135deg, rgba(#ab47bc, 0.08), rgba(#7b1fa2, 0.05));
+    background: linear-gradient(135deg, rgba($neon-magenta, 0.06), rgba($neon-magenta, 0.02));
     border-radius: $radius-xl;
-    border-left: 6rpx solid #ab47bc;
+    border-left: 4rpx solid rgba($neon-magenta, 0.5);
   }
   
   .detail-motto-mark {
     font-size: 40rpx;
     font-weight: 700;
-    color: #ab47bc;
+    color: $neon-magenta;
     line-height: 1;
-    opacity: 0.5;
+    opacity: 0.4;
     flex-shrink: 0;
     
     &.end {
@@ -1360,7 +1379,7 @@ $safe-area-bottom: env(safe-area-inset-bottom, 0px);
   
   .detail-motto-text {
     font-size: 26rpx;
-    color: $text-primary;
+    color: $text-secondary;
     line-height: 1.6;
     font-style: italic;
     flex: 1;
@@ -1378,7 +1397,7 @@ $safe-area-bottom: env(safe-area-inset-bottom, 0px);
       align-items: center;
       gap: 12rpx;
       padding: 16rpx 14rpx;
-      @include glass-effect(0.6);
+      @include glass-effect(0.06);
       border-radius: $radius-lg;
       
       .resource-icon {
@@ -1415,8 +1434,8 @@ $safe-area-bottom: env(safe-area-inset-bottom, 0px);
       align-items: center;
       gap: 8rpx;
       padding: 10rpx 16rpx;
-      background: linear-gradient(135deg, rgba(#ffd54f, 0.12), rgba(#ffb300, 0.12));
-      border: 1rpx solid rgba(#ffb300, 0.2);
+      background: linear-gradient(135deg, rgba($neon-amber, 0.08), rgba($neon-amber, 0.04));
+      border: 1rpx solid rgba($neon-amber, 0.2);
       border-radius: 20rpx;
       
       .detail-ach-icon {
@@ -1426,7 +1445,7 @@ $safe-area-bottom: env(safe-area-inset-bottom, 0px);
       .detail-ach-name {
         font-size: 22rpx;
         font-weight: 600;
-        color: #f57f17;
+        color: $neon-amber;
       }
     }
   }
@@ -1442,7 +1461,7 @@ $safe-area-bottom: env(safe-area-inset-bottom, 0px);
       align-items: center;
       gap: 14rpx;
       padding: 14rpx 18rpx;
-      @include glass-effect(0.6);
+      @include glass-effect(0.06);
       border-radius: $radius-lg;
       
       .detail-inv-icon {
@@ -1471,11 +1490,11 @@ $safe-area-bottom: env(safe-area-inset-bottom, 0px);
         font-size: 20rpx;
         font-weight: 500;
         
-        &.rarity-text-legendary { color: #ff9800; }
-        &.rarity-text-epic { color: #9c27b0; }
-        &.rarity-text-rare { color: #2196f3; }
-        &.rarity-text-uncommon { color: #4caf50; }
-        &.rarity-text-common { color: #9e9e9e; }
+        &.rarity-text-legendary { color: $rarity-legendary; }
+        &.rarity-text-epic { color: $rarity-epic; }
+        &.rarity-text-rare { color: $rarity-rare; }
+        &.rarity-text-uncommon { color: $rarity-uncommon; }
+        &.rarity-text-common { color: $rarity-common; }
       }
       
       .detail-inv-qty {
@@ -1488,7 +1507,7 @@ $safe-area-bottom: env(safe-area-inset-bottom, 0px);
   }
 }
 
-// 操作面板内容样式 - 白色系
+// 操作面板内容样式 - 暗色主题
 .action-list {
   display: flex;
   flex-direction: column;
@@ -1499,19 +1518,19 @@ $safe-area-bottom: env(safe-area-inset-bottom, 0px);
     align-items: center;
     gap: 20rpx;
     padding: 28rpx;
-    @include glass-effect(0.7);
+    @include glass-effect(0.06);
     border-radius: $radius-xl;
     transition: all $transition-normal;
     min-height: $touch-target-min;
     
     &:active {
       transform: scale(0.98);
-      background: rgba(255, 255, 255, 0.9);
+      background: rgba(255, 255, 255, 0.1);
     }
     
     &.danger {
       background: rgba($color-danger, 0.08);
-      border-color: rgba($color-danger, 0.15);
+      border-color: rgba($color-danger, 0.2);
       
       .action-text {
         color: $color-danger;
@@ -1536,7 +1555,7 @@ $safe-area-bottom: env(safe-area-inset-bottom, 0px);
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(255, 255, 255, 0.95);
+  background: rgba($bg-deep, 0.9);
   backdrop-filter: blur(40rpx);
   -webkit-backdrop-filter: blur(40rpx);
   display: flex;
@@ -1549,11 +1568,12 @@ $safe-area-bottom: env(safe-area-inset-bottom, 0px);
 .loading-spinner {
   width: 80rpx;
   height: 80rpx;
-  border: 6rpx solid $gray-200;
-  border-top-color: $primary-color;
+  border: 6rpx solid rgba(255, 255, 255, 0.1);
+  border-top-color: $neon-cyan;
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin-bottom: 24rpx;
+  @include neon-glow($neon-cyan, 0.2);
 }
 
 @keyframes spin {

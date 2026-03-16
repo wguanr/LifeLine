@@ -8,3 +8,4 @@ test_screenshots/
 .env.local
 .env.*.local
 *.sw?
+nohup.out
