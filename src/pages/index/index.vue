@@ -1037,11 +1037,9 @@ $safe-area-bottom: env(safe-area-inset-bottom, 0px);
   position: relative;
   z-index: 1;
   overflow: hidden;
-  min-height: 0; // 重要：允许flex子元素收缩
-  // 顶部留出间距，避免卡片紧贴status-bar
-  padding-top: 8rpx;
-  // 为底部TabBar预留空间（uni-app TabBar高度约50px + 安全区域）
-  padding-bottom: calc(100rpx + #{$safe-area-bottom});
+  min-height: 0;
+  // 卡片悬浮形态：上下留白，不贴满全屏
+  padding: 16rpx 28rpx calc(16rpx + #{$safe-area-bottom});
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
@@ -1059,25 +1057,35 @@ $safe-area-bottom: env(safe-area-inset-bottom, 0px);
   width: 100%;
   height: 100%;
   display: flex;
-  align-items: stretch;
+  align-items: center;
   justify-content: center;
-  padding: 8rpx 16rpx 12rpx;
+  padding: 8rpx 0;
   box-sizing: border-box;
-  overflow: hidden;
-  touch-action: pan-y; // 允许垂直滑动
+  overflow: visible;
+  touch-action: pan-y;
 }
 
 .card-wrapper {
   width: 100%;
   height: 100%;
   min-height: 0;
-  border-radius: $radius-xl;
+  border-radius: $radius-2xl;
   overflow: hidden;
-  box-shadow: $shadow-xl;
   transition: transform $transition-normal;
   display: flex;
   flex-direction: column;
-  touch-action: pan-y; // 允许垂直滑动
+  touch-action: pan-y;
+  
+  // 玻璃态卡片背景 - 暗色半透明 + 微光边框
+  background: linear-gradient(160deg, rgba(20, 26, 48, 0.92) 0%, rgba(10, 14, 26, 0.96) 100%);
+  backdrop-filter: blur(40rpx) saturate(150%);
+  -webkit-backdrop-filter: blur(40rpx) saturate(150%);
+  border: 1.5rpx solid rgba(255, 255, 255, 0.1);
+  box-shadow:
+    0 8rpx 48rpx rgba(0, 0, 0, 0.5),
+    0 0 60rpx rgba($neon-cyan, 0.05),
+    0 0 120rpx rgba($neon-magenta, 0.03),
+    inset 0 1rpx 0 rgba(255, 255, 255, 0.08);
   
   &:active {
     transform: scale(0.998);
