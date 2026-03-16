@@ -464,38 +464,60 @@ const formatTime = (timestamp: number): string => {
   max-width: 480px;
   margin: 0 auto;
   min-height: 100vh;
-  background: $gray-50;
+  background: $bg-deep;
   padding-bottom: calc(120rpx + env(safe-area-inset-bottom, 0px));
+  position: relative;
+
+  // 背景氛围光
+  &::before {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background:
+      radial-gradient(ellipse at 50% 0%, rgba($neon-magenta, 0.06) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 80%, rgba($neon-cyan, 0.04) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+  }
 }
 
 // ==================== 顶部个人信息 ====================
 
 .profile-header {
-  background: $white;
-  padding: 40rpx 32rpx 32rpx;
+  position: relative;
+  z-index: 1;
+  @include glass-effect(0.06);
+  padding: calc(40rpx + env(safe-area-inset-top, 0px)) 32rpx 32rpx;
   display: flex;
   flex-direction: column;
   gap: 24rpx;
+  border-bottom: 1rpx solid rgba($neon-cyan, 0.1);
 }
 
 .header-top {
   display: flex;
-  align-items: center;
   gap: 24rpx;
+  align-items: flex-start;
 }
 
 .avatar-circle {
   width: 120rpx;
   height: 120rpx;
   border-radius: 50%;
-  background: $gradient-primary;
+  background: linear-gradient(135deg, rgba($neon-cyan, 0.3), rgba($neon-magenta, 0.3));
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  @include neon-glow($neon-cyan, 0.15);
+  border: 3rpx solid rgba($neon-cyan, 0.4);
 }
 
-.avatar-text { font-size: 48rpx; font-weight: bold; color: $white; }
+.avatar-text {
+  font-size: 52rpx;
+  font-weight: 700;
+  color: $text-primary;
+}
 
 .header-info {
   flex: 1;
@@ -518,12 +540,13 @@ const formatTime = (timestamp: number): string => {
 
 .level-badge {
   padding: 4rpx 16rpx;
-  background: $gradient-primary;
+  background: linear-gradient(135deg, rgba($neon-cyan, 0.3), rgba($neon-cyan, 0.15));
+  border: 1rpx solid rgba($neon-cyan, 0.4);
   border-radius: $radius-full;
   flex-shrink: 0;
 }
 
-.level-text { font-size: 22rpx; font-weight: bold; color: $white; }
+.level-text { font-size: 22rpx; font-weight: bold; color: $neon-cyan; }
 
 .bio {
   font-size: 24rpx;
@@ -544,7 +567,7 @@ const formatTime = (timestamp: number): string => {
   justify-content: center;
   gap: 6rpx;
   padding: 12rpx 0;
-  background: $gray-50;
+  @include glass-effect(0.06);
   border-radius: $radius-lg;
 }
 
@@ -583,36 +606,35 @@ const formatTime = (timestamp: number): string => {
   .shine-tag-icon { font-size: 26rpx; }
   .shine-tag-name { font-size: 24rpx; font-weight: 600; }
 
-  // Tier 1: 普通 - 柔和灰底
+  // Tier 1: 普通 - 暗色玻璃底
   &.tier-common {
-    background: $gray-100;
-    border: 1rpx solid $gray-200;
+    @include glass-effect(0.06);
     .shine-tag-name { color: $text-secondary; }
   }
 
   // Tier 2: 稀有 - 蓝色光泽
   &.tier-rare {
-    background: linear-gradient(135deg, rgba(#3B82F6, 0.12) 0%, rgba(#60A5FA, 0.18) 100%);
-    border: 1rpx solid rgba(#3B82F6, 0.25);
-    .shine-tag-name { color: #2563EB; }
+    background: linear-gradient(135deg, rgba($color-info, 0.12), rgba($color-info, 0.06));
+    border: 1rpx solid rgba($color-info, 0.25);
+    .shine-tag-name { color: $color-info; }
   }
 
-  // Tier 3: 史诗 - 紫色发光
+  // Tier 3: 史诗 - 洋红发光
   &.tier-epic {
-    background: linear-gradient(135deg, rgba(#8B5CF6, 0.15) 0%, rgba(#A78BFA, 0.22) 100%);
-    border: 1rpx solid rgba(#8B5CF6, 0.3);
-    box-shadow: 0 0 12rpx rgba(#8B5CF6, 0.2);
-    .shine-tag-name { color: #7C3AED; font-weight: 700; }
+    background: linear-gradient(135deg, rgba($neon-magenta, 0.15), rgba($neon-magenta, 0.08));
+    border: 1rpx solid rgba($neon-magenta, 0.3);
+    @include neon-glow($neon-magenta, 0.1);
+    .shine-tag-name { color: $neon-magenta; font-weight: 700; }
   }
 
-  // Tier 4: 传说 - 金色闪耀
+  // Tier 4: 传说 - 琥珀闪耀
   &.tier-legendary {
-    background: linear-gradient(135deg, rgba(#F59E0B, 0.15) 0%, rgba(#FBBF24, 0.25) 50%, rgba(#F59E0B, 0.15) 100%);
+    background: linear-gradient(135deg, rgba($neon-amber, 0.15), rgba($neon-amber, 0.08));
     background-size: 200% 100%;
     animation: tag-shimmer 3s ease infinite;
-    border: 1rpx solid rgba(#F59E0B, 0.4);
-    box-shadow: 0 0 16rpx rgba(#F59E0B, 0.3), 0 0 32rpx rgba(#F59E0B, 0.1);
-    .shine-tag-name { color: #B45309; font-weight: 800; }
+    border: 1rpx solid rgba($neon-amber, 0.4);
+    @include neon-glow($neon-amber, 0.15);
+    .shine-tag-name { color: $neon-amber; font-weight: 800; }
   }
 }
 
@@ -627,7 +649,7 @@ const formatTime = (timestamp: number): string => {
   bottom: calc(100% + 12rpx);
   left: 50%;
   transform: translateX(-50%);
-  background: $gray-800;
+  @include glass-effect(0.15);
   border-radius: $radius-lg;
   padding: 12rpx 20rpx;
   white-space: nowrap;
@@ -645,29 +667,31 @@ const formatTime = (timestamp: number): string => {
     left: 50%;
     transform: translateX(-50%);
     border: 8rpx solid transparent;
-    border-top-color: $gray-800;
+    border-top-color: rgba(255, 255, 255, 0.15);
   }
 }
 
 .tooltip-score {
   font-size: 24rpx;
   font-weight: 700;
-  color: $white;
+  color: $text-primary;
 }
 
 .tooltip-detail {
   font-size: 20rpx;
-  color: rgba(255, 255, 255, 0.7);
+  color: $text-secondary;
 }
 
 // ==================== Tab 切换栏 ====================
 
 .tab-bar {
+  position: relative;
+  z-index: 1;
   display: flex;
-  background: $white;
-  margin-top: 16rpx;
+  @include glass-effect(0.06);
+  margin-top: 2rpx;
   padding: 0 16rpx;
-  border-bottom: 1rpx solid $gray-100;
+  border-bottom: 1rpx solid rgba(255, 255, 255, 0.06);
 }
 
 .tab-item {
@@ -694,11 +718,12 @@ const formatTime = (timestamp: number): string => {
 
   &.active {
     &::after {
-      background: $primary-color;
+      background: $neon-cyan;
+      box-shadow: 0 0 8rpx rgba($neon-cyan, 0.4);
     }
     .tab-icon { transform: scale(1.1); }
-    .tab-label { color: $primary-color; font-weight: 700; }
-    .tab-count { background: $primary-color; color: $white; }
+    .tab-label { color: $neon-cyan; font-weight: 700; }
+    .tab-count { background: rgba($neon-cyan, 0.2); color: $neon-cyan; }
   }
 
   &:active { opacity: 0.7; }
@@ -720,7 +745,7 @@ const formatTime = (timestamp: number): string => {
   font-size: 20rpx;
   font-weight: 700;
   color: $text-tertiary;
-  background: $gray-100;
+  @include glass-effect(0.06);
   padding: 2rpx 12rpx;
   border-radius: $radius-full;
   min-width: 32rpx;
@@ -731,7 +756,8 @@ const formatTime = (timestamp: number): string => {
 // ==================== Tab 内容区 ====================
 
 .tab-content {
-  background: $white;
+  position: relative;
+  z-index: 1;
   min-height: 400rpx;
 }
 
@@ -752,14 +778,14 @@ const formatTime = (timestamp: number): string => {
   flex-direction: column;
   align-items: center;
   padding: 20rpx 12rpx;
-  background: $gray-50;
+  @include glass-effect(0.06);
   border-radius: $radius-xl;
   gap: 10rpx;
   transition: all 0.2s ease;
 
   &:active {
     transform: scale(0.95);
-    background: $gray-100;
+    background: rgba(255, 255, 255, 0.1);
   }
 }
 
@@ -772,11 +798,11 @@ const formatTime = (timestamp: number): string => {
   justify-content: center;
   position: relative;
 
-  &.common { background: linear-gradient(135deg, #f3f4f6, #e5e7eb); }
-  &.uncommon { background: linear-gradient(135deg, #d1fae5, #a7f3d0); }
-  &.rare { background: linear-gradient(135deg, #dbeafe, #93c5fd); }
-  &.epic { background: linear-gradient(135deg, #ede9fe, #c4b5fd); }
-  &.legendary { background: linear-gradient(135deg, #fef3c7, #fcd34d); }
+  &.common { @include glass-effect(0.08); }
+  &.uncommon { background: rgba($rarity-uncommon, 0.1); border: 1rpx solid rgba($rarity-uncommon, 0.2); }
+  &.rare { background: rgba($rarity-rare, 0.1); border: 1rpx solid rgba($rarity-rare, 0.2); }
+  &.epic { background: rgba($rarity-epic, 0.1); border: 1rpx solid rgba($rarity-epic, 0.2); @include neon-glow($rarity-epic, 0.08); }
+  &.legendary { background: rgba($rarity-legendary, 0.1); border: 1rpx solid rgba($rarity-legendary, 0.2); @include neon-glow($rarity-legendary, 0.1); }
 }
 
 .ci-icon { font-size: 48rpx; }
@@ -785,7 +811,7 @@ const formatTime = (timestamp: number): string => {
   position: absolute;
   top: -6rpx;
   right: -6rpx;
-  background: $primary-color;
+  background: $neon-cyan;
   border-radius: $radius-full;
   min-width: 36rpx;
   height: 36rpx;
@@ -793,9 +819,10 @@ const formatTime = (timestamp: number): string => {
   align-items: center;
   justify-content: center;
   padding: 0 8rpx;
+  border: 3rpx solid $bg-deep;
 }
 
-.ci-qty-text { font-size: 20rpx; font-weight: bold; color: $white; }
+.ci-qty-text { font-size: 20rpx; font-weight: bold; color: $text-on-neon; }
 
 .ci-name {
   font-size: 24rpx;
@@ -809,11 +836,11 @@ const formatTime = (timestamp: number): string => {
 .ci-rarity {
   padding: 2rpx 12rpx;
   border-radius: $radius-full;
-  &.common { background: $gray-100; .ci-rarity-text { color: $gray-600; } }
-  &.uncommon { background: rgba(#10B981, 0.1); .ci-rarity-text { color: #059669; } }
-  &.rare { background: rgba(#3B82F6, 0.1); .ci-rarity-text { color: #2563EB; } }
-  &.epic { background: rgba(#8B5CF6, 0.1); .ci-rarity-text { color: #7C3AED; } }
-  &.legendary { background: rgba(#F59E0B, 0.1); .ci-rarity-text { color: #D97706; } }
+  &.common { @include glass-effect(0.06); .ci-rarity-text { color: $text-tertiary; } }
+  &.uncommon { background: rgba($rarity-uncommon, 0.1); .ci-rarity-text { color: $rarity-uncommon; } }
+  &.rare { background: rgba($rarity-rare, 0.1); .ci-rarity-text { color: $rarity-rare; } }
+  &.epic { background: rgba($rarity-epic, 0.1); .ci-rarity-text { color: $rarity-epic; } }
+  &.legendary { background: rgba($rarity-legendary, 0.1); .ci-rarity-text { color: $rarity-legendary; } }
 }
 
 .ci-rarity-text { font-size: 18rpx; font-weight: 600; }
@@ -836,15 +863,15 @@ const formatTime = (timestamp: number): string => {
   width: 20rpx;
   height: 20rpx;
   border-radius: 50%;
-  background: $gray-300;
+  background: rgba(255, 255, 255, 0.15);
   flex-shrink: 0;
   margin-top: 10rpx;
-  border: 3rpx solid $gray-200;
+  border: 3rpx solid rgba(255, 255, 255, 0.1);
 
   &.completed {
     background: $color-success;
-    border-color: rgba(#10B981, 0.3);
-    box-shadow: 0 0 8rpx rgba(#10B981, 0.3);
+    border-color: rgba($color-success, 0.3);
+    box-shadow: 0 0 8rpx rgba($color-success, 0.3);
   }
 }
 
@@ -852,7 +879,7 @@ const formatTime = (timestamp: number): string => {
   flex: 1;
   min-width: 0;
   padding-bottom: 20rpx;
-  border-bottom: 1rpx solid $gray-100;
+  border-bottom: 1rpx solid rgba(255, 255, 255, 0.06);
 }
 
 .event-title-row {
@@ -877,12 +904,12 @@ const formatTime = (timestamp: number): string => {
   flex-shrink: 0;
 
   &.done {
-    background: rgba(#10B981, 0.1);
-    color: #059669;
+    background: rgba($color-success, 0.12);
+    color: $color-success;
   }
   &.ongoing {
-    background: rgba($primary-color, 0.1);
-    color: $primary-color;
+    background: rgba($neon-cyan, 0.12);
+    color: $neon-cyan;
   }
 }
 
@@ -921,7 +948,7 @@ const formatTime = (timestamp: number): string => {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.7);
   display: flex;
   align-items: flex-end;
   justify-content: center;
@@ -932,11 +959,12 @@ const formatTime = (timestamp: number): string => {
   width: 100%;
   max-width: 480px;
   max-height: 85vh;
-  background: $white;
+  background: $bg-elevated;
   border-radius: 32rpx 32rpx 0 0;
   padding: 40rpx 32rpx;
   padding-bottom: calc(40rpx + env(safe-area-inset-bottom, 0px));
   overflow-y: auto;
+  border-top: 1rpx solid rgba($neon-cyan, 0.15);
 }
 
 .dm-header {
@@ -955,11 +983,11 @@ const formatTime = (timestamp: number): string => {
   justify-content: center;
   flex-shrink: 0;
 
-  &.common { background: linear-gradient(135deg, #f3f4f6, #e5e7eb); }
-  &.uncommon { background: linear-gradient(135deg, #d1fae5, #a7f3d0); }
-  &.rare { background: linear-gradient(135deg, #dbeafe, #93c5fd); }
-  &.epic { background: linear-gradient(135deg, #ede9fe, #c4b5fd); }
-  &.legendary { background: linear-gradient(135deg, #fef3c7, #fcd34d); }
+  &.common { @include glass-effect(0.08); }
+  &.uncommon { background: rgba($rarity-uncommon, 0.1); border: 1rpx solid rgba($rarity-uncommon, 0.2); }
+  &.rare { background: rgba($rarity-rare, 0.1); border: 1rpx solid rgba($rarity-rare, 0.2); }
+  &.epic { background: rgba($rarity-epic, 0.1); border: 1rpx solid rgba($rarity-epic, 0.2); @include neon-glow($rarity-epic, 0.1); }
+  &.legendary { background: rgba($rarity-legendary, 0.1); border: 1rpx solid rgba($rarity-legendary, 0.2); @include neon-glow($rarity-legendary, 0.15); }
 }
 
 .dm-icon { font-size: 56rpx; }
@@ -977,33 +1005,33 @@ const formatTime = (timestamp: number): string => {
 .dm-rarity {
   padding: 4rpx 14rpx;
   border-radius: $radius-full;
-  &.common { background: $gray-100; .dm-rarity-text { color: $gray-600; } }
-  &.uncommon { background: rgba(#10B981, 0.1); .dm-rarity-text { color: #059669; } }
-  &.rare { background: rgba(#3B82F6, 0.1); .dm-rarity-text { color: #2563EB; } }
-  &.epic { background: rgba(#8B5CF6, 0.1); .dm-rarity-text { color: #7C3AED; } }
-  &.legendary { background: rgba(#F59E0B, 0.1); .dm-rarity-text { color: #D97706; } }
+  &.common { @include glass-effect(0.06); .dm-rarity-text { color: $text-tertiary; } }
+  &.uncommon { background: rgba($rarity-uncommon, 0.1); .dm-rarity-text { color: $rarity-uncommon; } }
+  &.rare { background: rgba($rarity-rare, 0.1); .dm-rarity-text { color: $rarity-rare; } }
+  &.epic { background: rgba($rarity-epic, 0.1); .dm-rarity-text { color: $rarity-epic; } }
+  &.legendary { background: rgba($rarity-legendary, 0.1); .dm-rarity-text { color: $rarity-legendary; } }
 }
 
 .dm-rarity-text { font-size: 22rpx; font-weight: 600; }
 .dm-desc { font-size: 26rpx; color: $text-secondary; line-height: 1.5; display: block; margin-bottom: 6rpx; }
-.dm-qty { font-size: 24rpx; color: $primary-color; font-weight: 600; }
+.dm-qty { font-size: 24rpx; color: $neon-cyan; font-weight: 600; }
 
 .dm-close {
   width: 56rpx;
   height: 56rpx;
   border-radius: 50%;
-  background: $gray-100;
+  @include glass-effect(0.08);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
 }
 
-.dm-close-text { font-size: 28rpx; color: $text-tertiary; }
+.dm-close-text { font-size: 28rpx; color: $text-secondary; }
 
 .dm-section {
   padding: 24rpx 0;
-  border-top: 1rpx solid $gray-100;
+  border-top: 1rpx solid rgba(255, 255, 255, 0.06);
 }
 
 .dm-section-title {
@@ -1024,11 +1052,11 @@ const formatTime = (timestamp: number): string => {
   padding: 10rpx 24rpx;
   border-radius: $radius-full;
 
-  &.tag-color-0 { background: rgba(#6366F1, 0.08); .dm-ft-text { color: #4F46E5; } }
-  &.tag-color-1 { background: rgba(#10B981, 0.08); .dm-ft-text { color: #059669; } }
-  &.tag-color-2 { background: rgba(#F59E0B, 0.08); .dm-ft-text { color: #D97706; } }
-  &.tag-color-3 { background: rgba(#EF4444, 0.08); .dm-ft-text { color: #DC2626; } }
-  &.tag-color-4 { background: rgba(#8B5CF6, 0.08); .dm-ft-text { color: #7C3AED; } }
+  &.tag-color-0 { background: rgba($neon-cyan, 0.08); .dm-ft-text { color: $neon-cyan; } }
+  &.tag-color-1 { background: rgba($neon-magenta, 0.08); .dm-ft-text { color: $neon-magenta; } }
+  &.tag-color-2 { background: rgba($neon-amber, 0.08); .dm-ft-text { color: $neon-amber; } }
+  &.tag-color-3 { background: rgba($color-danger, 0.08); .dm-ft-text { color: $color-danger; } }
+  &.tag-color-4 { background: rgba($color-info, 0.08); .dm-ft-text { color: $color-info; } }
 }
 
 .dm-ft-text { font-size: 26rpx; font-weight: 500; }
@@ -1080,12 +1108,12 @@ const formatTime = (timestamp: number): string => {
   align-items: flex-start;
   gap: 20rpx;
   padding: 20rpx;
-  background: $gray-50;
+  @include glass-effect(0.06);
   border-radius: $radius-xl;
   transition: all 0.2s ease;
 
   &:active {
-    background: $gray-100;
+    background: rgba(255, 255, 255, 0.1);
   }
 }
 
@@ -1094,11 +1122,12 @@ const formatTime = (timestamp: number): string => {
   width: 88rpx;
   height: 88rpx;
   border-radius: 50%;
-  background: linear-gradient(135deg, $primary-color, #8B5CF6);
+  background: linear-gradient(135deg, rgba($neon-cyan, 0.3), rgba($neon-magenta, 0.3));
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  border: 2rpx solid rgba($neon-cyan, 0.3);
 }
 
 .fi-avatar-text {
@@ -1109,13 +1138,13 @@ const formatTime = (timestamp: number): string => {
   position: absolute;
   bottom: -4rpx;
   right: -4rpx;
-  background: $gray-800;
-  color: $white;
+  background: $neon-cyan;
+  color: $text-on-neon;
   font-size: 16rpx;
   font-weight: 700;
   padding: 2rpx 8rpx;
   border-radius: $radius-full;
-  border: 2rpx solid $white;
+  border: 2rpx solid $bg-deep;
 }
 
 .fi-info {
@@ -1163,10 +1192,9 @@ const formatTime = (timestamp: number): string => {
   display: flex;
   align-items: center;
   gap: 4rpx;
-  background: $white;
+  @include glass-effect(0.06);
   padding: 4rpx 12rpx;
   border-radius: $radius-full;
-  border: 1rpx solid $gray-200;
 }
 
 .fi-tag-icon {
@@ -1186,7 +1214,7 @@ const formatTime = (timestamp: number): string => {
 
 .fi-stance {
   font-size: 22rpx;
-  color: $primary-color;
+  color: $neon-cyan;
   margin-top: 4rpx;
   @include text-ellipsis(1);
 }
@@ -1195,12 +1223,12 @@ const formatTime = (timestamp: number): string => {
   flex-shrink: 0;
   padding: 10rpx 20rpx;
   border-radius: $radius-lg;
-  background: $gray-200;
+  @include glass-effect(0.08);
   align-self: center;
   transition: all 0.2s ease;
 
   &:active {
-    background: $gray-300;
+    background: rgba($color-danger, 0.15);
     transform: scale(0.95);
   }
 }

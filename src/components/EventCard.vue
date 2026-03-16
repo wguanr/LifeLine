@@ -1413,7 +1413,7 @@ defineExpose({
   }
   .aigc-label {
     font-size: 20rpx;
-    color: #059669;
+    color: $color-success;
     font-weight: 600;
     line-height: 1.2;
   }
@@ -1434,24 +1434,23 @@ defineExpose({
   }
   
   &.critical {
-    background: #FEE2E2;
-    border: 1px solid rgba(220, 38, 38, 0.3);
-    .urgency-text { color: #DC2626; }
+    background: rgba($color-danger, 0.12);
+    border: 1px solid rgba($color-danger, 0.3);
+    .urgency-text { color: $color-danger; }
   }
   &.high {
-    background: #FEF3C7;
-    border: 1px solid rgba(217, 119, 6, 0.3);
-    .urgency-text { color: #D97706; }
+    background: rgba($neon-amber, 0.12);
+    border: 1px solid rgba($neon-amber, 0.3);
+    .urgency-text { color: $neon-amber; }
   }
   &.medium {
-    background: #DBEAFE;
-    border: 1px solid rgba(37, 99, 235, 0.3);
-    .urgency-text { color: #2563EB; }
+    background: rgba($color-info, 0.12);
+    border: 1px solid rgba($color-info, 0.3);
+    .urgency-text { color: $color-info; }
   }
   &.low {
-    background: #F3F4F6;
-    border: 1px solid rgba(107, 114, 128, 0.3);
-    .urgency-text { color: #6B7280; }
+    @include glass-effect(0.06);
+    .urgency-text { color: $text-tertiary; }
   }
 }
 
@@ -1504,7 +1503,7 @@ defineExpose({
   gap: 8rpx;
   padding: 10rpx 20rpx;
   border-radius: $radius-full;
-  background: $gray-50;
+  @include glass-effect(0.06);
   
   &.story { 
     background: rgba($neon-cyan, 0.1);
@@ -1766,12 +1765,12 @@ defineExpose({
   border-radius: $radius-lg;
   
   &.time {
-    background: rgba(59, 130, 246, 0.08);
-    .fee-value { color: #2563EB; }
+    background: rgba($color-info, 0.08);
+    .fee-value { color: $color-info; }
   }
   &.energy {
-    background: rgba(251, 191, 36, 0.08);
-    .fee-value { color: $accent-dark; }
+    background: rgba($neon-amber, 0.08);
+    .fee-value { color: $neon-amber; }
   }
 }
 
@@ -1803,7 +1802,7 @@ defineExpose({
   &:active { transform: scale(0.95); }
   
   &.disabled {
-    background: $gray-200;
+    @include glass-effect(0.06);
     color: $text-tertiary;
     box-shadow: none;
   }
@@ -1967,8 +1966,8 @@ defineExpose({
 .cost-tag {
   font-size: 22rpx;
   font-weight: 500;
-  &.time { color: #3B82F6; }
-  &.energy { color: $accent-dark; }
+  &.time { color: $color-info; }
+  &.energy { color: $neon-amber; }
 }
 
 .option-arrow { font-size: 28rpx; color: $text-tertiary; font-weight: 300; }
@@ -1982,11 +1981,11 @@ defineExpose({
 .dot {
   width: 12rpx; height: 12rpx;
   border-radius: 50%;
-  background: $gray-200;
+  background: rgba(255, 255, 255, 0.15);
   transition: all $transition-normal;
   
-  &.active { width: 32rpx; border-radius: 6rpx; background: $primary-color; }
-  &.completed { background: $primary-light; }
+  &.active { width: 32rpx; border-radius: 6rpx; background: $neon-cyan; box-shadow: 0 0 6rpx rgba($neon-cyan, 0.4); }
+  &.completed { background: rgba($neon-cyan, 0.4); }
 }
 
 // ==================== 结果奖励 ====================
@@ -2126,7 +2125,7 @@ defineExpose({
 .history-hint {
   display: block;
   font-size: 22rpx;
-  color: #D97706;
+  color: $neon-amber;
   font-weight: 500;
 }
 
@@ -2500,7 +2499,7 @@ defineExpose({
   gap: 12rpx;
   margin-top: 12rpx;
   padding-top: 10rpx;
-  border-top: 1rpx solid rgba(0, 0, 0, 0.04);
+  border-top: 1rpx solid rgba(255, 255, 255, 0.06);
 }
 
 .bet-label {
@@ -2680,8 +2679,9 @@ defineExpose({
 .encounter-label {
   font-size: 30rpx;
   font-weight: 700;
-  color: #b45309;
+  color: $neon-amber;
   letter-spacing: 4rpx;
+  @include neon-text($neon-amber);
 }
 
 // 玩家信息
@@ -2950,7 +2950,7 @@ defineExpose({
 .drops-title {
   font-size: 26rpx;
   font-weight: 700;
-  color: #d97706;
+  color: $neon-amber;
   letter-spacing: 2rpx;
 }
 

@@ -2,11 +2,20 @@
   <view class="worldline-page">
     <!-- 顶部标题栏 -->
     <view class="header">
-      <text class="title">🌳 世界线</text>
+      <view class="header-left">
+        <text class="title-icon">🌳</text>
+        <text class="title">世界线</text>
+      </view>
       <view class="header-stats">
-        <text class="stat">{{ branches.length }} 事件</text>
-        <text class="stat-dot">·</text>
-        <text class="stat">{{ completedCount }} 完成</text>
+        <view class="stat-chip">
+          <text class="stat-num">{{ branches.length }}</text>
+          <text class="stat-label">事件</text>
+        </view>
+        <view class="stat-divider"></view>
+        <view class="stat-chip">
+          <text class="stat-num">{{ completedCount }}</text>
+          <text class="stat-label">完成</text>
+        </view>
       </view>
     </view>
 
@@ -210,21 +219,22 @@ onMounted(() => {
   max-width: 480px;
   margin: 0 auto;
   height: 100vh;
-  background: $white;
+  background: $bg-deep;
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  position: relative;
 
+  // 背景氛围光
   &::before {
     content: '';
     position: fixed;
     top: 0; left: 0; right: 0; bottom: 0;
     background:
-      radial-gradient(ellipse at 30% 0%, rgba($primary-color, 0.04) 0%, transparent 60%),
-      radial-gradient(ellipse at 70% 100%, rgba($accent-color, 0.03) 0%, transparent 60%),
-      linear-gradient(180deg, $white 0%, $gray-50 100%);
+      radial-gradient(ellipse at 30% 0%, rgba($neon-cyan, 0.06) 0%, transparent 60%),
+      radial-gradient(ellipse at 70% 100%, rgba($neon-magenta, 0.04) 0%, transparent 60%);
     pointer-events: none;
-    z-index: -1;
+    z-index: 0;
   }
 }
 
@@ -235,32 +245,58 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: rgba(255,255,255,0.92);
-  backdrop-filter: blur(40rpx);
-  -webkit-backdrop-filter: blur(40rpx);
-  border-bottom: 1rpx solid rgba(0,0,0,0.05);
+  @include glass-effect(0.06);
+  border-bottom: 1rpx solid rgba($neon-cyan, 0.1);
   z-index: 100;
+  position: relative;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+
+  .title-icon {
+    font-size: 36rpx;
+  }
 
   .title {
     font-size: 38rpx;
     font-weight: 700;
     color: $text-primary;
   }
+}
 
-  .header-stats {
-    display: flex;
-    align-items: center;
-    gap: 8rpx;
+.header-stats {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  padding: 8rpx 20rpx;
+  @include glass-effect(0.06);
+  border-radius: $radius-full;
+}
 
-    .stat {
-      font-size: 24rpx;
-      color: $text-tertiary;
-    }
-    .stat-dot {
-      font-size: 20rpx;
-      color: $gray-300;
-    }
-  }
+.stat-chip {
+  display: flex;
+  align-items: baseline;
+  gap: 6rpx;
+}
+
+.stat-num {
+  font-size: 28rpx;
+  font-weight: 700;
+  color: $neon-cyan;
+}
+
+.stat-label {
+  font-size: 22rpx;
+  color: $text-tertiary;
+}
+
+.stat-divider {
+  width: 1rpx;
+  height: 24rpx;
+  background: rgba(255, 255, 255, 0.15);
 }
 
 /* ===== 树滚动容器 ===== */
@@ -268,6 +304,8 @@ onMounted(() => {
   flex: 1;
   min-height: 0;
   width: 100%;
+  position: relative;
+  z-index: 1;
 }
 
 .tree-wrapper {
@@ -285,12 +323,13 @@ onMounted(() => {
   width: 4rpx;
   background: linear-gradient(
     180deg,
-    rgba($primary-color, 0.45) 0%,
-    rgba($primary-color, 0.2) 70%,
-    rgba($primary-color, 0.08) 100%
+    rgba($neon-cyan, 0.5) 0%,
+    rgba($neon-cyan, 0.25) 50%,
+    rgba($neon-magenta, 0.15) 100%
   );
   transform: translateX(-50%);
   border-radius: 2rpx;
+  box-shadow: 0 0 8rpx rgba($neon-cyan, 0.2);
 }
 
 /* ===== 当前时刻指示器 ===== */
@@ -307,16 +346,17 @@ onMounted(() => {
     width: 16rpx;
     height: 16rpx;
     border-radius: 50%;
-    background: $primary-color;
-    box-shadow: 0 0 0 6rpx rgba($primary-color, 0.2);
+    background: $neon-cyan;
+    box-shadow: 0 0 8rpx rgba($neon-cyan, 0.6), 0 0 20rpx rgba($neon-cyan, 0.3);
     animation: pulse-ring 2s ease-in-out infinite;
   }
 
   .now-label {
     font-size: 22rpx;
-    color: $primary-color;
+    color: $neon-cyan;
     font-weight: 600;
     letter-spacing: 2rpx;
+    @include neon-text($neon-cyan);
   }
 }
 
@@ -342,26 +382,23 @@ onMounted(() => {
   z-index: 10;
   cursor: pointer;
   transition: all $transition-normal;
-  border: 3rpx solid $white;
+  border: 3rpx solid $bg-deep;
 
   .dot-icon {
     font-size: 22rpx;
   }
 
   &.dot-completed {
-    background: $white;
-    box-shadow: 0 2rpx 12rpx rgba($primary-color, 0.15);
-    border-color: rgba($primary-color, 0.25);
+    @include glass-effect(0.1);
+    box-shadow: 0 2rpx 12rpx rgba($color-success, 0.2);
+    border-color: rgba($color-success, 0.3);
   }
 
   &.dot-active {
-    background: $gradient-primary;
-    box-shadow: 0 4rpx 16rpx rgba($primary-color, 0.35);
-    border-color: rgba($primary-light, 0.5);
-
-    .dot-icon {
-      filter: brightness(10);
-    }
+    background: linear-gradient(135deg, rgba($neon-cyan, 0.3), rgba($neon-cyan, 0.15));
+    box-shadow: 0 0 16rpx rgba($neon-cyan, 0.4);
+    border-color: rgba($neon-cyan, 0.5);
+    @include neon-glow($neon-cyan, 0.2);
   }
 }
 
@@ -371,7 +408,8 @@ onMounted(() => {
   top: 38rpx;
   width: 36rpx;
   height: 3rpx;
-  background: rgba($primary-color, 0.18);
+  background: rgba($neon-cyan, 0.2);
+  box-shadow: 0 0 4rpx rgba($neon-cyan, 0.1);
 
   &.arm-left {
     right: 50%;
@@ -401,15 +439,14 @@ onMounted(() => {
   }
 
   &.card-completed {
-    background: rgba(255,255,255,0.85);
-    border: 1rpx solid rgba($primary-color, 0.08);
-    box-shadow: $shadow-xs;
+    @include glass-effect(0.06);
+    border-color: rgba($color-success, 0.15);
   }
 
   &.card-active {
-    background: rgba(255,255,255,0.95);
-    border: 1rpx solid rgba($primary-color, 0.2);
-    box-shadow: 0 4rpx 16rpx rgba($primary-color, 0.08);
+    @include glass-effect(0.08);
+    border-color: rgba($neon-cyan, 0.25);
+    @include neon-glow($neon-cyan, 0.05);
   }
 
   &:active {
@@ -452,12 +489,12 @@ onMounted(() => {
     justify-content: center;
 
     &.badge-done {
-      background: rgba($color-success, 0.12);
+      background: rgba($color-success, 0.15);
       .badge-text { color: $color-success; font-size: 18rpx; }
     }
     &.badge-active {
-      background: rgba($primary-color, 0.12);
-      .badge-text { color: $primary-color; font-size: 18rpx; }
+      background: rgba($neon-cyan, 0.15);
+      .badge-text { color: $neon-cyan; font-size: 18rpx; }
     }
   }
 
@@ -488,15 +525,15 @@ onMounted(() => {
   box-sizing: border-box;
 
   &.card-completed {
-    background: rgba(255,255,255,0.92);
-    border: 1rpx solid rgba($primary-color, 0.15);
-    box-shadow: 0 8rpx 32rpx rgba($primary-color, 0.1);
+    @include glass-effect(0.08);
+    border-color: rgba($color-success, 0.2);
+    box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.3), 0 0 12rpx rgba($color-success, 0.08);
   }
 
   &.card-active {
-    background: rgba(255,255,255,0.96);
-    border: 1rpx solid rgba($primary-color, 0.25);
-    box-shadow: 0 8rpx 32rpx rgba($primary-color, 0.12);
+    @include glass-effect(0.1);
+    border-color: rgba($neon-cyan, 0.3);
+    box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.3), 0 0 12rpx rgba($neon-cyan, 0.1);
   }
 
   .card-header {
@@ -512,7 +549,7 @@ onMounted(() => {
 .card-detail {
   margin-top: 20rpx;
   padding-top: 20rpx;
-  border-top: 1rpx solid $gray-100;
+  border-top: 1rpx solid rgba(255, 255, 255, 0.08);
 }
 
 .detail-section-title {
@@ -545,7 +582,8 @@ onMounted(() => {
     width: 14rpx;
     height: 14rpx;
     border-radius: 50%;
-    background: $primary-color;
+    background: $neon-cyan;
+    box-shadow: 0 0 6rpx rgba($neon-cyan, 0.4);
     flex-shrink: 0;
   }
 
@@ -553,7 +591,7 @@ onMounted(() => {
     width: 2rpx;
     flex: 1;
     min-height: 16rpx;
-    background: rgba($primary-color, 0.15);
+    background: rgba($neon-cyan, 0.2);
     margin-top: 4rpx;
   }
 }
@@ -572,13 +610,13 @@ onMounted(() => {
 
   .choice-result {
     font-size: 23rpx;
-    color: $text-tertiary;
+    color: $text-secondary;
     line-height: 1.55;
     display: block;
     padding: 14rpx 18rpx;
-    background: $gray-50;
+    @include glass-effect(0.06);
     border-radius: $radius-md;
-    border-left: 4rpx solid rgba($primary-color, 0.25);
+    border-left: 4rpx solid rgba($neon-cyan, 0.3);
   }
 }
 
@@ -597,9 +635,9 @@ onMounted(() => {
 .ending-summary {
   margin-top: 16rpx;
   padding: 18rpx 22rpx;
-  background: rgba($color-success, 0.05);
+  background: rgba($color-success, 0.06);
   border-radius: $radius-lg;
-  border: 1rpx solid rgba($color-success, 0.1);
+  border: 1rpx solid rgba($color-success, 0.15);
 
   .ending-text {
     font-size: 24rpx;
@@ -616,10 +654,16 @@ onMounted(() => {
   text-align: center;
   padding: 12rpx;
   cursor: pointer;
+  border-radius: $radius-lg;
+  transition: all 0.2s ease;
+
+  &:active {
+    background: rgba($neon-cyan, 0.08);
+  }
 
   .collapse-text {
     font-size: 22rpx;
-    color: $primary-color;
+    color: $neon-cyan;
     font-weight: 500;
   }
 }
@@ -662,12 +706,12 @@ onMounted(() => {
     width: 72rpx;
     height: 72rpx;
     border-radius: 50%;
-    background: $gradient-primary;
+    background: linear-gradient(135deg, rgba($neon-cyan, 0.3), rgba($neon-magenta, 0.2));
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 4rpx 24rpx rgba($primary-color, 0.3);
-    border: 4rpx solid $white;
+    @include neon-glow($neon-cyan, 0.2);
+    border: 3rpx solid rgba($neon-cyan, 0.4);
     margin-bottom: 12rpx;
 
     .origin-icon {
@@ -685,10 +729,10 @@ onMounted(() => {
 /* ===== 动画 ===== */
 @keyframes pulse-ring {
   0%, 100% {
-    box-shadow: 0 0 0 6rpx rgba($primary-color, 0.2);
+    box-shadow: 0 0 8rpx rgba($neon-cyan, 0.6), 0 0 20rpx rgba($neon-cyan, 0.3);
   }
   50% {
-    box-shadow: 0 0 0 14rpx rgba($primary-color, 0);
+    box-shadow: 0 0 16rpx rgba($neon-cyan, 0.8), 0 0 40rpx rgba($neon-cyan, 0.1);
   }
 }
 
