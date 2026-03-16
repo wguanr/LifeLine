@@ -165,30 +165,26 @@
         </template>
       </view>
       
-      <!-- 底部操作区 -->
+      <!-- 底部信息区（操作按钮已移至外部操作栏） -->
       <view class="card-footer">
         <template v-if="mode === 'preview'">
-          <!-- 已完成状态：查看历史抉择按钮 -->
+          <!-- 已完成状态提示 -->
           <template v-if="isEventCompleted">
-            <button 
-              class="action-btn history-btn"
-              @click.stop="handleViewHistory"
-            >
-              <text class="btn-text-default">📜 查看历史抉择</text>
-            </button>
+            <view class="footer-status-hint">
+              <text class="status-icon">✅</text>
+              <text class="status-text">事件已完成</text>
+            </view>
           </template>
 
-          <!-- 进行中状态：继续事件按钮 -->
+          <!-- 进行中状态提示 -->
           <template v-else-if="isEventInProgress">
-            <button 
-              class="action-btn continue-btn"
-              @click.stop="handleContinueEvent"
-            >
-              <text class="btn-text-default">▶️ 继续事件</text>
-            </button>
+            <view class="footer-status-hint">
+              <text class="status-icon">▶️</text>
+              <text class="status-text">事件进行中</text>
+            </view>
           </template>
 
-          <!-- 未参与状态：原有参与按钮 -->
+          <!-- 未参与状态：显示费用信息 -->
           <template v-else>
             <view class="footer-info">
               <view class="entry-fee" v-if="hasEntryFee">
@@ -208,45 +204,6 @@
                 <text class="free-label">随时参与</text>
               </view>
             </view>
-            
-            <button 
-              class="action-btn" 
-              :class="btnClasses"
-              :disabled="!canJoin || !canAffordCurrent"
-              @click.stop="handleTapJoin"
-            >
-              <!-- 涟漪效果层 -->
-              <view class="ripple-container">
-                <view 
-                  v-for="ripple in ripples" 
-                  :key="ripple.id" 
-                  class="ripple"
-                  :style="{ left: ripple.x + 'px', top: ripple.y + 'px' }"
-                />
-              </view>
-              
-              <!-- 按钮内容 -->
-              <template v-if="!canJoin">条件不足</template>
-              <template v-else-if="!canAffordCurrent">资源不足</template>
-              <template v-else-if="hasEntryFee && multiplier > 0">
-                <view class="btn-content">
-                  <view class="btn-multiplier-row">
-                    <text class="btn-multiplier" :class="'level-' + Math.min(multiplier, 5)">×{{ multiplier }}</text>
-                    <text class="btn-label">倍投入</text>
-                  </view>
-                  <text class="btn-cost-text">
-                    {{ costSummary }}
-                  </text>
-                </view>
-                <!-- 倒计时进度条 -->
-                <view class="btn-timer-bar" v-if="isCountingDown">
-                  <view class="timer-fill" :style="{ width: timerProgress + '%' }" />
-                </view>
-              </template>
-              <template v-else>
-                <text class="btn-text-default">参与事件</text>
-              </template>
-            </button>
           </template>
         </template>
         
@@ -395,15 +352,7 @@
               <text class="enc-no-history" v-if="!encounterInfluencer.choices?.length">这位玩家还很神秘…</text>
             </view>
             
-            <!-- 操作按钮 -->
-            <view class="encounter-actions">
-              <button class="encounter-follow-btn" @click="handleEncounterFollow">
-                + 关注 TA
-              </button>
-              <button class="encounter-skip-btn" @click="handleEncounterSkip">
-                下次再说
-              </button>
-            </view>
+            <!-- 操作按钮已移至外部操作栏 -->
           </view>
         </template>
         
@@ -474,9 +423,7 @@
             </view>
           </view>
 
-          <button class="action-btn" @click="handleContinue" :disabled="hasRequiredUnclaimedItems">
-            {{ hasRequiredUnclaimedItems ? '请先领取必须物品' : (hasNextStage ? '继续' : '完成') }}
-          </button>
+          <!-- 继续/完成按钮已移至外部操作栏 -->
         </template>
       </view>
     </view>
@@ -1371,7 +1318,33 @@ onUnmounted(() => {
 })
 
 defineExpose({
-  resetCardState
+  resetCardState,
+  // 暴露给外部操作栏使用
+  mode,
+  // preview 模式操作
+  handleTapJoin,
+  handleContinueEvent,
+  handleViewHistory,
+  canJoin,
+  canAffordCurrent,
+  isEventCompleted,
+  isEventInProgress,
+  hasEntryFee,
+  multiplier,
+  costSummary,
+  isCountingDown,
+  timerProgress,
+  btnClasses,
+  ripples,
+  addRipple,
+  // encounter 模式操作
+  handleEncounterFollow,
+  handleEncounterSkip,
+  encounterInfluencer,
+  // result 模式操作
+  handleContinue,
+  hasNextStage,
+  hasRequiredUnclaimedItems
 })
 </script>
 

@@ -68,54 +68,24 @@
         </view>
       </view>
 
-      <!-- 底部操作区 -->
+      <!-- 底部信息区（操作按钮已移至外部操作栏） -->
       <view class="card-footer">
-        <!-- 已购入状态：不显示购买按钮 -->
-        <template v-if="ownedQuantity > 0">
-          <view class="price-row">
-            <view class="price-info">
-              <view class="price-values">
-                <text class="price-tag" v-if="item.mintCost.time">⏰ {{ item.mintCost.time }}</text>
-                <text class="price-tag" v-if="item.mintCost.energy">⚡ {{ item.mintCost.energy }}</text>
-              </view>
-              <text class="stock-info" v-if="item.maxMint">
-                {{ item.mintedCount || 0 }}/{{ item.maxMint }} 已售
-              </text>
+        <view class="price-row">
+          <view class="price-info">
+            <view class="price-values">
+              <text class="price-tag" v-if="item.mintCost.time">⏰ {{ item.mintCost.time }}</text>
+              <text class="price-tag" v-if="item.mintCost.energy">⚡ {{ item.mintCost.energy }}</text>
             </view>
+            <text class="stock-info" v-if="item.maxMint">
+              {{ item.mintedCount || 0 }}/{{ item.maxMint }} 已售
+            </text>
           </view>
-          <!-- 已拥有状态的底部提示 -->
-          <view class="owned-footer-hint">
-            <text class="owned-hint-icon">🎒</text>
-            <text class="owned-hint-text">物品已在你的背包中</text>
-          </view>
-        </template>
-
-        <!-- 未购入状态：显示价格和购买按钮 -->
-        <template v-else>
-          <!-- 价格 + 库存 -->
-          <view class="price-row">
-            <view class="price-info">
-              <view class="price-values">
-                <text class="price-tag" v-if="item.mintCost.time">⏰ {{ item.mintCost.time }}</text>
-                <text class="price-tag" v-if="item.mintCost.energy">⚡ {{ item.mintCost.energy }}</text>
-              </view>
-              <text class="stock-info" v-if="item.maxMint">
-                {{ item.mintedCount || 0 }}/{{ item.maxMint }} 已售
-              </text>
-            </view>
-          </view>
-
-          <!-- 买入按钮 -->
-          <view
-            class="buy-btn"
-            :class="{ disabled: !canBuy, 'just-bought': justBought, [item.rarity]: true }"
-            @click.stop="onBuy"
-          >
-            <text class="btn-text" v-if="justBought">✓ 已买入</text>
-            <text class="btn-text" v-else-if="!canBuy">{{ buyDisabledReason || '余额不足' }}</text>
-            <text class="btn-text" v-else>🛒 买入</text>
-          </view>
-        </template>
+        </view>
+        <!-- 已拥有状态提示 -->
+        <view class="owned-footer-hint" v-if="ownedQuantity > 0">
+          <text class="owned-hint-icon">🎒</text>
+          <text class="owned-hint-text">物品已在你的背包中</text>
+        </view>
       </view>
     </view>
   </view>
@@ -214,6 +184,15 @@ const getEffectIcon = (type: string): string => {
   }
   return icons[type] || '✨'
 }
+
+defineExpose({
+  // 暴露给外部操作栏使用
+  onBuy,
+  canBuy,
+  buyDisabledReason,
+  justBought,
+  ownedQuantity
+})
 </script>
 
 <style lang="scss" scoped>

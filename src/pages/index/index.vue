@@ -82,11 +82,13 @@
             >
               <EventCard 
                 v-if="card.type === 'event'" 
+                :ref="(el: any) => setCardComponentRef(index, el)"
                 :event="card.data as GameEvent"
                 @stateChange="onEventStateChange"
               />
               <ItemCard 
                 v-else-if="card.type === 'item'" 
+                :ref="(el: any) => setCardComponentRef(index, el)"
                 :item="card.data as Item"
                 @click="onItemClick"
                 @buy="onItemBuy"
@@ -94,6 +96,7 @@
               />
               <UserCard 
                 v-else-if="card.type === 'user'" 
+                :ref="(el: any) => setCardComponentRef(index, el)"
                 :user="card.data as User"
                 @click="onUserClick"
                 @follow="onUserFollow"
@@ -108,11 +111,89 @@
     
     <!-- 卡片下方操作栏（独立于 swiper 外部，滑动时隐藏） -->
     <view class="card-actions-bar" :class="{ hidden: isSwiping }" v-if="currentCard">
-      <!-- UserCard: 关注按钮（卡片内部已移除，由外部提供） -->
-      <view class="main-action-btn" @click="onPrimaryAction" v-if="currentCard.type === 'user'">
-        <text class="main-action-icon">👋</text>
-        <text class="main-action-text">关注</text>
-      </view>
+      
+      <!-- ===== EventCard 操作按钮 ===== -->
+      <template v-if="currentCard.type === 'event' && currentCardComponent">
+        <!-- preview 模式 -->
+        <template v-if="currentCardComponent.mode === 'preview'">
+          <!-- 已完成 -->
+          <view class="main-action-btn" @click="currentCardComponent.handleViewHistory()" v-if="currentCardComponent.isEventCompleted">
+            <text class="main-action-icon">📜</text>
+            <text class="main-action-text">查看历史抉择</text>
+          </view>
+          <!-- 进行中 -->
+          <view class="main-action-btn" @click="currentCardComponent.handleContinueEvent()" v-else-if="currentCardComponent.isEventInProgress">
+            <text class="main-action-icon">▶️</text>
+            <text class="main-action-text">继续事件</text>
+          </view>
+          <!-- 未参与 -->
+          <view class="main-action-btn" 
+            :class="{ disabled: !currentCardComponent.canJoin || !currentCardComponent.canAffordCurrent }"
+            @click="currentCardComponent.handleTapJoin()" 
+            v-else
+          >
+            <template v-if="currentCardComponent.hasEntryFee && currentCardComponent.multiplier > 0">
+              <text class="main-action-icon">×{{ currentCardComponent.multiplier }}</text>
+              <text class="main-action-text">倍投入 {{ currentCardComponent.costSummary }}</text>
+            </template>
+            <template v-else>
+              <text class="main-action-icon">🎮</text>
+              <text class="main-action-text">参与事件</text>
+            </template>
+            <!-- 倒计时进度条 -->
+            <view class="action-timer-bar" v-if="currentCardComponent.isCountingDown">
+              <view class="timer-fill" :style="{ width: currentCardComponent.timerProgress + '%' }" />
+            </view>
+          </view>
+        </template>
+        <!-- encounter 模式 -->
+        <template v-else-if="currentCardComponent.mode === 'encounter'">
+          <view class="main-action-btn" @click="currentCardComponent.handleEncounterFollow()">
+            <text class="main-action-icon">👋</text>
+            <text class="main-action-text">关注 TA</text>
+          </view>
+          <view class="secondary-action-btn" @click="currentCardComponent.handleEncounterSkip()">
+            <text class="secondary-action-text">下次再说</text>
+          </view>
+        </template>
+        <!-- result 模式 -->
+        <template v-else-if="currentCardComponent.mode === 'result'">
+          <view class="main-action-btn" 
+            :class="{ disabled: currentCardComponent.hasRequiredUnclaimedItems }"
+            @click="currentCardComponent.handleContinue()"
+          >
+            <text class="main-action-icon">{{ currentCardComponent.hasNextStage ? '▶️' : '✅' }}</text>
+            <text class="main-action-text">{{ currentCardComponent.hasRequiredUnclaimedItems ? '请先领取必须物品' : (currentCardComponent.hasNextStage ? '继续' : '完成') }}</text>
+          </view>
+        </template>
+        <!-- playing 模式不显示主操作按钮（选项在卡片内部） -->
+      </template>
+      
+      <!-- ===== ItemCard 操作按钮 ===== -->
+      <template v-else-if="currentCard.type === 'item' && currentCardComponent">
+        <view class="main-action-btn" 
+          :class="{ 
+            disabled: !currentCardComponent.canBuy,
+            'just-bought': currentCardComponent.justBought
+          }"
+          @click="currentCardComponent.onBuy()"
+        >
+          <text class="main-action-icon" v-if="currentCardComponent.justBought">✓</text>
+          <text class="main-action-icon" v-else>🛒</text>
+          <text class="main-action-text" v-if="currentCardComponent.justBought">已买入</text>
+          <text class="main-action-text" v-else-if="!currentCardComponent.canBuy">{{ currentCardComponent.buyDisabledReason || '余额不足' }}</text>
+          <text class="main-action-text" v-else>买入</text>
+        </view>
+      </template>
+      
+      <!-- ===== UserCard 操作按钮 ===== -->
+      <template v-else-if="currentCard.type === 'user'">
+        <view class="main-action-btn" @click="onPrimaryAction">
+          <text class="main-action-icon">👋</text>
+          <text class="main-action-text">关注</text>
+        </view>
+      </template>
+      
       <!-- 详情按钮 -->
       <view class="footer-icon-btn" @click="openDetailSheet(currentCard)">
         <text class="footer-icon">📋</text>
@@ -555,6 +636,21 @@ const setSwipeableCardRef = (index: number, el: any) => {
     delete swipeableCardRefs.value[index]
   }
 }
+
+// 卡片组件实例引用（EventCard/ItemCard/UserCard）
+const cardComponentRefs = ref<Record<number, any>>({})
+const setCardComponentRef = (index: number, el: any) => {
+  if (el) {
+    cardComponentRefs.value[index] = el
+  } else {
+    delete cardComponentRefs.value[index]
+  }
+}
+
+// 当前卡片组件实例
+const currentCardComponent = computed(() => {
+  return cardComponentRefs.value[cardStore.currentIndex] || null
+})
 
 // 标签工具方法
 const getTagName = (tagId: string): string => {
@@ -1851,12 +1947,68 @@ $safe-area-bottom: env(safe-area-inset-bottom, 0px);
   height: 76rpx;
   border-radius: $radius-full;
   background: linear-gradient(135deg, $neon-cyan 0%, $neon-magenta 100%);
+  position: relative;
+  overflow: hidden;
   box-shadow: 0 4rpx 20rpx rgba($neon-cyan, 0.25), 0 4rpx 20rpx rgba($neon-magenta, 0.15);
   transition: all 0.2s ease;
   
   &:active {
     transform: scale(0.97);
     box-shadow: 0 2rpx 12rpx rgba($neon-cyan, 0.4), 0 2rpx 12rpx rgba($neon-magenta, 0.3);
+  }
+}
+
+.main-action-btn.disabled {
+  opacity: 0.5;
+  pointer-events: none;
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: none;
+}
+
+.main-action-btn.just-bought {
+  background: linear-gradient(135deg, $color-success 0%, darken($color-success, 10%) 100%);
+  box-shadow: 0 4rpx 20rpx rgba($color-success, 0.3);
+}
+
+.secondary-action-btn {
+  padding: 0 28rpx;
+  height: 76rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: $radius-full;
+  @include glass-effect(0.12);
+  border: 1rpx solid rgba(255, 255, 255, 0.15);
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  
+  &:active {
+    transform: scale(0.97);
+    background: rgba(255, 255, 255, 0.15);
+  }
+  
+  .secondary-action-text {
+    font-size: 24rpx;
+    color: rgba(255, 255, 255, 0.7);
+    white-space: nowrap;
+  }
+}
+
+.action-timer-bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 4rpx;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 0 0 $radius-full $radius-full;
+  overflow: hidden;
+  
+  .timer-fill {
+    height: 100%;
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 2rpx;
+    transition: width 0.1s linear;
   }
 }
 
