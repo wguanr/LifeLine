@@ -1229,7 +1229,7 @@ $safe-area-bottom: env(safe-area-inset-bottom, 0px);
   width: 100%;
   height: 100%;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
   padding: 8rpx 0 120rpx;
   box-sizing: border-box;
@@ -1240,7 +1240,7 @@ $safe-area-bottom: env(safe-area-inset-bottom, 0px);
 .card-wrapper {
   width: 100%;
   max-height: 100%;
-  min-height: 0;
+  min-height: 70vh;
   border-radius: $radius-2xl;
   overflow: visible;
   transition: transform $transition-normal;
