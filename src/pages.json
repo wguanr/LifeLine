@@ -15,6 +15,13 @@
       }
     },
     {
+      "path": "pages/community/community",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTitleText": "社区"
+      }
+    },
+    {
       "path": "pages/profile/profile",
       "style": {
         "navigationStyle": "custom",
@@ -49,6 +56,12 @@
         "text": "世界线",
         "iconPath": "static/icons/tab_worldline.png",
         "selectedIconPath": "static/icons/tab_worldline_active.png"
+      },
+      {
+        "pagePath": "pages/community/community",
+        "text": "社区",
+        "iconPath": "static/icons/tab_community.png",
+        "selectedIconPath": "static/icons/tab_community_active.png"
       },
       {
         "pagePath": "pages/profile/profile",

@@ -263,3 +263,57 @@ export interface EventResourcePool {
 export type EventOutcome = EventChoice['outcome']
 
 export type WorldType = 'real' | 'chain'
+
+// ==================== 社区相关 ====================
+
+/** 话题帖子 */
+export interface TopicPost {
+  id: string
+  topicId: string
+  authorId: string
+  authorName: string
+  authorAvatar: string
+  authorLevel: number
+  content: string
+  /** 作者发帖时投入的资源量 */
+  investedResources: number
+  likeCount: number
+  /** 助力数（他人消耗资源帮助提升排名） */
+  boostCount: number
+  /** 帖子总价值 = investedResources + 所有 boost 之和 */
+  totalValue: number
+  /** 回复目标帖子 ID（null 表示主贴） */
+  replyTo: string | null
+  replyCount: number
+  createdAt: number
+}
+
+/** 社区话题 */
+export interface Topic {
+  id: string
+  title: string
+  summary: string
+  icon: string
+  creatorId: string
+  creatorName: string
+  creatorAvatar: string
+  tags: string[]
+  /** 总投入资源池 */
+  totalPool: number
+  participantCount: number
+  postCount: number
+  /** 排序靠前的回复预览（最多 3 条） */
+  topPosts: TopicPost[]
+  pinned: boolean
+  createdAt: number
+  lastActiveAt: number
+}
+
+/** 用户社区行为记录 */
+export interface CommunityAction {
+  type: 'post' | 'reply' | 'like' | 'boost'
+  topicId: string
+  postId?: string
+  cost: { time?: number; energy?: number }
+  timestamp: number
+}
