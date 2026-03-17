@@ -429,6 +429,8 @@ const rollItemDrops = (itemDrops?: ItemDrop[]): Array<{ itemId: string; quantity
 }
 
 // ========== 偏发相遇子事件 ==========
+/** Influencer 面板展开状态 */
+const influencerExpanded = ref(false)
 /** 当前相遇的 Influencer */
 const encounterInfluencer = ref<InfluencerInfo | null>(null)
 /** 已经触发过相遇的阶段 ID 集合（每个阶段最多触发一次） */

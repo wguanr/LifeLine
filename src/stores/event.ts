@@ -97,7 +97,7 @@ export const useEventStore = defineStore('event', () => {
     isLoading.value = true
     try {
       // 合并原始事件和AIGC事件（规范化格式）
-      const aigcNormalized = (aigcEvents as any[]).map(normalizeAigcEvent)
+      const aigcNormalized = ([...aigcEvents] as any[]).map(normalizeAigcEvent)
       events.value = [...mockEvents, ...aigcNormalized]
     } finally {
       isLoading.value = false

@@ -327,23 +327,23 @@
                       </view>
                     </view>
                   </view>
-                  <view class="detail-section" v-if="(activeSheetCard.data as GameEvent).entryCost">
+                  <view class="detail-section" v-if="(activeSheetCard.data as GameEvent).entryFee">
                     <text class="section-title">💰 入场成本</text>
                     <view class="cost-list">
-                      <view class="cost-item" v-if="(activeSheetCard.data as GameEvent).entryCost?.time">
+                      <view class="cost-item" v-if="(activeSheetCard.data as GameEvent).entryFee?.time">
                         <text class="cost-icon">⏰</text>
-                        <text class="cost-value">{{ (activeSheetCard.data as GameEvent).entryCost?.time }} 分钟</text>
+                        <text class="cost-value">{{ (activeSheetCard.data as GameEvent).entryFee?.time }} 分钟</text>
                       </view>
-                      <view class="cost-item" v-if="(activeSheetCard.data as GameEvent).entryCost?.energy">
+                      <view class="cost-item" v-if="(activeSheetCard.data as GameEvent).entryFee?.energy">
                         <text class="cost-icon">⚡</text>
-                        <text class="cost-value">{{ (activeSheetCard.data as GameEvent).entryCost?.energy }} 精力</text>
+                        <text class="cost-value">{{ (activeSheetCard.data as GameEvent).entryFee?.energy }} 精力</text>
                       </view>
                     </view>
                   </view>
-                  <view class="detail-section" v-if="(activeSheetCard.data as GameEvent).requiredTags?.length">
+                  <view class="detail-section" v-if="(activeSheetCard.data as GameEvent).requirements?.tags?.length">
                     <text class="section-title">🏷️ 需要标签</text>
                     <view class="tag-list">
-                      <view class="tag-item" v-for="tag in (activeSheetCard.data as GameEvent).requiredTags" :key="tag">
+                      <view class="tag-item" v-for="tag in (activeSheetCard.data as GameEvent).requirements.tags" :key="tag">
                         {{ tag }}
                       </view>
                     </view>
@@ -383,9 +383,8 @@
                     <text class="section-title">✨ 物品效果</text>
                     <view class="effect-list">
                       <view class="effect-item" v-for="(effect, idx) in (activeSheetCard.data as Item).effects" :key="idx">
-                        <text class="effect-type">{{ effect.type === 'attribute' ? '属性加成' : '解锁事件' }}</text>
-                        <text class="effect-value" v-if="effect.type === 'attribute'">{{ effect.attribute }} +{{ effect.value }}</text>
-                        <text class="effect-value" v-else>{{ effect.eventId }}</text>
+                        <text class="effect-type">{{ effect.description || effect.type }}</text>
+                        <text class="effect-value" v-if="effect.value">+{{ effect.value }}</text>
                       </view>
                     </view>
                   </view>

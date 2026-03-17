@@ -16,7 +16,7 @@ export const useItemStore = defineStore('item', () => {
     isLoading.value = true
     try {
       // 合并原始物品和AIGC物品
-      const aigcNormalized = (aigcItems as any[]).map(i => ({
+      const aigcNormalized = ([...aigcItems] as any[]).map(i => ({
         ...i,
         visible: i.visible !== false,
         createdAt: i.createdAt || Date.now()

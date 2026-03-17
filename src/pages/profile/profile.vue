@@ -255,7 +255,7 @@ import { getTagDefinition } from '@/data/tags'
 import type { Item } from '@/types'
 
 // 合并所有物品定义
-const allItemDefs = [...mockItems, ...(aigcItems as any[])]
+const allItemDefs = [...mockItems, ...([...aigcItems] as any[])]
 
 const userStore = useUserStore()
 const worldStore = useWorldStore()
