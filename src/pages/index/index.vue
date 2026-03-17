@@ -1,58 +1,57 @@
 <template>
   <view class="index-container">
-    <!-- 顶部状态栏 - Cyberpunk 风格 -->
+    <!-- 顶部状态栏 - Smooth Corner 风格 -->
     <view class="status-bar">
-      <!-- 左侧：LifeLine Logo + 世界切换 -->
-      <view class="status-left">
-        <view class="logo-group">
-          <image class="logo-image" src="/static/brand/lifeline_logo.png" mode="heightFix" />
-        </view>
+      <!-- 左侧：Logo 胶囊 -->
+      <view class="bar-capsule logo-capsule">
+        <image class="logo-image" src="/static/brand/lifeline_logo.png" mode="heightFix" />
+      </view>
+      
+      <!-- 中间：世界线切换 -->
+      <view class="bar-capsule world-capsule">
         <WorldTrackSwitch />
       </view>
       
-      <!-- 右侧：资源胶囊 + 头像 + 通知 -->
-      <view class="status-right">
-        <!-- 资源胶囊 -->
-        <view class="resource-capsule" v-if="!isChainWorld">
-          <view class="resource-item">
-            <text class="resource-icon">⏱</text>
-            <text class="resource-value">{{ formatNum(userStore.wallet.time) }}</text>
-          </view>
-          <view class="resource-divider"></view>
-          <view class="resource-item">
-            <text class="resource-icon">⚡</text>
-            <text class="resource-value">{{ formatNum(userStore.wallet.energy) }}</text>
+      <!-- 右侧：资源胶囊 -->
+      <view class="bar-capsule resource-capsule" v-if="!isChainWorld">
+        <view class="resource-item">
+          <text class="resource-icon">⏱</text>
+          <text class="resource-value">{{ formatNum(userStore.wallet.time) }}</text>
+        </view>
+        <view class="resource-divider"></view>
+        <view class="resource-item">
+          <text class="resource-icon">⚡</text>
+          <text class="resource-value">{{ formatNum(userStore.wallet.energy) }}</text>
+        </view>
+      </view>
+      <view class="bar-capsule resource-capsule" v-if="isChainWorld">
+        <view class="resource-item">
+          <text class="resource-icon">🦋</text>
+          <text class="resource-value">{{ chainWallet.bfc }}</text>
+        </view>
+        <view class="resource-divider"></view>
+        <view class="resource-item">
+          <text class="resource-icon">🗳️</text>
+          <text class="resource-value">{{ chainWallet.gov }}</text>
+        </view>
+      </view>
+      
+      <!-- 头像胶囊 -->
+      <view class="bar-capsule avatar-capsule" @click="goToProfile">
+        <view class="avatar-ring">
+          <view class="user-avatar">
+            <text class="avatar-text">{{ userInitial }}</text>
           </view>
         </view>
-        <view class="resource-capsule" v-if="isChainWorld">
-          <view class="resource-item">
-            <text class="resource-icon">🦋</text>
-            <text class="resource-value">{{ chainWallet.bfc }}</text>
-          </view>
-          <view class="resource-divider"></view>
-          <view class="resource-item">
-            <text class="resource-icon">🗳️</text>
-            <text class="resource-value">{{ chainWallet.gov }}</text>
-          </view>
+        <view class="level-badge">
+          <text class="level-text">L{{ userStore.currentUser.clearanceLevel }}</text>
         </view>
-        
-        <!-- 用户头像 + 等级徽章 -->
-        <view class="avatar-group" @click="goToProfile">
-          <view class="avatar-ring">
-            <view class="user-avatar">
-              <text class="avatar-text">{{ userInitial }}</text>
-            </view>
-          </view>
-          <view class="level-badge">
-            <text class="level-text">L{{ userStore.currentUser.clearanceLevel }}</text>
-          </view>
-        </view>
-        
-        <!-- 通知铃铛 -->
-        <view class="notification-bell">
-          <text class="bell-icon">🔔</text>
-          <view class="bell-dot"></view>
-        </view>
+      </view>
+      
+      <!-- 通知胶囊 -->
+      <view class="bar-capsule notify-capsule">
+        <text class="bell-icon">🔔</text>
+        <view class="bell-dot"></view>
       </view>
     </view>
     
@@ -75,7 +74,7 @@
           :key="card.id"
           class="swiper-item"
         >
-          <view class="card-wrapper">
+          <view class="card-wrapper" @click="onCardBodyTap(card)">
             <SwipeableCard
               :ref="(el: any) => setSwipeableCardRef(index, el)"
               :disabled="isCardActive"
@@ -160,8 +159,46 @@
             <text class="main-action-text">{{ currentCardComponent.hasRequiredUnclaimedItems ? '请先领取必须物品' : (currentCardComponent.hasNextStage ? '继续' : '完成') }}</text>
           </view>
         </template>
-        <!-- playing 模式：显示倒计时状态栏，选择后 5s 自动结算 -->
+        <!-- playing 模式：外部选项列表 + 倒计时状态栏 -->
         <template v-else-if="currentCardComponent.mode === 'playing'">
+          <!-- 选项列表（卡片外部） -->
+          <view class="external-choices-area">
+            <view 
+              v-for="choice in currentCardComponent.visibleChoices" 
+              :key="choice.id"
+              class="ext-choice-item"
+              :class="{ 
+                disabled: choice.hidden && !currentCardComponent.isChoiceUnlocked(choice),
+                'is-selected': currentCardComponent.selectedChoiceId === choice.id,
+                'is-not-selected': currentCardComponent.selectedChoiceId && currentCardComponent.selectedChoiceId !== choice.id,
+                'cant-afford': currentCardComponent.selectedChoiceId === choice.id && !currentCardComponent.canAffordSelectedMultiplier
+              }"
+              @click="currentCardComponent.handleChoiceTap(choice)"
+            >
+              <view class="ext-choice-main">
+                <text class="ext-choice-text">{{ choice.text }}</text>
+                <!-- 选中状态：倍数 + 消耗 -->
+                <view class="ext-choice-selected-info" v-if="currentCardComponent.selectedChoiceId === choice.id">
+                  <view class="ext-multiplier-badge">
+                    <text class="ext-mult-text">{{ currentCardComponent.selectedMultiplier }}×</text>
+                  </view>
+                  <view class="ext-cost-tags" v-if="currentCardComponent.selectedCost">
+                    <text v-if="currentCardComponent.selectedCost.time" class="ext-cost-tag time">⏰{{ currentCardComponent.selectedCost.time }}</text>
+                    <text v-if="currentCardComponent.selectedCost.energy" class="ext-cost-tag energy">⚡{{ currentCardComponent.selectedCost.energy }}</text>
+                  </view>
+                  <text class="ext-tap-hint" v-if="currentCardComponent.canAffordNextMultiplier">点击 +1×</text>
+                  <text class="ext-max-hint" v-else>已达上限</text>
+                </view>
+                <!-- 未选中状态：基础消耗 -->
+                <view class="ext-choice-cost" v-else-if="currentCardComponent.getChoiceBaseCost(choice)">
+                  <text v-if="currentCardComponent.getChoiceBaseCost(choice).time" class="ext-cost-tag time">⏰{{ currentCardComponent.getChoiceBaseCost(choice).time }}</text>
+                  <text v-if="currentCardComponent.getChoiceBaseCost(choice).energy" class="ext-cost-tag energy">⚡{{ currentCardComponent.getChoiceBaseCost(choice).energy }}</text>
+                </view>
+              </view>
+            </view>
+          </view>
+          
+          <!-- 倒计时状态栏 -->
           <view class="main-action-btn choice-countdown-status" 
             :class="{ 
               disabled: !currentCardComponent.selectedChoiceId,
@@ -171,11 +208,7 @@
           >
             <template v-if="currentCardComponent.selectedChoiceId && currentCardComponent.isChoiceCountingDown">
               <text class="main-action-icon">{{ currentCardComponent.selectedMultiplier > 1 ? '🔥' : '⏳' }}</text>
-              <text class="main-action-text">{{ currentCardComponent.selectedMultiplier }}× 投入中</text>
-              <view class="confirm-cost-tags" v-if="currentCardComponent.selectedCost">
-                <text v-if="currentCardComponent.selectedCost.time" class="confirm-cost-tag">⏰{{ currentCardComponent.selectedCost.time }}</text>
-                <text v-if="currentCardComponent.selectedCost.energy" class="confirm-cost-tag">⚡{{ currentCardComponent.selectedCost.energy }}</text>
-              </view>
+              <text class="main-action-text">{{ currentCardComponent.selectedMultiplier }}× 投入中...</text>
             </template>
             <template v-else-if="currentCardComponent.selectedChoiceId">
               <text class="main-action-icon">✅</text>
@@ -183,7 +216,7 @@
             </template>
             <template v-else>
               <text class="main-action-icon">👆</text>
-              <text class="main-action-text">点击卡片中的选项</text>
+              <text class="main-action-text">选择一个选项</text>
             </template>
             <!-- 底部进度条 -->
             <view class="action-timer-bar" v-if="currentCardComponent.isChoiceCountingDown">
@@ -749,6 +782,15 @@ const sheetEvent = computed(() => activeSheetCard.value?.type === 'event' ? acti
 const sheetItem = computed(() => activeSheetCard.value?.type === 'item' ? activeSheetCard.value.data as Item : null)
 const sheetUser = computed(() => activeSheetCard.value?.type === 'user' ? activeSheetCard.value.data as User : null)
 
+/** 点击卡片体打开详情面板（排除滑动误触） */
+const onCardBodyTap = (card: Card) => {
+  // 滑动中不响应点击
+  if (isSwiping.value) return
+  // 已打开面板时不重复打开
+  if (isPanelOpen.value) return
+  openDetailSheet(card)
+}
+
 const openDetailSheet = (card: Card) => {
   activeSheetCard.value = card
   showDetailSheet.value = true
@@ -910,108 +952,141 @@ $safe-area-bottom: env(safe-area-inset-bottom, 0px);
   }
 }
 
-// 顶部状态栏 - 暗色玻璃效果
+// ===== 顶部状态栏 - Smooth Corner Squircle 风格 =====
 .status-bar {
   position: relative;
   z-index: 100;
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 16rpx 24rpx;
-  padding-top: calc(16rpx + #{$safe-area-top});
-  padding-bottom: 16rpx;
+  gap: 12rpx;
+  padding: 14rpx 20rpx;
+  padding-top: calc(14rpx + #{$safe-area-top});
+  padding-bottom: 14rpx;
   flex-shrink: 0;
-  background: rgba($bg-deep, 0.7);
-  backdrop-filter: blur(40rpx) saturate(150%);
-  -webkit-backdrop-filter: blur(40rpx) saturate(150%);
-  border-bottom: 1rpx solid rgba(255, 255, 255, 0.06);
-  box-shadow: 0 2rpx 16rpx rgba(0, 0, 0, 0.3);
   max-width: 100%;
   box-sizing: border-box;
 }
 
-// 左侧：Logo + 世界切换
-.status-left {
+// 通用胶囊基类 - Smooth Corner Squircle
+.bar-capsule {
   display: flex;
   align-items: center;
-  gap: 12rpx;
-  flex-shrink: 0;
+  justify-content: center;
+  // 深色玻璃质感背景
+  background: linear-gradient(
+    160deg,
+    rgba($bg-elevated, 0.92) 0%,
+    rgba($bg-surface, 0.80) 100%
+  );
+  backdrop-filter: blur(48rpx) saturate(160%);
+  -webkit-backdrop-filter: blur(48rpx) saturate(160%);
+  // 微妙的双层边框效果
+  border: 1rpx solid rgba(255, 255, 255, 0.10);
+  // Smooth corner - squircle 风格
+  @include smooth-corner(24rpx);
+  // 多层阴影营造深度
+  box-shadow:
+    0 4rpx 16rpx rgba(0, 0, 0, 0.40),
+    0 1rpx 4rpx rgba(0, 0, 0, 0.25),
+    inset 0 1rpx 0 rgba(255, 255, 255, 0.08),
+    inset 0 -1rpx 0 rgba(0, 0, 0, 0.15);
+  transition: all $transition-fast;
 }
 
-.logo-group {
-  display: flex;
-  align-items: center;
-  height: 96rpx;
+// Logo 胶囊
+.logo-capsule {
+  padding: 10rpx 18rpx;
+  height: 76rpx;
+  flex-shrink: 0;
+  // Logo 胶囊特殊的微光边框
+  border-color: rgba($neon-cyan, 0.08);
   
   .logo-image {
-    height: 80rpx;
+    height: 48rpx;
     display: block;
-    filter: drop-shadow(0 0 4rpx rgba($neon-cyan, 0.3));
+    filter: drop-shadow(0 0 6rpx rgba($neon-cyan, 0.35));
   }
 }
 
-// 右侧：资源 + 头像 + 通知
-.status-right {
-  display: flex;
-  align-items: center;
-  gap: 12rpx;
+// 世界线切换胶囊
+.world-capsule {
+  padding: 8rpx 14rpx;
+  height: 76rpx;
   flex-shrink: 0;
+  // 世界线切换的微妙边框
+  border-color: rgba($neon-cyan, 0.06);
 }
 
-// 资源胶囊容器
+// 资源胶囊
 .resource-capsule {
-  display: flex;
-  align-items: center;
-  padding: 6rpx 14rpx;
-  background: rgba($neon-cyan, 0.06);
-  border: 1rpx solid rgba($neon-cyan, 0.12);
-  border-radius: $radius-full;
+  padding: 10rpx 18rpx;
+  height: 76rpx;
   gap: 0;
+  flex: 1;
+  min-width: 0;
+  // 资源胶囊的特殊青色调
+  border-color: rgba($neon-cyan, 0.15);
+  background: linear-gradient(
+    160deg,
+    rgba($bg-elevated, 0.92) 0%,
+    rgba(mix($neon-cyan, $bg-surface, 5%), 0.80) 100%
+  );
   
   .resource-item {
     display: flex;
     align-items: center;
-    gap: 4rpx;
-    padding: 0 8rpx;
+    gap: 6rpx;
+    padding: 0 10rpx;
   }
   
   .resource-icon {
-    font-size: 18rpx;
+    font-size: 20rpx;
   }
   
   .resource-value {
-    font-size: 20rpx;
+    font-size: 22rpx;
     font-weight: 700;
     color: $neon-cyan-light;
     font-family: 'SF Mono', 'Courier New', monospace;
+    letter-spacing: 0.5rpx;
   }
   
   .resource-divider {
     width: 1rpx;
-    height: 20rpx;
-    background: rgba($neon-cyan, 0.2);
-    margin: 0 4rpx;
+    height: 24rpx;
+    background: linear-gradient(
+      180deg,
+      transparent 0%,
+      rgba($neon-cyan, 0.25) 50%,
+      transparent 100%
+    );
+    margin: 0 6rpx;
   }
 }
 
-// 用户头像组（头像 + 等级徽章）
-.avatar-group {
+// 头像胶囊
+.avatar-capsule {
   position: relative;
+  padding: 8rpx 12rpx;
+  height: 76rpx;
   cursor: pointer;
+  flex-shrink: 0;
+  // 头像胶囊的微妙洋红调
+  border-color: rgba($neon-magenta, 0.08);
   
   .avatar-ring {
-    width: 64rpx;
-    height: 64rpx;
-    border-radius: 50%;
-    padding: 3rpx;
+    width: 56rpx;
+    height: 56rpx;
+    @include smooth-corner(18rpx);
+    padding: 2rpx;
     background: linear-gradient(135deg, $neon-cyan, $neon-magenta);
-    @include neon-glow($neon-cyan, 0.15);
+    @include neon-glow($neon-cyan, 0.12);
   }
   
   .user-avatar {
     width: 100%;
     height: 100%;
-    border-radius: 50%;
+    @include smooth-corner(16rpx);
     background: linear-gradient(135deg, rgba($neon-magenta, 0.25), rgba($neon-cyan, 0.25));
     display: flex;
     align-items: center;
@@ -1020,38 +1095,41 @@ $safe-area-bottom: env(safe-area-inset-bottom, 0px);
   }
   
   .avatar-text {
-    font-size: 24rpx;
+    font-size: 22rpx;
     font-weight: bold;
     color: $neon-cyan-light;
   }
   
   .level-badge {
     position: absolute;
-    bottom: -4rpx;
-    right: -6rpx;
+    bottom: 4rpx;
+    right: 4rpx;
     padding: 2rpx 8rpx;
     background: linear-gradient(135deg, rgba($neon-cyan, 0.9), rgba($neon-cyan-dark, 0.9));
-    border-radius: $radius-full;
+    @include smooth-corner(10rpx);
     border: 2rpx solid $bg-deep;
+    box-shadow: 0 2rpx 6rpx rgba(0, 0, 0, 0.3);
     
     .level-text {
-      font-size: 16rpx;
+      font-size: 14rpx;
       font-weight: 800;
       color: $text-on-neon;
       font-family: 'SF Mono', 'Courier New', monospace;
     }
   }
+  
+  &:active {
+    transform: scale(0.95);
+  }
 }
 
-// 通知铃铛
-.notification-bell {
+// 通知胶囊
+.notify-capsule {
   position: relative;
-  width: 44rpx;
-  height: 44rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  width: 76rpx;
+  height: 76rpx;
   cursor: pointer;
+  flex-shrink: 0;
   
   .bell-icon {
     font-size: 28rpx;
@@ -1061,17 +1139,19 @@ $safe-area-bottom: env(safe-area-inset-bottom, 0px);
   
   .bell-dot {
     position: absolute;
-    top: 6rpx;
-    right: 6rpx;
+    top: 14rpx;
+    right: 14rpx;
     width: 12rpx;
     height: 12rpx;
     background: $color-danger;
     border-radius: 50%;
     border: 2rpx solid $bg-deep;
+    box-shadow: 0 0 8rpx rgba($color-danger, 0.5);
     animation: pulse-glow 2s ease-in-out infinite;
   }
   
   &:active {
+    transform: scale(0.95);
     .bell-icon {
       filter: grayscale(0);
     }
@@ -1796,6 +1876,7 @@ $safe-area-bottom: env(safe-area-inset-bottom, 0px);
   left: 50%;
   transform: translateX(-50%) translateY(0);
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: center;
   gap: 16rpx;
@@ -1852,6 +1933,121 @@ $safe-area-bottom: env(safe-area-inset-bottom, 0px);
 }
 
 // 选择倒计时状态栏样式
+// ===== 外部选项列表（playing 模式） =====
+.external-choices-area {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+  width: 100%;
+  margin-bottom: 12rpx;
+  
+  .ext-choice-item {
+    display: flex;
+    align-items: center;
+    padding: 16rpx 24rpx;
+    border-radius: 20rpx;
+    @include glass-effect(0.15);
+    border: 1rpx solid rgba(255, 255, 255, 0.12);
+    transition: all 0.25s ease;
+    cursor: pointer;
+    
+    &:active {
+      transform: scale(0.97);
+    }
+    
+    &.is-selected {
+      border-color: rgba($neon-cyan, 0.6);
+      background: linear-gradient(135deg, rgba($neon-cyan, 0.2) 0%, rgba($neon-magenta, 0.1) 100%);
+      box-shadow: 0 0 16rpx rgba($neon-cyan, 0.2);
+    }
+    
+    &.is-not-selected {
+      opacity: 0.45;
+      transform: scale(0.97);
+    }
+    
+    &.cant-afford {
+      border-color: rgba(255, 80, 80, 0.5);
+      box-shadow: 0 0 12rpx rgba(255, 80, 80, 0.15);
+    }
+    
+    &.disabled {
+      opacity: 0.3;
+      pointer-events: none;
+    }
+    
+    .ext-choice-main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 6rpx;
+      
+      .ext-choice-text {
+        font-size: 26rpx;
+        color: rgba(255, 255, 255, 0.9);
+        line-height: 1.4;
+      }
+      
+      .ext-choice-selected-info {
+        display: flex;
+        align-items: center;
+        gap: 10rpx;
+        margin-top: 4rpx;
+        
+        .ext-multiplier-badge {
+          background: linear-gradient(135deg, $neon-cyan, $neon-magenta);
+          padding: 2rpx 12rpx;
+          border-radius: 12rpx;
+          
+          .ext-mult-text {
+            font-size: 22rpx;
+            font-weight: 700;
+            color: #fff;
+          }
+        }
+        
+        .ext-cost-tags {
+          display: flex;
+          gap: 6rpx;
+        }
+        
+        .ext-tap-hint {
+          font-size: 20rpx;
+          color: rgba($neon-cyan, 0.8);
+          font-weight: 500;
+        }
+        
+        .ext-max-hint {
+          font-size: 20rpx;
+          color: rgba(255, 255, 255, 0.4);
+        }
+      }
+      
+      .ext-choice-cost {
+        display: flex;
+        gap: 6rpx;
+        margin-top: 4rpx;
+      }
+      
+      .ext-cost-tag {
+        font-size: 20rpx;
+        padding: 2rpx 8rpx;
+        border-radius: 8rpx;
+        font-weight: 600;
+        
+        &.time {
+          color: rgba($neon-cyan, 0.9);
+          background: rgba($neon-cyan, 0.12);
+        }
+        &.energy {
+          color: rgba($neon-magenta, 0.9);
+          background: rgba($neon-magenta, 0.12);
+        }
+      }
+    }
+  }
+}
+
 .choice-countdown-status {
   position: relative;
   overflow: hidden;

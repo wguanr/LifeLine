@@ -114,6 +114,27 @@ $touch-target-min: 44px;
 $safe-area-bottom: env(safe-area-inset-bottom, 0px);
 $safe-area-top: env(safe-area-inset-top, 0px);
 
+// ==================== Smooth Corner (Squircle) ====================
+
+// Smooth corner mixin - iOS style squircle
+// Uses corner-shape: squircle for the authentic iOS smooth-corner look
+@mixin smooth-corner($size: 24rpx) {
+  border-radius: $size;
+  corner-shape: squircle;
+}
+
+// Enhanced smooth corner with stronger curvature for prominent UI elements
+@mixin smooth-corner-strong($size: 28rpx) {
+  border-radius: $size;
+  corner-shape: superellipse(4);
+}
+
+@mixin smooth-container($size: 24rpx, $bg: rgba(255, 255, 255, 0.05), $border-color: rgba(255, 255, 255, 0.08)) {
+  @include smooth-corner($size);
+  background: $bg;
+  border: 1rpx solid $border-color;
+}
+
 // ==================== 混合宏 ====================
 
 // 暗色玻璃效果

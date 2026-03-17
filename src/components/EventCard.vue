@@ -114,8 +114,8 @@
             <view class="stage-progress-fill" :style="{ width: stageProgressPercent + '%' }" />
             <text class="stage-progress-text">阶段 {{ currentStageIndex + 1 }} / {{ event.stages.length }}</text>
           </view>
-          <text class="stage-title">{{ currentStage?.title }}</text>
-          <text class="stage-desc">{{ currentStage?.description }}</text>
+          <text class="stage-title">{{ currentStage?.title || currentStage?.description }}</text>
+          <!-- 阶段描述和选择提示在 card-footer 中显示，此处不重复 -->
         </template>
         
         <template v-else-if="mode === 'result'">
@@ -211,75 +211,19 @@
             </view>
           </view>
           
-          <!-- 选择提示 + 倒计时进度条 -->
-          <view class="choice-hint-bar" :class="{ 'has-selection': selectedChoiceId, 'counting-down': isChoiceCountingDown }" v-if="selectedChoiceId">
-            <view class="choice-hint-content">
-              <text class="choice-hint-icon">🎯</text>
-              <text class="choice-hint-text">再次点击可加倍投入（当前 {{ selectedMultiplier }}×）</text>
-            </view>
-            <!-- 5s 倒计时进度条 -->
-            <view class="choice-countdown-bar" v-if="isChoiceCountingDown">
-              <view class="countdown-fill" :style="{ width: choiceTimerProgress + '%' }" />
-            </view>
-          </view>
-          <view class="choice-hint-bar first" v-else>
-            <view class="choice-hint-content">
-              <text class="choice-hint-icon">👆</text>
-              <text class="choice-hint-text">点击选项做出选择</text>
-            </view>
-          </view>
-          
-          <view class="options-list">
-            <view 
-              v-for="choice in visibleChoices" 
-              :key="choice.id"
-              class="option-item"
-              :class="{ 
-                disabled: choice.hidden && !isChoiceUnlocked(choice),
-                'hidden-choice': choice.hidden,
-                'hidden-unlocked': choice.hidden && isChoiceUnlocked(choice),
-                'is-selected': selectedChoiceId === choice.id,
-                'is-not-selected': selectedChoiceId && selectedChoiceId !== choice.id,
-                'cant-afford': selectedChoiceId === choice.id && !canAffordSelectedMultiplier
-              }"
-              @click="handleChoiceTap(choice)"
-            >
-              <view class="option-main">
-                <view class="option-text-row">
-                  <text class="hidden-badge" v-if="choice.hidden">🔓 隐藏</text>
-                  <text class="option-text">{{ choice.text }}</text>
-                </view>
-                <text class="hidden-hint" v-if="choice.hidden && choice.hiddenHint">{{ choice.hiddenHint }}</text>
-                
-                <!-- 选中状态：显示倍数和预计消耗 -->
-                <view class="option-selected-info" v-if="selectedChoiceId === choice.id">
-                  <view class="multiplier-badge">
-                    <text class="multiplier-text">{{ selectedMultiplier }}×</text>
-                  </view>
-                  <view class="estimated-cost" v-if="selectedCost">
-                    <text v-if="selectedCost.time" class="cost-tag time">⏰ {{ selectedCost.time }}</text>
-                    <text v-if="selectedCost.energy" class="cost-tag energy">⚡ {{ selectedCost.energy }}</text>
-                  </view>
-                  <text class="tap-more-hint" v-if="canAffordNextMultiplier">点击 +1×</text>
-                  <text class="max-hint" v-else>🔝 已达上限</text>
-                </view>
-                
-                <!-- 未选中状态：显示基础消耗 -->
-                <view class="option-cost-row" v-else-if="getChoiceBaseCost(choice)">
-                  <view class="option-cost">
-                    <text v-if="getChoiceBaseCost(choice).time" class="cost-tag time">⏰ {{ getChoiceBaseCost(choice).time }}</text>
-                    <text v-if="getChoiceBaseCost(choice).energy" class="cost-tag energy">⚡ {{ getChoiceBaseCost(choice).energy }}</text>
-                  </view>
-                </view>
-                
-                <view class="requires-items" v-if="choice.hidden && choice.requiresItems">
-                  <text class="requires-label">需要持有：</text>
-                  <view class="requires-item" v-for="reqId in choice.requiresItems" :key="reqId" :class="{ owned: userStore.hasItem(reqId) }">
-                    <text class="req-icon">{{ userStore.hasItem(reqId) ? '✅' : '❌' }}</text>
-                    <text class="req-name">{{ getItemName(reqId) }}</text>
-                  </view>
-                </view>
+          <!-- playing 模式卡片体：选择状态提示（选项在卡片外部渲染） -->
+          <view class="stage-info-display">
+            <!-- 选择状态提示 -->
+            <view class="selection-status" v-if="selectedChoiceId">
+              <text class="selection-icon">🎯</text>
+              <text class="selection-text">已选择：{{ visibleChoices.find(c => c.id === selectedChoiceId)?.text }}</text>
+              <view class="selection-multiplier" v-if="selectedMultiplier > 1">
+                <text class="mult-text">{{ selectedMultiplier }}×</text>
               </view>
+            </view>
+            <view class="selection-status waiting" v-else>
+              <text class="selection-icon">👇</text>
+              <text class="selection-text">请在下方选择区做出选择</text>
             </view>
           </view>
           
@@ -1313,15 +1257,23 @@ defineExpose({
   btnClasses,
   ripples,
   addRipple,
-  // playing 模式操作（选择交互方案）
+  // playing 模式操作（选择交互方案 - 选项在外部渲染）
+  visibleChoices,
+  handleChoiceTap,
+  isChoiceUnlocked,
+  getChoiceBaseCost,
   confirmChoice,
   selectedChoiceId,
   selectedMultiplier,
   selectedCost,
   canAffordSelectedMultiplier,
+  canAffordNextMultiplier,
   // 选择倒计时状态
   isChoiceCountingDown,
   choiceTimerProgress,
+  // 阶段信息
+  currentStageIndex,
+  currentStage,
   // encounter 模式操作
   handleEncounterFollow,
   handleEncounterSkip,
@@ -1853,6 +1805,82 @@ defineExpose({
 }
 
 // ==================== 选项列表 ====================
+// ===== playing 模式卡片体：阶段信息展示 =====
+.stage-info-display {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+  padding: 24rpx 0;
+  
+  .stage-title-row {
+    display: flex;
+    flex-direction: column;
+    gap: 8rpx;
+    
+    .stage-label {
+      font-size: 22rpx;
+      color: $text-tertiary;
+      font-weight: 500;
+    }
+    
+    .stage-title {
+      font-size: 30rpx;
+      color: $text-primary;
+      font-weight: 600;
+      line-height: 1.5;
+    }
+  }
+  
+  .selection-status {
+    display: flex;
+    align-items: center;
+    gap: 10rpx;
+    padding: 16rpx 20rpx;
+    border-radius: $radius-lg;
+    background: linear-gradient(135deg, rgba($neon-cyan, 0.1), rgba($neon-magenta, 0.05));
+    border: 1rpx solid rgba($neon-cyan, 0.2);
+    animation: selection-in 0.3s ease-out;
+    
+    &.waiting {
+      background: rgba(255, 255, 255, 0.04);
+      border-color: rgba(255, 255, 255, 0.08);
+    }
+    
+    .selection-icon {
+      font-size: 28rpx;
+      flex-shrink: 0;
+    }
+    
+    .selection-text {
+      font-size: 24rpx;
+      color: rgba($neon-cyan, 0.9);
+      font-weight: 500;
+      flex: 1;
+      
+      .waiting & {
+        color: $text-tertiary;
+      }
+    }
+    
+    .selection-multiplier {
+      background: linear-gradient(135deg, $neon-cyan, $neon-magenta);
+      padding: 4rpx 14rpx;
+      border-radius: $radius-full;
+      
+      .mult-text {
+        font-size: 22rpx;
+        font-weight: 800;
+        color: white;
+      }
+    }
+  }
+}
+
+@keyframes selection-in {
+  from { opacity: 0; transform: translateY(-8rpx); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 .options-list {
   display: flex;
   flex-direction: column;
