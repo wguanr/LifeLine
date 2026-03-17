@@ -360,140 +360,140 @@ export const mockTopics: Topic[] = [
     id: 'topic_01', title: '城市生存指南', summary: '分享在大城市生活的实用技巧、省钱妙招和生存智慧。从租房到通勤，从社交到独处。',
     icon: '🏙️', creatorId: 'sim_user_01', creatorName: '都市漫游者', creatorAvatar: '🏙️',
     tags: ['traveler', 'minimalist'], totalPool: 3850, participantCount: 86, postCount: 234,
-    topPosts: [mockPosts[0], mockPosts[1], mockPosts[2]], pinned: true,
+    topPosts: [], pinned: true,
     createdAt: d(15), lastActiveAt: h(1)
   },
   {
     id: 'topic_02', title: '人际关系的边界感', summary: '如何在亲密与独立之间找到平衡？探讨家人、朋友、同事之间的边界设定。',
     icon: '🤝', creatorId: 'sim_user_06', creatorName: '社恐自救', creatorAvatar: '🐚',
     tags: ['helpful', 'learner'], totalPool: 4200, participantCount: 112, postCount: 189,
-    topPosts: [mockPosts[5], mockPosts[7], mockPosts[6]], pinned: true,
+    topPosts: [], pinned: true,
     createdAt: d(12), lastActiveAt: h(1)
   },
   {
     id: 'topic_03', title: '副业探索实验室', summary: '记录副业从0到1的过程，分享踩过的坑和有效的方法论。',
     icon: '💡', creatorId: 'sim_user_09', creatorName: '斜杠青年', creatorAvatar: '⚡',
     tags: ['explorer', 'learner'], totalPool: 5100, participantCount: 145, postCount: 312,
-    topPosts: [mockPosts[8], mockPosts[9]], pinned: false,
+    topPosts: [], pinned: false,
     createdAt: d(20), lastActiveAt: h(4)
   },
   {
     id: 'topic_04', title: '独居生活图鉴', summary: '一个人住的快乐与挑战。分享独居的安全tips、生活技巧和心理调适方法。',
     icon: '🏠', creatorId: 'sim_user_11', creatorName: '一人食', creatorAvatar: '🍳',
     tags: ['minimalist', 'foodie'], totalPool: 3200, participantCount: 78, postCount: 156,
-    topPosts: [mockPosts[10], mockPosts[11]], pinned: false,
+    topPosts: [], pinned: false,
     createdAt: d(10), lastActiveAt: h(2)
   },
   {
     id: 'topic_05', title: '信息焦虑自救手册', summary: '在信息爆炸的时代，如何筛选有价值的信息、避免注意力被劫持？',
     icon: '📱', creatorId: 'sim_user_13', creatorName: '数字极简', creatorAvatar: '📵',
     tags: ['minimalist', 'learner'], totalPool: 4600, participantCount: 98, postCount: 267,
-    topPosts: [mockPosts[12], mockPosts[13]], pinned: false,
+    topPosts: [], pinned: false,
     createdAt: d(18), lastActiveAt: h(1)
   },
   {
     id: 'topic_06', title: '职场新人生存法则', summary: '从校园到职场的过渡期指南。如何快速适应、建立人脉、避免常见陷阱。',
     icon: '👔', creatorId: 'sim_user_15', creatorName: '三年老员工', creatorAvatar: '👔',
     tags: ['helpful', 'explorer'], totalPool: 3900, participantCount: 134, postCount: 278,
-    topPosts: [mockPosts[14]], pinned: false,
+    topPosts: [], pinned: false,
     createdAt: d(25), lastActiveAt: h(3)
   },
   {
     id: 'topic_07', title: '健康管理日志', summary: '用数据和习惯管理健康。睡眠、运动、饮食、心理健康的实践分享。',
     icon: '🧘', creatorId: 'sim_user_16', creatorName: '养生朋克', creatorAvatar: '🧘',
     tags: ['foodie', 'minimalist'], totalPool: 3400, participantCount: 92, postCount: 198,
-    topPosts: [mockPosts[15]], pinned: false,
+    topPosts: [], pinned: false,
     createdAt: d(14), lastActiveAt: h(4)
   },
   {
     id: 'topic_08', title: '消费主义反思', summary: '我们真的需要这么多东西吗？探讨消费观念、极简生活和理性消费。',
     icon: '🛒', creatorId: 'sim_user_17', creatorName: '断舍离实践者', creatorAvatar: '🗑️',
     tags: ['minimalist'], totalPool: 4100, participantCount: 88, postCount: 176,
-    topPosts: [mockPosts[16]], pinned: false,
+    topPosts: [], pinned: false,
     createdAt: d(16), lastActiveAt: h(2)
   },
   {
     id: 'topic_09', title: '学习方法论', summary: '如何高效学习？费曼技巧、间隔重复、主动回忆等方法的实战经验。',
     icon: '📖', creatorId: 'sim_user_18', creatorName: '终身学习者', creatorAvatar: '🎓',
     tags: ['learner'], totalPool: 4800, participantCount: 156, postCount: 345,
-    topPosts: [mockPosts[17]], pinned: false,
+    topPosts: [], pinned: false,
     createdAt: d(22), lastActiveAt: h(3)
   },
   {
     id: 'topic_10', title: '情绪管理工具箱', summary: '愤怒、焦虑、悲伤、迷茫...如何识别和管理自己的情绪？分享实用的情绪调节技巧。',
     icon: '🌊', creatorId: 'sim_user_19', creatorName: '情绪观察者', creatorAvatar: '🌊',
     tags: ['helpful', 'learner'], totalPool: 3700, participantCount: 105, postCount: 223,
-    topPosts: [mockPosts[18]], pinned: false,
+    topPosts: [], pinned: false,
     createdAt: d(11), lastActiveAt: h(1)
   },
   {
     id: 'topic_11', title: '远程办公生存指南', summary: '在家办公的效率技巧、工具推荐和心理健康维护。',
     icon: '💻', creatorId: 'sim_user_20', creatorName: '远程工作者', creatorAvatar: '🏠',
     tags: ['explorer', 'minimalist'], totalPool: 2800, participantCount: 67, postCount: 134,
-    topPosts: [mockPosts[19]], pinned: false,
+    topPosts: [], pinned: false,
     createdAt: d(8), lastActiveAt: h(5)
   },
   {
     id: 'topic_12', title: '城市微旅行', summary: '不用请假也能旅行。发现身边的小众景点、周末好去处和城市探索路线。',
     icon: '🗺️', creatorId: 'sim_user_01', creatorName: '都市漫游者', creatorAvatar: '🏙️',
     tags: ['traveler', 'explorer'], totalPool: 2600, participantCount: 73, postCount: 145,
-    topPosts: [mockPosts[20]], pinned: false,
+    topPosts: [], pinned: false,
     createdAt: d(9), lastActiveAt: h(6)
   },
   {
     id: 'topic_13', title: '社交恐惧互助会', summary: '社恐不是病，但确实影响生活。分享克服社交焦虑的方法和小胜利。',
     icon: '🐚', creatorId: 'sim_user_06', creatorName: '社恐自救', creatorAvatar: '🐚',
     tags: ['helpful'], totalPool: 3100, participantCount: 89, postCount: 167,
-    topPosts: [mockPosts[21]], pinned: false,
+    topPosts: [], pinned: false,
     createdAt: d(13), lastActiveAt: h(3)
   },
   {
     id: 'topic_14', title: '时间管理实验', summary: '番茄钟、时间块、GTD...各种时间管理方法的实践记录和效果对比。',
     icon: '⏰', creatorId: 'sim_user_09', creatorName: '斜杠青年', creatorAvatar: '⚡',
     tags: ['learner', 'minimalist'], totalPool: 3300, participantCount: 95, postCount: 201,
-    topPosts: [mockPosts[22]], pinned: false,
+    topPosts: [], pinned: false,
     createdAt: d(17), lastActiveAt: h(4)
   },
   {
     id: 'topic_15', title: '一人食谱', summary: '为独居者设计的简单美味食谱。快手菜、一锅出、零失败料理。',
     icon: '🍳', creatorId: 'sim_user_11', creatorName: '一人食', creatorAvatar: '🍳',
     tags: ['foodie'], totalPool: 2400, participantCount: 64, postCount: 112,
-    topPosts: [mockPosts[23]], pinned: false,
+    topPosts: [], pinned: false,
     createdAt: d(7), lastActiveAt: h(7)
   },
   {
     id: 'topic_16', title: '数字断舍离', summary: '清理数字生活：退订邮件、整理文件、减少App、管理密码。',
     icon: '📵', creatorId: 'sim_user_13', creatorName: '数字极简', creatorAvatar: '📵',
     tags: ['minimalist'], totalPool: 2900, participantCount: 71, postCount: 143,
-    topPosts: [mockPosts[24]], pinned: false,
+    topPosts: [], pinned: false,
     createdAt: d(6), lastActiveAt: h(2)
   },
   {
     id: 'topic_17', title: '跳槽决策树', summary: '什么时候该跳槽？如何评估新机会？谈薪技巧和入职避坑指南。',
     icon: '🚀', creatorId: 'sim_user_15', creatorName: '三年老员工', creatorAvatar: '👔',
     tags: ['explorer'], totalPool: 3500, participantCount: 108, postCount: 234,
-    topPosts: [mockPosts[25]], pinned: false,
+    topPosts: [], pinned: false,
     createdAt: d(19), lastActiveAt: h(3)
   },
   {
     id: 'topic_18', title: '读书笔记方法论', summary: '如何做有效的读书笔记？卡片笔记、思维导图、康奈尔笔记法的实践。',
     icon: '📝', creatorId: 'sim_user_18', creatorName: '终身学习者', creatorAvatar: '🎓',
     tags: ['learner'], totalPool: 2700, participantCount: 82, postCount: 156,
-    topPosts: [mockPosts[26]], pinned: false,
+    topPosts: [], pinned: false,
     createdAt: d(11), lastActiveAt: h(5)
   },
   {
     id: 'topic_19', title: '亲密关系修炼', summary: '恋爱、婚姻、家庭关系中的沟通技巧和自我成长。',
     icon: '💕', creatorId: 'sim_user_19', creatorName: '情绪观察者', creatorAvatar: '🌊',
     tags: ['helpful'], totalPool: 3600, participantCount: 97, postCount: 189,
-    topPosts: [mockPosts[27]], pinned: false,
+    topPosts: [], pinned: false,
     createdAt: d(14), lastActiveAt: h(2)
   },
   {
     id: 'topic_20', title: '理财入门指南', summary: '从记账开始的理财之路。预算管理、储蓄策略、基础投资知识。',
     icon: '💰', creatorId: 'sim_user_17', creatorName: '断舍离实践者', creatorAvatar: '🗑️',
     tags: ['minimalist', 'learner'], totalPool: 3000, participantCount: 85, postCount: 178,
-    topPosts: [mockPosts[28]], pinned: false,
+    topPosts: [], pinned: false,
     createdAt: d(10), lastActiveAt: h(4)
   }
 ]

@@ -70,6 +70,9 @@ export const useCommunityStore = defineStore('community', () => {
     topics.value = [...mockTopics]
     allPosts.value = [...mockPosts]
 
+    // 动态计算所有话题的 topPosts（按 totalValue 排序取前3条主贴）
+    topics.value.forEach(topic => updateTopPosts(topic))
+
     // 从 localStorage 恢复用户行为
     const saved = uni.getStorageSync('community_actions')
     if (saved) {
@@ -134,6 +137,9 @@ export const useCommunityStore = defineStore('community', () => {
       topic.postCount++
       topic.totalPool += newPost.totalValue
       topic.lastActiveAt = Date.now()
+      // 用户首次在该话题发帖时增加参与人数
+      const hasPostedBefore = userActions.value.some(a => a.topicId === topicId && (a.type === 'post' || a.type === 'reply'))
+      if (!hasPostedBefore) topic.participantCount++
       // 更新 topPosts 预览
       updateTopPosts(topic)
     }
@@ -192,6 +198,9 @@ export const useCommunityStore = defineStore('community', () => {
       topic.postCount++
       topic.totalPool += newReply.totalValue
       topic.lastActiveAt = Date.now()
+      // 用户首次在该话题发言时增加参与人数
+      const hasPostedBefore = userActions.value.some(a => a.topicId === topicId && (a.type === 'post' || a.type === 'reply'))
+      if (!hasPostedBefore) topic.participantCount++
     }
 
     userActions.value.push({
@@ -216,7 +225,7 @@ export const useCommunityStore = defineStore('community', () => {
     const cost = COMMUNITY_COSTS.like
 
     if (userStore.wallet.time < cost.time) {
-      uni.showToast({ title: '资源不足', icon: 'none' })
+      uni.showToast({ title: '资源不足（需要 ⏱' + cost.time + '）', icon: 'none' })
       return false
     }
 
