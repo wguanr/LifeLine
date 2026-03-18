@@ -30,6 +30,9 @@ RSS_FEEDS = {
     "china": [
         {"name": "SCMP China", "url": "https://news.google.com/rss/search?q=site:scmp.com+china&hl=en-US&gl=US&ceid=US:en"},
         {"name": "Reuters China", "url": "https://news.google.com/rss/search?q=site:reuters.com+china&hl=en-US&gl=US&ceid=US:en"},
+        {"name": "China News Google", "url": "https://news.google.com/rss/search?q=China+news&hl=zh-CN&gl=CN&ceid=CN:zh-Hans"},
+        {"name": "China Tech", "url": "https://news.google.com/rss/search?q=China+technology+AI&hl=en-US&gl=US&ceid=US:en"},
+        {"name": "China Economy", "url": "https://news.google.com/rss/search?q=China+economy+trade&hl=en-US&gl=US&ceid=US:en"},
     ],
 }
 

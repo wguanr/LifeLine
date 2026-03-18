@@ -3,6 +3,7 @@ import { ref, computed } from 'vue'
 import type { Item } from '@/types'
 import { mockItems } from '@/data/items'
 import { aigcItems } from '@/data/aigc_items'
+import { generatedItems } from '@/data/generated_items'
 
 export const useItemStore = defineStore('item', () => {
   const items = ref<Item[]>([])
@@ -21,7 +22,12 @@ export const useItemStore = defineStore('item', () => {
         visible: i.visible !== false,
         createdAt: i.createdAt || Date.now()
       })) as Item[]
-      items.value = [...mockItems, ...aigcNormalized]
+      const genNormalized = ([...generatedItems] as any[]).map(i => ({
+        ...i,
+        visible: i.visible !== false,
+        createdAt: i.createdAt || Date.now()
+      })) as Item[]
+      items.value = [...mockItems, ...aigcNormalized, ...genNormalized]
     } finally {
       isLoading.value = false
     }

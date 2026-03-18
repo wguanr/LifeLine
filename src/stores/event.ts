@@ -3,6 +3,7 @@ import { ref, computed } from 'vue'
 import type { GameEvent } from '@/types'
 import { mockEvents } from '@/data/events'
 import { aigcEvents } from '@/data/aigc_events'
+import { generatedEvents } from '@/data/generated_events'
 
 export const useEventStore = defineStore('event', () => {
   const events = ref<GameEvent[]>([])
@@ -98,7 +99,8 @@ export const useEventStore = defineStore('event', () => {
     try {
       // 合并原始事件和AIGC事件（规范化格式）
       const aigcNormalized = ([...aigcEvents] as any[]).map(normalizeAigcEvent)
-      events.value = [...mockEvents, ...aigcNormalized]
+      const genNormalized = ([...generatedEvents] as any[]).map(normalizeAigcEvent)
+      events.value = [...mockEvents, ...aigcNormalized, ...genNormalized]
     } finally {
       isLoading.value = false
     }
