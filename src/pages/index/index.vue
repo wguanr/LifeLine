@@ -1879,8 +1879,9 @@ $safe-area-bottom: env(safe-area-inset-bottom, 0px);
   align-items: center;
   justify-content: center;
   gap: 16rpx;
-  padding: 12rpx 28rpx;
-  width: calc(100% - 56rpx); // 与卡片宽度对齐
+  padding: 12rpx 42rpx;
+  // 与 card-area 的 padding 28rpx 对齐，确保操作栏不超出卡片
+  width: calc(100% - 56rpx);
   max-width: 480px;
   box-sizing: border-box;
   z-index: 100;
@@ -1939,6 +1940,7 @@ $safe-area-bottom: env(safe-area-inset-bottom, 0px);
   gap: 12rpx;
   width: 100%;
   margin-bottom: 12rpx;
+  padding: 0; // 选项宽度由父容器 padding 控制
   
   .ext-choice-item {
     display: flex;
