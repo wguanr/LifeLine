@@ -4,8 +4,8 @@
     <canvas class="dynamic-bg-canvas" id="dynamicBgCanvas" canvas-id="dynamicBgCanvas" />
     <!-- 顶部状态栏 - Smooth Corner 风格 -->
     <view class="status-bar">
-      <!-- 左侧：Logo 胶囊 -->
-      <view class="bar-capsule logo-capsule">
+      <!-- 左侧：Logo 直接显示（放大） -->
+      <view class="logo-area">
         <image class="logo-image" src="/static/brand/lifeline_logo.png" mode="heightFix" />
       </view>
       
@@ -14,7 +14,7 @@
         <WorldTrackSwitch />
       </view>
       
-      <!-- 右侧：资源胶囊 -->
+      <!-- 资源胶囊 -->
       <view class="bar-capsule resource-capsule" v-if="!isChainWorld">
         <view class="resource-item">
           <text class="resource-icon">⏱</text>
@@ -38,22 +38,33 @@
         </view>
       </view>
       
-      <!-- 头像胶囊 -->
-      <view class="bar-capsule avatar-capsule" @click="goToProfile">
-        <view class="avatar-ring">
-          <view class="user-avatar">
-            <text class="avatar-text">{{ userInitial }}</text>
+      <!-- 右侧：用户头像 + 通知 -->
+      <view class="user-actions">
+        <!-- 通知铃铛 -->
+        <view class="notify-btn" @click="() => {}">
+          <view class="notify-bell-svg">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 2C10.343 2 9 3.343 9 5V5.29C6.718 6.15 5 8.382 5 11V16L3 18V19H21V18L19 16V11C19 8.382 17.282 6.15 15 5.29V5C15 3.343 13.657 2 12 2Z" fill="currentColor" opacity="0.85"/>
+              <path d="M12 22C13.105 22 14 21.105 14 20H10C10 21.105 10.895 22 12 22Z" fill="currentColor" opacity="0.9"/>
+            </svg>
+          </view>
+          <view class="notify-badge" v-if="true">
+            <text class="notify-count">3</text>
           </view>
         </view>
-        <view class="level-badge">
-          <text class="level-text">L{{ userStore.currentUser.clearanceLevel }}</text>
+        
+        <!-- 用户头像 -->
+        <view class="avatar-btn" @click="goToProfile">
+          <view class="avatar-outer-ring">
+            <view class="avatar-inner">
+              <text class="avatar-letter">{{ userInitial }}</text>
+            </view>
+          </view>
+          <view class="avatar-level">
+            <text class="avatar-level-text">{{ userStore.currentUser.clearanceLevel }}</text>
+          </view>
+          <view class="avatar-status-dot"></view>
         </view>
-      </view>
-      
-      <!-- 通知胶囊 -->
-      <view class="bar-capsule notify-capsule">
-        <text class="bell-icon">🔔</text>
-        <view class="bell-dot"></view>
       </view>
     </view>
     
@@ -1083,18 +1094,24 @@ $safe-area-bottom: env(safe-area-inset-bottom, 0px);
   transition: all $transition-fast;
 }
 
-// Logo 胶囊
-.logo-capsule {
-  padding: 10rpx 18rpx;
-  height: 76rpx;
+// Logo 区域（放大，无胶囊包裹）
+.logo-area {
   flex-shrink: 0;
-  // Logo 胶囊特殊的微光边框
-  border-color: rgba($neon-cyan, 0.08);
+  display: flex;
+  align-items: center;
+  padding: 0 4rpx;
   
   .logo-image {
-    height: 48rpx;
+    height: 96rpx;
     display: block;
-    filter: drop-shadow(0 0 6rpx rgba($neon-cyan, 0.35));
+    filter: drop-shadow(0 0 10rpx rgba($neon-cyan, 0.45))
+           drop-shadow(0 0 24rpx rgba($neon-cyan, 0.15));
+    transition: filter $transition-normal;
+  }
+  
+  &:active .logo-image {
+    filter: drop-shadow(0 0 14rpx rgba($neon-cyan, 0.65))
+           drop-shadow(0 0 32rpx rgba($neon-cyan, 0.25));
   }
 }
 
@@ -1154,98 +1171,194 @@ $safe-area-bottom: env(safe-area-inset-bottom, 0px);
   }
 }
 
-// 头像胶囊
-.avatar-capsule {
-  position: relative;
-  padding: 8rpx 12rpx;
-  height: 76rpx;
-  cursor: pointer;
+// 右侧用户操作区
+.user-actions {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
   flex-shrink: 0;
-  // 头像胶囊的微妙洋红调
-  border-color: rgba($neon-magenta, 0.08);
+  margin-left: auto;
+}
+
+// 通知铃铛按钮
+.notify-btn {
+  position: relative;
+  width: 80rpx;
+  height: 80rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  @include smooth-corner(20rpx);
+  background: linear-gradient(
+    160deg,
+    rgba($bg-elevated, 0.6) 0%,
+    rgba($bg-surface, 0.4) 100%
+  );
+  border: 1rpx solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(24rpx);
+  -webkit-backdrop-filter: blur(24rpx);
+  transition: all $transition-fast;
   
-  .avatar-ring {
-    width: 56rpx;
-    height: 56rpx;
-    @include smooth-corner(18rpx);
-    padding: 2rpx;
-    background: linear-gradient(135deg, $neon-cyan, $neon-magenta);
-    @include neon-glow($neon-cyan, 0.12);
+  .notify-bell-svg {
+    width: 42rpx;
+    height: 42rpx;
+    color: rgba($neon-cyan-light, 0.75);
+    transition: all $transition-fast;
+    animation: bell-shake 2s ease-in-out infinite;
+    transform-origin: top center;
+    
+    svg {
+      width: 100%;
+      height: 100%;
+    }
   }
   
-  .user-avatar {
-    width: 100%;
-    height: 100%;
-    @include smooth-corner(16rpx);
-    background: linear-gradient(135deg, rgba($neon-magenta, 0.25), rgba($neon-cyan, 0.25));
+  .notify-badge {
+    position: absolute;
+    top: 6rpx;
+    right: 6rpx;
+    min-width: 28rpx;
+    height: 28rpx;
+    padding: 0 6rpx;
     display: flex;
     align-items: center;
     justify-content: center;
+    background: linear-gradient(135deg, $color-danger, darken($color-danger, 8%));
+    border-radius: 14rpx;
     border: 2rpx solid $bg-deep;
-  }
-  
-  .avatar-text {
-    font-size: 22rpx;
-    font-weight: bold;
-    color: $neon-cyan-light;
-  }
-  
-  .level-badge {
-    position: absolute;
-    bottom: 4rpx;
-    right: 4rpx;
-    padding: 2rpx 8rpx;
-    background: linear-gradient(135deg, rgba($neon-cyan, 0.9), rgba($neon-cyan-dark, 0.9));
-    @include smooth-corner(10rpx);
-    border: 2rpx solid $bg-deep;
-    box-shadow: 0 2rpx 6rpx rgba(0, 0, 0, 0.3);
+    box-shadow: 
+      0 2rpx 8rpx rgba($color-danger, 0.5),
+      0 0 12rpx rgba($color-danger, 0.25);
+    animation: pulse-glow 2s ease-in-out infinite;
     
-    .level-text {
-      font-size: 14rpx;
+    .notify-count {
+      font-size: 16rpx;
       font-weight: 800;
-      color: $text-on-neon;
+      color: #fff;
+      line-height: 1;
       font-family: 'SF Mono', 'Courier New', monospace;
     }
   }
   
   &:active {
-    transform: scale(0.95);
+    transform: scale(0.92);
+    background: rgba($bg-elevated, 0.8);
+    
+    .notify-bell-svg {
+      color: $neon-cyan;
+      filter: drop-shadow(0 0 6rpx rgba($neon-cyan, 0.5));
+    }
   }
 }
 
-// 通知胶囊
-.notify-capsule {
+// 用户头像按钮
+.avatar-btn {
   position: relative;
-  width: 76rpx;
-  height: 76rpx;
   cursor: pointer;
   flex-shrink: 0;
+  transition: transform $transition-fast;
   
-  .bell-icon {
-    font-size: 28rpx;
-    filter: grayscale(0.3);
-    transition: filter $transition-fast;
+  .avatar-outer-ring {
+    width: 84rpx;
+    height: 84rpx;
+    border-radius: 50%;
+    padding: 3rpx;
+    // 非均匀 conic-gradient 让旋转更明显
+    background: conic-gradient(
+      from 0deg,
+      $neon-cyan 0deg,
+      $neon-magenta 90deg,
+      $neon-amber 180deg,
+      rgba($bg-deep, 0.6) 270deg,
+      $neon-cyan 360deg
+    );
+    box-shadow:
+      0 0 14rpx rgba($neon-cyan, 0.3),
+      0 0 28rpx rgba($neon-magenta, 0.18);
+    animation: ring-rotate 6s linear infinite;
   }
   
-  .bell-dot {
-    position: absolute;
-    top: 14rpx;
-    right: 14rpx;
-    width: 12rpx;
-    height: 12rpx;
-    background: $color-danger;
+  .avatar-inner {
+    width: 100%;
+    height: 100%;
     border-radius: 50%;
-    border: 2rpx solid $bg-deep;
-    box-shadow: 0 0 8rpx rgba($color-danger, 0.5);
-    animation: pulse-glow 2s ease-in-out infinite;
+    background: linear-gradient(
+      135deg,
+      rgba($bg-elevated, 0.95) 0%,
+      rgba(mix($neon-magenta, $bg-deep, 12%), 0.95) 100%
+    );
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 3rpx solid $bg-deep;
+  }
+  
+  .avatar-letter {
+    font-size: 32rpx;
+    font-weight: 800;
+    color: $neon-cyan-light;
+    text-shadow: 0 0 8rpx rgba($neon-cyan, 0.4);
+    font-family: 'SF Pro Display', -apple-system, sans-serif;
+  }
+  
+  .avatar-level {
+    position: absolute;
+    bottom: -4rpx;
+    right: -4rpx;
+    min-width: 32rpx;
+    height: 32rpx;
+    padding: 0 8rpx;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, $neon-cyan, $neon-cyan-dark);
+    border-radius: 16rpx;
+    border: 3rpx solid $bg-deep;
+    box-shadow:
+      0 2rpx 8rpx rgba(0, 0, 0, 0.4),
+      0 0 8rpx rgba($neon-cyan, 0.3);
+    
+    .avatar-level-text {
+      font-size: 16rpx;
+      font-weight: 900;
+      color: $text-on-neon;
+      line-height: 1;
+      font-family: 'SF Mono', 'Courier New', monospace;
+    }
+  }
+  
+  .avatar-status-dot {
+    position: absolute;
+    top: 2rpx;
+    right: 2rpx;
+    width: 16rpx;
+    height: 16rpx;
+    background: $color-success;
+    border-radius: 50%;
+    border: 3rpx solid $bg-deep;
+    box-shadow: 0 0 8rpx rgba($color-success, 0.5);
   }
   
   &:active {
-    transform: scale(0.95);
-    .bell-icon {
-      filter: grayscale(0);
-    }
+    transform: scale(0.92);
   }
+}
+
+@keyframes ring-rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+// 铃铛摇晃动画（有通知时触发）
+@keyframes bell-shake {
+  0%, 100% { transform: rotate(0deg); }
+  15% { transform: rotate(14deg); }
+  30% { transform: rotate(-12deg); }
+  45% { transform: rotate(8deg); }
+  60% { transform: rotate(-6deg); }
+  75% { transform: rotate(3deg); }
+  90% { transform: rotate(-1deg); }
 }
 
 // 卡片区域 - 不再独占全部空间，为底部操作栏预留空间
