@@ -1,5 +1,7 @@
 <template>
   <view class="index-container">
+    <!-- 动态渐变背景 -->
+    <canvas class="dynamic-bg-canvas" id="dynamicBgCanvas" canvas-id="dynamicBgCanvas" />
     <!-- 顶部状态栏 - Smooth Corner 风格 -->
     <view class="status-bar">
       <!-- 左侧：Logo 胶囊 -->
@@ -648,7 +650,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useCardStore } from '@/stores/card'
 import { useUserStore } from '@/stores/user'
 import { useWorldStore } from '@/stores/world'
@@ -895,12 +897,118 @@ const goToProfile = () => {
   })
 }
 
+// ====== 动态渐变背景 ======
+let bgAnimationId: number | null = null
+
+const initDynamicBackground = () => {
+  const uniCanvas = document.getElementById('dynamicBgCanvas')
+  if (!uniCanvas) return
+  const canvas = uniCanvas.querySelector('canvas') as HTMLCanvasElement
+  if (!canvas) return
+  
+  const ctx = canvas.getContext('2d')
+  if (!ctx) return
+  
+  // 设置 canvas 尺寸
+  const resize = () => {
+    canvas.width = window.innerWidth
+    canvas.height = window.innerHeight
+  }
+  resize()
+  window.addEventListener('resize', resize)
+  
+  // 渐变光晕配置
+  interface GlowOrb {
+    x: number; y: number
+    targetX: number; targetY: number
+    radius: number
+    color: [number, number, number]
+    alpha: number
+    speed: number
+    phase: number
+    pulseSpeed: number
+  }
+  
+  const orbs: GlowOrb[] = [
+    // 青色主光晕 - 左上
+    { x: 0.15, y: 0.08, targetX: 0.25, targetY: 0.2, radius: 0.6, color: [0, 229, 255], alpha: 0.22, speed: 0.00008, phase: 0, pulseSpeed: 0.0006 },
+    // 洋红光晕 - 右下
+    { x: 0.85, y: 0.85, targetX: 0.7, targetY: 0.75, radius: 0.55, color: [224, 64, 251], alpha: 0.15, speed: 0.00006, phase: Math.PI * 0.7, pulseSpeed: 0.0005 },
+    // 琥珀光晕 - 中间偏下
+    { x: 0.5, y: 0.55, targetX: 0.45, targetY: 0.5, radius: 0.4, color: [255, 171, 0], alpha: 0.08, speed: 0.00005, phase: Math.PI * 1.3, pulseSpeed: 0.0004 },
+    // 深蓝补光 - 右上
+    { x: 0.8, y: 0.15, targetX: 0.75, targetY: 0.25, radius: 0.4, color: [68, 138, 255], alpha: 0.12, speed: 0.00007, phase: Math.PI * 0.4, pulseSpeed: 0.00045 },
+    // 青色补光 - 底部
+    { x: 0.3, y: 0.9, targetX: 0.4, targetY: 0.8, radius: 0.35, color: [0, 229, 255], alpha: 0.06, speed: 0.00004, phase: Math.PI * 1.8, pulseSpeed: 0.0003 },
+  ]
+  
+  let time = 0
+  
+  const draw = () => {
+    const w = canvas.width
+    const h = canvas.height
+    time++
+    
+    // 清除画布 - 深色基底
+    ctx.fillStyle = '#0a0e1a'
+    ctx.fillRect(0, 0, w, h)
+    
+    // 绘制每个光晕
+    for (const orb of orbs) {
+      // 缓慢移动轨迹 - 利萨如图形
+      orb.phase += orb.speed
+      const moveX = Math.sin(orb.phase * 2.3) * 0.08 + Math.cos(orb.phase * 1.7) * 0.05
+      const moveY = Math.cos(orb.phase * 1.9) * 0.06 + Math.sin(orb.phase * 2.7) * 0.04
+      const cx = (orb.x + moveX) * w
+      const cy = (orb.y + moveY) * h
+      
+      // 呼吸脉冲
+      const pulse = Math.sin(time * orb.pulseSpeed) * 0.3 + 0.7
+      const currentAlpha = orb.alpha * pulse
+      const currentRadius = orb.radius * (0.9 + pulse * 0.1) * Math.max(w, h)
+      
+      // 多层径向渐变
+      const gradient = ctx.createRadialGradient(cx, cy, 0, cx, cy, currentRadius)
+      const [r, g, b] = orb.color
+      gradient.addColorStop(0, `rgba(${r}, ${g}, ${b}, ${currentAlpha * 1.5})`)
+      gradient.addColorStop(0.3, `rgba(${r}, ${g}, ${b}, ${currentAlpha * 0.8})`)
+      gradient.addColorStop(0.6, `rgba(${r}, ${g}, ${b}, ${currentAlpha * 0.3})`)
+      gradient.addColorStop(1, `rgba(${r}, ${g}, ${b}, 0)`)
+      
+      ctx.fillStyle = gradient
+      ctx.fillRect(0, 0, w, h)
+    }
+    
+    // 添加微妙的暖色光带（地平线效果）
+    const horizGrad = ctx.createLinearGradient(0, h * 0.65, 0, h * 0.85)
+    horizGrad.addColorStop(0, 'rgba(255, 171, 0, 0)')
+    horizGrad.addColorStop(0.5, 'rgba(255, 171, 0, 0.012)')
+    horizGrad.addColorStop(1, 'rgba(255, 171, 0, 0)')
+    ctx.fillStyle = horizGrad
+    ctx.fillRect(0, 0, w, h)
+    
+    bgAnimationId = requestAnimationFrame(draw)
+  }
+  
+  draw()
+}
+
 onMounted(async () => {
+  // 初始化动态背景
+  initDynamicBackground()
+  
   // 先加载事件和物品数据，再初始化卡片队列
   await eventStore.loadEvents()
   await itemStore.loadItems()
   await cardStore.initCardQueue()
   // Card queue ready
+})
+
+onUnmounted(() => {
+  if (bgAnimationId) {
+    cancelAnimationFrame(bgAnimationId)
+    bgAnimationId = null
+  }
 })
 </script>
 
@@ -920,35 +1028,18 @@ $safe-area-bottom: env(safe-area-inset-bottom, 0px);
   box-sizing: border-box;
   position: relative;
   
-  // 星空背景
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: 
-      url('/static/bg/starfield_bg.png') center/cover no-repeat,
-      linear-gradient(180deg, $bg-deep 0%, $bg-base 50%, $bg-deep 100%);
-    pointer-events: none;
-    z-index: 0;
-  }
-  
-  // 微妙的霓虹光晕装饰
-  &::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background:
-      radial-gradient(ellipse at 20% 10%, rgba($neon-cyan, 0.04) 0%, transparent 50%),
-      radial-gradient(ellipse at 80% 90%, rgba($neon-magenta, 0.03) 0%, transparent 50%);
-    pointer-events: none;
-    z-index: 0;
-  }
+  // 背景由 canvas 动态渲染，不再使用静态图片
+}
+
+// 动态渐变背景 Canvas
+.dynamic-bg-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
 }
 
 // ===== 顶部状态栏 - Smooth Corner Squircle 风格 =====
