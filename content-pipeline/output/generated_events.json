@@ -1,270 +1,14 @@
 [
   {
-    "id": "gen_event_1773805483_001",
-    "title": "你需要为AI代理打造独一无二的人类身份",
-    "description": "在数字世界中，无数AI代理不断涌入，试图淹没网络系统。作为一名技术专家，你被赋予了一个艰巨的任务——利用虹膜扫描技术制作独特的人类身份令牌，确保每个AI代理都能被准确识别和管理。这不仅关乎技术的创新，更是维护数字秩序和安全的关键。你需要小心谨慎地设计和制作这些身份令牌，防止代理群体泛滥，保护网络环境的稳定与可信。",
-    "cover": "🛡️",
+    "id": "gen_event_1773805952_001",
+    "title": "你需要为你的AI代理创建独一无二的人类身份",
+    "description": "在这个数字时代，AI代理无处不在，但它们也可能被滥用，形成网络风暴，扰乱你的在线生活。现在，你获得了一项技术——基于虹膜扫描的身份标识令牌。你需要动手制作一个独特的人类身份，赋予你的AI代理个性和安全保障。这个过程不仅关系到你个人的网络安全，更是抵御AI群体滥用的关键一环。你准备好投入时间和精力，打造一个可信赖且独特的数字身份了吗？",
+    "cover": "🛠️",
     "type": "craft",
     "status": "active",
     "requirements": {
       "tags": [
         "techie",
-        "tech_innovator"
-      ]
-    },
-    "entryFee": {
-      "time": 3,
-      "energy": 5
-    },
-    "participantCount": 0,
-    "createdAt": 1773805483836,
-    "source": {
-      "type": "aigc",
-      "newsTitle": "How World ID wants to put a unique human identity on every AI agent",
-      "newsDate": "",
-      "region": "",
-      "urgency": "critical"
-    },
-    "stages": [
-      {
-        "id": "stage_1",
-        "title": "设计身份令牌方案",
-        "description": "你开始着手设计虹膜扫描身份令牌的方案。你可以选择侧重于高安全性的复杂加密，或者优先考虑制作效率和成本控制，亦或尝试结合创新技术来平衡两者。",
-        "choices": [
-          {
-            "id": "1_a",
-            "text": "采用最高级别的加密技术，确保令牌绝无漏洞",
-            "cost": {
-              "time": 3,
-              "energy": 2
-            },
-            "outcome": {
-              "nextStageId": "stage_2",
-              "isEnding": false,
-              "rewards": {
-                "tags": {
-                  "tech_innovator": 3,
-                  "prepared": 2
-                }
-              },
-              "penalties": {
-                "energy": 2
-              },
-              "resultText": "你设计了极具安全性的令牌方案，但耗费了大量时间和精力。"
-            }
-          },
-          {
-            "id": "1_b",
-            "text": "优先考虑快速生产和成本控制，保证令牌能尽快投入使用",
-            "cost": {
-              "time": 1,
-              "energy": 1
-            },
-            "outcome": {
-              "nextStageId": "stage_2",
-              "isEnding": false,
-              "rewards": {
-                "tags": {
-                  "minimalist": 2,
-                  "workaholic": 1
-                }
-              },
-              "penalties": {
-                "reputation": 2
-              },
-              "resultText": "你快速制定了方案，虽然安全性有所妥协，但令牌能快速上线。"
-            }
-          },
-          {
-            "id": "1_c",
-            "text": "结合创新技术，尝试找到安全与效率的平衡点",
-            "cost": {
-              "time": 2,
-              "energy": 2
-            },
-            "outcome": {
-              "nextStageId": "stage_2",
-              "isEnding": false,
-              "rewards": {
-                "tags": {
-                  "creative": 3,
-                  "tech_innovator": 2
-                }
-              },
-              "penalties": {
-                "energy": 1
-              },
-              "resultText": "你提出了创新方案，希望能兼顾安全与生产效率。"
-            }
-          }
-        ]
-      },
-      {
-        "id": "stage_2",
-        "title": "制作与测试身份令牌",
-        "description": "你开始动手制作身份令牌，并安排测试环节。你可以选择严格的多轮测试，简单快速的测试，或者尝试使用特殊的测试设备。",
-        "choices": [
-          {
-            "id": "2_a",
-            "text": "执行多轮复杂测试，确保令牌绝对可靠",
-            "cost": {
-              "time": 3,
-              "energy": 3
-            },
-            "outcome": {
-              "nextStageId": "stage_3",
-              "isEnding": false,
-              "rewards": {
-                "tags": {
-                  "persistent": 2,
-                  "prepared": 3
-                }
-              },
-              "penalties": {
-                "energy": 3
-              },
-              "resultText": "多轮测试保证了令牌的稳定性，但极大消耗了你的精力。"
-            }
-          },
-          {
-            "id": "2_b",
-            "text": "简单快速测试，尽快推进生产流程",
-            "cost": {
-              "time": 1,
-              "energy": 1
-            },
-            "outcome": {
-              "nextStageId": "stage_3",
-              "isEnding": false,
-              "rewards": {
-                "tags": {
-                  "workaholic": 2,
-                  "minimalist": 1
-                }
-              },
-              "penalties": {
-                "reputation": 3
-              },
-              "resultText": "快速测试节省了时间，但可能存在潜在隐患。"
-            }
-          },
-          {
-            "id": "2_c",
-            "text": "使用罕见的虹膜识别扩展设备进行深度测试",
-            "cost": {
-              "time": 2,
-              "energy": 2
-            },
-            "hidden": true,
-            "requiresItems": [
-              "gen_event_1773805483_001_item"
-            ],
-            "outcome": {
-              "nextStageId": "stage_3",
-              "isEnding": false,
-              "rewards": {
-                "tags": {
-                  "techie": 3,
-                  "explorer": 2
-                }
-              },
-              "penalties": {
-                "energy": 2
-              },
-              "resultText": "借助特殊设备，你深入测试了令牌，发现并修复了隐藏漏洞。"
-            }
-          }
-        ]
-      },
-      {
-        "id": "stage_3",
-        "title": "发布与管理身份令牌",
-        "description": "身份令牌制作完成，即将投入使用。你可以选择严格管理只允许授权代理，或者较为宽松地开放使用，亦或建立动态调整机制。",
-        "choices": [
-          {
-            "id": "3_a",
-            "text": "严格管理，确保每个令牌都被精准识别和监控",
-            "cost": {
-              "time": 1,
-              "energy": 1
-            },
-            "outcome": {
-              "nextStageId": null,
-              "isEnding": true,
-              "rewards": {
-                "tags": {
-                  "reliable": 3,
-                  "conflict_aware": 2
-                },
-                "reputation": 10
-              },
-              "penalties": {
-                "energy": 1
-              },
-              "resultText": "严格的管理维护了数字秩序，但增加了维护成本。"
-            }
-          },
-          {
-            "id": "3_b",
-            "text": "宽松开放，让更多代理迅速接入数字网络",
-            "cost": {
-              "time": 0,
-              "energy": 1
-            },
-            "outcome": {
-              "nextStageId": null,
-              "isEnding": true,
-              "rewards": {
-                "tags": {
-                  "open_minded": 3,
-                  "social_butterfly": 1
-                },
-                "reputation": 5
-              },
-              "penalties": {
-                "reputation": 5
-              },
-              "resultText": "虽然开放提高了接入速度，但带来了安全隐患和监管难题。"
-            }
-          },
-          {
-            "id": "3_c",
-            "text": "建立动态调整机制，根据情况灵活控制令牌权限",
-            "cost": {
-              "time": 2,
-              "energy": 2
-            },
-            "outcome": {
-              "nextStageId": null,
-              "isEnding": true,
-              "rewards": {
-                "tags": {
-                  "negotiator": 3,
-                  "tech_innovator": 2,
-                  "prepared": 1
-                },
-                "reputation": 8
-              },
-              "penalties": {
-                "time": 1
-              },
-              "resultText": "动态机制平衡了安全与效率，但需要持续关注和调整。"
-            }
-          }
-        ]
-      }
-    ]
-  },
-  {
-    "id": "gen_event_1773805516_002",
-    "title": "你必须在中东紧张局势中保护自己并做出关键选择",
-    "description": "作为一名普通居民，你突然发现所居住的中东区域因伊朗对以色列和美军资产的报复性打击而陷入紧张状态。周围的安全环境迅速恶化，通讯中断，资源紧缺。你需要在混乱中保持冷静，评估风险，选择避难地点，确保自己和家人的安全，同时在不断变化的局势中寻找生存的机会。每一个决定都关系重大，你能否在这场危机中活下来并保护身边的人？",
-    "cover": "⚠️",
-    "type": "challenge",
-    "status": "active",
-    "requirements": {
-      "tags": [
-        "resilient",
         "prepared"
       ]
     },
@@ -273,26 +17,19 @@
       "energy": 5
     },
     "participantCount": 0,
-    "createdAt": 1773805516030,
-    "source": {
-      "type": "aigc",
-      "newsTitle": "Iran launches retaliatory strikes on Israel and U.S. assets after security chief Larijani is killed",
-      "newsDate": "",
-      "region": "Middle East",
-      "urgency": "critical"
-    },
+    "createdAt": 1773805952612,
     "stages": [
       {
         "id": "stage_1",
-        "title": "局势突变，选择避难地点",
-        "description": "局势迅速恶化，通讯中断，街头充满危机。你必须迅速决定避难场所。是选择家中藏身，去邻近的社区避难所，还是冒险穿越城市寻求更安全的区域？每个选择都充满风险和不确定。",
+        "title": "确定身份基调",
+        "description": "你开始设计AI代理的人类身份。这个身份将影响它的行为和安全策略。你需要选择一个基调，是倾向于高度安全、开放透明，还是灵活适应？",
         "choices": [
           {
             "id": "1_a",
-            "text": "留在家中，利用现有资源防守",
+            "text": "打造高度安全的身份，注重隐私保护",
             "cost": {
               "time": 2,
-              "energy": 3
+              "energy": 2
             },
             "outcome": {
               "nextStageId": "stage_2",
@@ -300,123 +37,96 @@
               "rewards": {
                 "tags": {
                   "prepared": 2,
-                  "family_first": 2
+                  "cautious": 2
                 },
                 "reputation": 3
               },
               "penalties": {
-                "energy": 2
+                "time": 1
               },
-              "resultText": "你决定留守家中，利用储备的物资和隐蔽空间等待局势明朗。虽然安全感有所提升，但资源消耗明显，精神压力不减。"
+              "resultText": "你决定采取严密的安全措施，确保身份的隐私和防护，但这也带来更复杂的维护成本。"
             }
           },
           {
             "id": "1_b",
-            "text": "前往邻近社区的避难所寻求集体庇护",
+            "text": "设计开放透明的身份，方便互动和学习",
             "cost": {
-              "time": 3,
-              "energy": 4
+              "time": 1,
+              "energy": 1
             },
             "outcome": {
               "nextStageId": "stage_2",
               "isEnding": false,
               "rewards": {
                 "tags": {
-                  "social_butterfly": 2,
-                  "connector": 1
+                  "open_minded": 2,
+                  "learner": 1
                 },
-                "reputation": 4
+                "reputation": 2
               },
               "penalties": {
-                "energy": 3
+                "energy": 1
               },
-              "resultText": "你选择与邻居们一起避难，借助集体力量提高安全。虽然途中冒险，但获得了更多信息和支持。"
+              "resultText": "你选择让身份易于交流和学习，增强代理的适应能力，但安全性相对较低。"
             }
           },
           {
             "id": "1_c",
-            "text": "穿越城市，寻找更安全的远离冲突区域",
+            "text": "创建灵活适应的身份，动态调整策略",
             "cost": {
-              "time": 4,
-              "energy": 5
+              "time": 3,
+              "energy": 3
             },
             "outcome": {
               "nextStageId": "stage_2",
               "isEnding": false,
               "rewards": {
                 "tags": {
-                  "brave": 3,
-                  "adventurous": 2
+                  "improviser": 2,
+                  "creative": 2
                 },
-                "reputation": 5
+                "reputation": 4
               },
               "penalties": {
-                "energy": 4
+                "time": 2,
+                "energy": 1
               },
-              "resultText": "你冒险穿越不安全的区域，寻找远离冲突的安全地带。虽然劳累且充满风险，但可能为未来带来更好的生存环境。"
+              "resultText": "你构建了一个能够动态调整的身份，增强了代理的弹性，但需要更多资源投入。"
             }
           }
         ]
       },
       {
         "id": "stage_2",
-        "title": "局势恶化，资源与情报选择",
-        "description": "避难所内或新的藏身处，资源紧缺，情报稀少。你可以选择如何分配有限的资源，同时决定是否冒险寻找外来援助或额外物资。你的选择将直接影响你的生存机会和声望。",
+        "title": "定制身份特征",
+        "description": "身份的核心特征将决定AI代理的个性和行为表现。你可以选择强化某些特性，或尝试隐藏的高级定制。",
         "choices": [
           {
             "id": "2_a",
-            "text": "谨慎分配资源，保持低调等待援助",
+            "text": "强化安全特征，增加多重验证",
             "cost": {
               "time": 2,
-              "energy": 2
+              "energy": 1
             },
             "outcome": {
               "nextStageId": "stage_3",
               "isEnding": false,
               "rewards": {
                 "tags": {
-                  "cautious": 3,
-                  "prepared": 1
+                  "prepared": 3,
+                  "reliable": 1
                 },
                 "reputation": 3
               },
               "penalties": {
-                "energy": 1
+                "time": 1
               },
-              "resultText": "你选择保守策略，节约资源，避免冒险。虽然安全，但机会有限，可能错失关键援助。"
+              "resultText": "你为身份加入了多重验证机制，极大提高了安全性，但增加了使用复杂度。"
             }
           },
           {
             "id": "2_b",
-            "text": "组织小队，冒险外出寻找物资和情报",
-            "cost": {
-              "time": 3,
-              "energy": 4
-            },
-            "outcome": {
-              "nextStageId": "stage_3",
-              "isEnding": false,
-              "rewards": {
-                "tags": {
-                  "brave": 2,
-                  "leader": 2,
-                  "connector": 1
-                },
-                "reputation": 5
-              },
-              "penalties": {
-                "energy": 3
-              },
-              "resultText": "你带领小队冒险出击，成功获得重要物资和最新情报，提升了小队士气，但也承受了伤害和疲惫。"
-            }
-          },
-          {
-            "id": "2_c",
-            "text": "使用隐藏的紧急通讯设备尝试联系外界",
-            "hidden": true,
-            "requiresItems": [
-              "gen_event_1773805516_002_item"
-            ],
+            "text": "强调个性化特征，赋予代理独特风格",
             "cost": {
               "time": 1,
               "energy": 2
@@ -426,28 +136,100 @@
               "isEnding": false,
               "rewards": {
                 "tags": {
-                  "techie": 3,
-                  "prepared": 2,
-                  "leader": 1
+                  "creative": 3,
+                  "curious": 2
                 },
-                "reputation": 6
+                "reputation": 2
               },
               "penalties": {
                 "energy": 2
               },
-              "resultText": "你秘密启用紧急通讯设备，成功联系到外界救援，极大提升了安全和信心，但设备能量有限，需要谨慎使用。"
+              "resultText": "你为身份注入了独特的个性，让代理更具魅力和表现力，但安全性稍弱。"
+            }
+          },
+          {
+            "id": "2_c",
+            "text": "使用高级定制工具进行隐藏身份配置",
+            "cost": {
+              "time": 3,
+              "energy": 3
+            },
+            "hidden": true,
+            "requiresItems": [
+              "gen_item_1773805952_001_a"
+            ],
+            "outcome": {
+              "nextStageId": "stage_3",
+              "isEnding": false,
+              "rewards": {
+                "tags": {
+                  "tech_innovator": 3,
+                  "prepared": 2,
+                  "brave": 1
+                },
+                "reputation": 5
+              },
+              "penalties": {
+                "time": 2,
+                "energy": 3
+              },
+              "resultText": "利用你手中的特殊工具，你完成了深度定制，使身份极具安全和创新性。"
             }
           }
         ]
       },
       {
         "id": "stage_3",
-        "title": "最终决策：确保生存与保护家人",
-        "description": "危机仍未解除，你必须做出最终选择：是和家人一起坚守，冒险寻找逃离路线，还是加入援军力量对抗混乱？每个选择都将决定你未来的命运。",
+        "title": "身份最终确认",
+        "description": "经过前期设计，你的AI代理身份已初具雏形。现在是确认和激活身份的时刻。你准备好让它上线吗？",
         "choices": [
           {
             "id": "3_a",
-            "text": "与家人坚守，守护亲人直到局势平息",
+            "text": "立即激活身份，投入使用",
+            "cost": {
+              "time": 1,
+              "energy": 1
+            },
+            "outcome": {
+              "nextStageId": null,
+              "isEnding": true,
+              "rewards": {
+                "tags": {
+                  "brave": 2,
+                  "prepared": 1
+                },
+                "reputation": 4
+              },
+              "penalties": {},
+              "resultText": "你果断地激活了新身份，AI代理开始在数字世界中发挥作用。"
+            }
+          },
+          {
+            "id": "3_b",
+            "text": "等待进一步测试，确保无误后再激活",
+            "cost": {
+              "time": 2,
+              "energy": 0
+            },
+            "outcome": {
+              "nextStageId": null,
+              "isEnding": true,
+              "rewards": {
+                "tags": {
+                  "cautious": 3,
+                  "reliable": 2
+                },
+                "reputation": 3
+              },
+              "penalties": {
+                "time": 1
+              },
+              "resultText": "你选择暂缓激活，继续测试确保身份安全，降低未来风险。"
+            }
+          },
+          {
+            "id": "3_c",
+            "text": "放弃当前设计，重新规划身份策略",
             "cost": {
               "time": 2,
               "energy": 2
@@ -457,62 +239,16 @@
               "isEnding": true,
               "rewards": {
                 "tags": {
-                  "family_first": 3,
-                  "brave": 1,
-                  "resilient": 2
+                  "persistent": 2,
+                  "reflective": 2
                 },
-                "reputation": 5
-              },
-              "penalties": {},
-              "resultText": "你决定与家人团聚坚守，共同面对困难。虽然压力巨大，但亲情让你坚定不移，最终守住了家园。"
-            }
-          },
-          {
-            "id": "3_b",
-            "text": "冒险寻找逃离路线，争取远离危险区域",
-            "cost": {
-              "time": 3,
-              "energy": 3
-            },
-            "outcome": {
-              "nextStageId": null,
-              "isEnding": true,
-              "rewards": {
-                "tags": {
-                  "brave": 3,
-                  "adventurous": 2,
-                  "prepared": 1
-                },
-                "reputation": 6
+                "reputation": 1
               },
               "penalties": {
-                "energy": 3
+                "time": 2,
+                "energy": 1
               },
-              "resultText": "你决定冒险逃离，经过重重险阻成功抵达安全地带，虽然疲惫，但获得了新的生存机会。"
-            }
-          },
-          {
-            "id": "3_c",
-            "text": "加入援军力量，积极参与维护秩序和保护社区",
-            "cost": {
-              "time": 4,
-              "energy": 5
-            },
-            "outcome": {
-              "nextStageId": null,
-              "isEnding": true,
-              "rewards": {
-                "tags": {
-                  "brave": 3,
-                  "leader": 3,
-                  "helpful": 2
-                },
-                "reputation": 7
-              },
-              "penalties": {
-                "energy": 4
-              },
-              "resultText": "你加入援军，勇敢对抗混乱，帮助更多人脱离危险，虽有风险，但赢得了尊敬与信任。"
+              "resultText": "你决定放弃当前方案，准备从头开始设计更合适的身份。"
             }
           }
         ]
@@ -520,9 +256,9 @@
     ]
   },
   {
-    "id": "gen_event_1773805548_003",
-    "title": "你必须应对即将到来的古巴局势变动",
-    "description": "作为一名普通公民，你突然发现国际局势正急剧变化，美国在对伊朗施加压力的同时，也在推动古巴的领导层更替。这一消息迅速传入你的生活，你需要权衡如何在纷乱的国际政治中保护自己和家人，同时应对可能带来的经济和社会影响。你将如何做出决策，保持冷静和坚韧？",
+    "id": "gen_event_1773805979_002",
+    "title": "你身处中东，如何应对突发的安全危机？",
+    "description": "作为一名在中东工作的专业人士，你突然被卷入了地区紧张局势升级的漩涡。伊朗对以色列和美国资产发动了报复性袭击，安全环境骤然恶化。你必须迅速制定应对策略，保障自身安全并帮助身边的人脱离险境。在这场危机中，你如何权衡风险，做出关键决策？",
     "cover": "⚠️",
     "type": "challenge",
     "status": "active",
@@ -537,26 +273,19 @@
       "energy": 5
     },
     "participantCount": 0,
-    "createdAt": 1773805548925,
-    "source": {
-      "type": "aigc",
-      "newsTitle": "‘We’ll be doing something with Cuba very soon’, Trump says",
-      "newsDate": "",
-      "region": "",
-      "urgency": "critical"
-    },
+    "createdAt": 1773805979863,
     "stages": [
       {
         "id": "stage_1",
-        "title": "了解局势",
-        "description": "你从新闻和社交媒体上得知古巴局势正在变化，可能带来经济和社会的不稳定。你需要决定如何收集更多信息并规划下一步行动。",
+        "title": "突发危机：初步应对",
+        "description": "你刚刚得知区域安全形势急剧恶化，必须迅速决定第一步行动。此时你可以选择：立即寻找安全场所躲避，联系当地同事协调撤离，或尝试通过社交网络获取最新动态。",
         "choices": [
           {
             "id": "1_a",
-            "text": "关注官方新闻渠道，保持谨慎态度",
+            "text": "立即寻找安全场所躲避，等待进一步信息",
             "cost": {
               "time": 1,
-              "energy": 1
+              "energy": 2
             },
             "outcome": {
               "nextStageId": "stage_2",
@@ -564,76 +293,72 @@
               "rewards": {
                 "tags": {
                   "cautious": 2,
-                  "reliable": 1
+                  "prepared": 1
                 },
                 "reputation": 3
               },
               "penalties": {
                 "energy": 1
               },
-              "resultText": "你选择相信官方消息，虽然信息有限但保持了冷静。"
+              "resultText": "你迅速找到一个安全的避难所，暂时避免了潜在危机，但可能错失重要情报。"
             }
           },
           {
             "id": "1_b",
-            "text": "主动向朋友和社区打听消息，获取更多视角",
-            "cost": {
-              "time": 2,
-              "energy": 2
-            },
-            "outcome": {
-              "nextStageId": "stage_2",
-              "isEnding": false,
-              "rewards": {
-                "tags": {
-                  "social_butterfly": 2,
-                  "connector": 1
-                },
-                "reputation": 4
-              },
-              "penalties": {
-                "energy": 2
-              },
-              "resultText": "你通过社交网络获取了多种观点，但信息杂乱且难以判断真伪。"
-            }
-          },
-          {
-            "id": "1_c",
-            "text": "秘密查阅敏感文件，寻找隐藏信息",
+            "text": "立即联系当地同事，协调大家有序撤离",
             "cost": {
               "time": 2,
               "energy": 3
             },
-            "hidden": true,
-            "requiresItems": [
-              "gen_event_1773805548_003_item"
-            ],
             "outcome": {
               "nextStageId": "stage_2",
               "isEnding": false,
               "rewards": {
                 "tags": {
-                  "curious": 3,
-                  "brave": 2
+                  "leader": 2,
+                  "connector": 2
                 },
-                "reputation": 6
+                "reputation": 5
               },
               "penalties": {
-                "energy": 3
+                "time": 1
               },
-              "resultText": "你发现了关键线索，对局势有了更清晰的认识，但风险和精神压力也随之增加。"
+              "resultText": "你成功组织大家保持冷静并协调撤退，展现了领导才能，但耗费了不少时间和精力。"
+            }
+          },
+          {
+            "id": "1_c",
+            "text": "通过社交网络收集最新动态，评估风险",
+            "cost": {
+              "time": 3,
+              "energy": 1
+            },
+            "outcome": {
+              "nextStageId": "stage_2",
+              "isEnding": false,
+              "rewards": {
+                "tags": {
+                  "curious": 2,
+                  "techie": 1
+                },
+                "reputation": 4
+              },
+              "penalties": {
+                "energy": 1
+              },
+              "resultText": "你通过网络获取了许多有用信息，但这让你暴露在一定风险中，同时消耗了大量时间。"
             }
           }
         ]
       },
       {
         "id": "stage_2",
-        "title": "制定应对策略",
-        "description": "面对复杂的局势，你需要决定如何保护自己和家人，做好面对可能动荡的准备。",
+        "title": "中间决策：资源与联系",
+        "description": "你需要决定如何使用有限的资源和人脉来保障安全。可以选择联系大使馆寻求帮助，寻求当地可信任人士的庇护，或者尝试利用携带的应急物资自行应对。",
         "choices": [
           {
             "id": "2_a",
-            "text": "储备必要物资，增强家庭安全",
+            "text": "联系大使馆请求紧急撤离支持",
             "cost": {
               "time": 2,
               "energy": 2
@@ -643,43 +368,327 @@
               "isEnding": false,
               "rewards": {
                 "tags": {
-                  "prepared": 3,
-                  "family_first": 2
+                  "reliable": 2,
+                  "connector": 1
                 },
-                "reputation": 5
+                "reputation": 6
               },
               "penalties": {
-                "energy": 2
+                "time": 1
               },
-              "resultText": "你开始储备食物和水，家人感到更安心，但这也消耗了不少资源。"
+              "resultText": "大使馆响应迅速，安排了撤离计划，但过程复杂需要耐心等待。"
             }
           },
           {
             "id": "2_b",
-            "text": "保持低调，避免卷入任何政治冲突",
+            "text": "寻求当地可信任人士的庇护",
             "cost": {
               "time": 1,
-              "energy": 1
+              "energy": 3
             },
             "outcome": {
               "nextStageId": "stage_3",
               "isEnding": false,
               "rewards": {
                 "tags": {
-                  "cautious": 3,
-                  "resilient": 1
+                  "kindhearted": 2,
+                  "social_butterfly": 2
+                },
+                "reputation": 5
+              },
+              "penalties": {
+                "energy": 2
+              },
+              "resultText": "你获得了当地人的帮助和庇护，但这也带来了信任风险和心理压力。"
+            }
+          },
+          {
+            "id": "2_c",
+            "text": "利用携带的应急物资独自应对",
+            "cost": {
+              "time": 1,
+              "energy": 3
+            },
+            "outcome": {
+              "nextStageId": "stage_3",
+              "isEnding": false,
+              "rewards": {
+                "tags": {
+                  "prepared": 2,
+                  "brave": 1
+                },
+                "reputation": 4
+              },
+              "penalties": {
+                "energy": 3
+              },
+              "resultText": "你凭借应急物资独自应对，展现了极强的自理和勇气，但也面临较大风险。"
+            }
+          },
+          {
+            "id": "2_d",
+            "text": "使用隐藏的特殊通讯设备联系外部安全团队",
+            "cost": {
+              "time": 1,
+              "energy": 1
+            },
+            "hidden": true,
+            "requiresItems": [
+              "gen_item_1773805979_002_a"
+            ],
+            "outcome": {
+              "nextStageId": "stage_3",
+              "isEnding": false,
+              "rewards": {
+                "tags": {
+                  "tech_innovator": 3,
+                  "prepared": 2
+                },
+                "reputation": 7
+              },
+              "penalties": {
+                "energy": 1
+              },
+              "resultText": "你利用特殊通讯设备成功联系到外部安全团队，获得了宝贵援助，极大提升了安全保障。"
+            }
+          }
+        ]
+      },
+      {
+        "id": "stage_3",
+        "title": "最终决策：脱险还是坚守",
+        "description": "危机进入关键阶段，你需要做出最后的选择，是立即撤离以求安全，还是坚守岗位帮助他人，或者寻找机会秘密离开。",
+        "choices": [
+          {
+            "id": "3_a",
+            "text": "立即撤离，确保自身安全",
+            "cost": {
+              "time": 2,
+              "energy": 2
+            },
+            "outcome": {
+              "nextStageId": null,
+              "isEnding": true,
+              "rewards": {
+                "tags": {
+                  "prepared": 3,
+                  "cautious": 2
+                },
+                "reputation": 8
+              },
+              "penalties": {
+                "energy": 2
+              },
+              "resultText": "你安全撤离，虽然没有参与更多救援，但成功规避了最大风险，保全了自己。"
+            }
+          },
+          {
+            "id": "3_b",
+            "text": "坚守岗位，协助他人撤离",
+            "cost": {
+              "time": 3,
+              "energy": 4
+            },
+            "outcome": {
+              "nextStageId": null,
+              "isEnding": true,
+              "rewards": {
+                "tags": {
+                  "kindhearted": 3,
+                  "brave": 3,
+                  "leader": 2
+                },
+                "reputation": 10
+              },
+              "penalties": {
+                "energy": 4
+              },
+              "resultText": "你选择坚守岗位，冒着风险帮助更多人撤离，展现了无私和勇气，赢得广泛赞誉。"
+            }
+          },
+          {
+            "id": "3_c",
+            "text": "寻找机会秘密离开，避免引起注意",
+            "cost": {
+              "time": 2,
+              "energy": 3
+            },
+            "outcome": {
+              "nextStageId": null,
+              "isEnding": true,
+              "rewards": {
+                "tags": {
+                  "improviser": 3,
+                  "cautious": 1
+                },
+                "reputation": 7
+              },
+              "penalties": {
+                "energy": 3
+              },
+              "resultText": "你巧妙避开了危险区域，秘密离开现场，既保证了安全也避免了冲突，但缺少他人的信任。"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "gen_event_1773806014_003",
+    "title": "你被困在巴格达绿区的无人机袭击中，如何保全自己？",
+    "description": "你正身处巴格达的绿区，突然间天空中出现了多架无人机群，伴随着爆炸和火光，整个区域陷入混乱。作为一名普通居民，你必须迅速做出决定，是寻找安全掩护，还是尝试联系外部求助？时间紧迫，环境危险，你的选择将直接影响你的生存机会和未来行动。",
+    "cover": "🚁",
+    "type": "challenge",
+    "status": "active",
+    "requirements": {
+      "tags": [
+        "prepared",
+        "resilient"
+      ]
+    },
+    "entryFee": {
+      "time": 3,
+      "energy": 5
+    },
+    "participantCount": 0,
+    "createdAt": 1773806014962,
+    "stages": [
+      {
+        "id": "stage_1",
+        "title": "危机初现",
+        "description": "天空中无人机群迅速靠近，你必须迅速决定是寻找掩护还是尝试联系外部求助。周围环境嘈杂混乱，时间极为紧迫。",
+        "choices": [
+          {
+            "id": "1_a",
+            "text": "寻找最近的掩护点，躲避爆炸和火光",
+            "cost": {
+              "time": 1,
+              "energy": 2
+            },
+            "outcome": {
+              "nextStageId": "stage_2",
+              "isEnding": false,
+              "rewards": {
+                "tags": {
+                  "cautious": 2,
+                  "prepared": 1
                 },
                 "reputation": 3
               },
               "penalties": {
                 "energy": 1
               },
-              "resultText": "你选择保持沉默和低调，尽量避免风险，但错失了参与社区互助的机会。"
+              "resultText": "你迅速找到一处废弃建筑作为掩护，暂时避免了无人机的直接攻击。"
+            }
+          },
+          {
+            "id": "1_b",
+            "text": "试图使用手机联系外部求援，告知你的具体位置",
+            "cost": {
+              "time": 2,
+              "energy": 1
+            },
+            "outcome": {
+              "nextStageId": "stage_2",
+              "isEnding": false,
+              "rewards": {
+                "tags": {
+                  "connector": 2,
+                  "brave": 2
+                },
+                "reputation": 5
+              },
+              "penalties": {
+                "energy": 1
+              },
+              "resultText": "你努力拨打紧急电话，希望外界能及时派出救援力量。"
+            }
+          },
+          {
+            "id": "1_c",
+            "text": "利用随身的便携无人机干扰敌方无人机",
+            "cost": {
+              "time": 1,
+              "energy": 3
+            },
+            "hidden": true,
+            "requiresItems": [
+              "gen_item_1773806014_003_a"
+            ],
+            "outcome": {
+              "nextStageId": "stage_2",
+              "isEnding": false,
+              "rewards": {
+                "tags": {
+                  "techie": 3,
+                  "creative": 2,
+                  "brave": 3
+                },
+                "reputation": 7
+              },
+              "penalties": {
+                "energy": 3
+              },
+              "resultText": "你启动便携无人机，成功干扰了敌方无人机的感应系统，争取了宝贵的时间。"
+            }
+          }
+        ]
+      },
+      {
+        "id": "stage_2",
+        "title": "局势紧张",
+        "description": "你暂时脱离了攻击，周围环境仍然危险。你可以选择继续寻找掩护，或者尝试与周围的居民协作增加生存几率。",
+        "choices": [
+          {
+            "id": "2_a",
+            "text": "深入内部建筑，寻找更安全的藏身之处",
+            "cost": {
+              "time": 2,
+              "energy": 2
+            },
+            "outcome": {
+              "nextStageId": "stage_3",
+              "isEnding": false,
+              "rewards": {
+                "tags": {
+                  "prepared": 2,
+                  "cautious": 2
+                },
+                "reputation": 4
+              },
+              "penalties": {
+                "energy": 2
+              },
+              "resultText": "你找到了一处坚固的地下室，暂时避开了无人机的视线。"
+            }
+          },
+          {
+            "id": "2_b",
+            "text": "呼喊邻居一起躲避，增加安全感和互助可能",
+            "cost": {
+              "time": 1,
+              "energy": 2
+            },
+            "outcome": {
+              "nextStageId": "stage_3",
+              "isEnding": false,
+              "rewards": {
+                "tags": {
+                  "connector": 3,
+                  "kindhearted": 2,
+                  "social_butterfly": 1
+                },
+                "reputation": 6
+              },
+              "penalties": {
+                "energy": 2
+              },
+              "resultText": "你成功呼喊邻居，一起组成小组面对危机，互相守望相助。"
             }
           },
           {
             "id": "2_c",
-            "text": "积极参与社区组织，帮助邻里应对变化",
+            "text": "利用身边的资源制作简易武器准备防御",
             "cost": {
               "time": 3,
               "energy": 3
@@ -689,73 +698,53 @@
               "isEnding": false,
               "rewards": {
                 "tags": {
-                  "helpful": 3,
-                  "connector": 2,
-                  "brave": 1
+                  "creative": 3,
+                  "brave": 2,
+                  "prepared": 1
                 },
-                "reputation": 7
+                "reputation": 5
               },
               "penalties": {
                 "energy": 3
               },
-              "resultText": "你投身社区行动，增强了邻里关系，但也加大了个人负担和风险。"
+              "resultText": "你用身边废弃物制作了简易武器，提升了自我防护能力。"
             }
           }
         ]
       },
       {
         "id": "stage_3",
-        "title": "面对结果",
-        "description": "局势逐渐明朗，你的选择决定了你和家人的未来安全与社会地位。",
+        "title": "决断时刻",
+        "description": "无人机攻击似乎暂时减弱，你有机会逃离绿区或者继续守护身边的人，选择将决定你的未来。",
         "choices": [
           {
             "id": "3_a",
-            "text": "利用已有储备度过难关，保持家庭稳定",
+            "text": "趁机逃离绿区，寻找更安全的避难地点",
             "cost": {
-              "time": 1,
-              "energy": 1
+              "time": 2,
+              "energy": 2
             },
             "outcome": {
               "nextStageId": null,
               "isEnding": true,
               "rewards": {
                 "tags": {
-                  "prepared": 2,
-                  "family_first": 3,
+                  "brave": 3,
                   "resilient": 2
                 },
-                "reputation": 6
+                "reputation": 8
               },
-              "penalties": {},
-              "resultText": "你的准备让家人安全度过了动荡时期，获得了周围人的尊重和感激。"
+              "penalties": {
+                "energy": 2
+              },
+              "resultText": "你成功离开了绿区，尽管疲惫但保全了自己的生命。"
             }
           },
           {
             "id": "3_b",
-            "text": "保持低调避祸，尽量减少冲突和损失",
+            "text": "留下继续保护邻居和亲人，共同度过难关",
             "cost": {
-              "time": 1,
-              "energy": 1
-            },
-            "outcome": {
-              "nextStageId": null,
-              "isEnding": true,
-              "rewards": {
-                "tags": {
-                  "cautious": 3,
-                  "resilient": 3
-                },
-                "reputation": 4
-              },
-              "penalties": {},
-              "resultText": "你成功避免了冲突带来的伤害，但也错失了成长和机会。"
-            }
-          },
-          {
-            "id": "3_c",
-            "text": "积极助人，带领社区共渡难关",
-            "cost": {
-              "time": 2,
+              "time": 3,
               "energy": 3
             },
             "outcome": {
@@ -763,16 +752,40 @@
               "isEnding": true,
               "rewards": {
                 "tags": {
-                  "helpful": 4,
-                  "connector": 3,
-                  "brave": 3
+                  "family_first": 3,
+                  "kindhearted": 3,
+                  "brave": 2
                 },
-                "reputation": 9
+                "reputation": 10
               },
               "penalties": {
                 "energy": 3
               },
-              "resultText": "你的领导和帮助使社区更加团结，但也付出了不小的体力和心理代价。"
+              "resultText": "你选择留下，和邻居们团结一心，共同抵御危险，展现了无私的勇气。"
+            }
+          },
+          {
+            "id": "3_c",
+            "text": "尝试联系国际组织寻求紧急撤离",
+            "cost": {
+              "time": 2,
+              "energy": 1
+            },
+            "outcome": {
+              "nextStageId": null,
+              "isEnding": true,
+              "rewards": {
+                "tags": {
+                  "connector": 3,
+                  "persistent": 2,
+                  "brave": 1
+                },
+                "reputation": 7
+              },
+              "penalties": {
+                "energy": 1
+              },
+              "resultText": "你成功联系到国际救援组织，等待他们的紧急撤离安排。"
             }
           }
         ]

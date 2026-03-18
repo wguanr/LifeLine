@@ -114,8 +114,30 @@ def validate_item(item: dict) -> list[str]:
 # 修复常见问题
 # ============================================================
 
-def fix_event(event: dict) -> dict:
+def strip_to_schema(data: dict, allowed_fields: set) -> dict:
+    """剥离不在 schema 中的字段，返回干净的对象"""
+    return {k: v for k, v in data.items() if k in allowed_fields}
+
+
+# GameEvent 允许的顶层字段（来自 types/index.ts）
+EVENT_ALLOWED_FIELDS = {
+    "id", "title", "description", "cover", "type", "status",
+    "requirements", "entryFee", "stages", "participantCount", "createdAt"
+}
+
+# Item 允许的顶层字段（来自 types/index.ts）
+ITEM_ALLOWED_FIELDS = {
+    "id", "name", "description", "icon", "rarity", "category",
+    "mintCost", "effects", "tags", "featureTags", "story",
+    "image", "visible", "createdAt", "stackable", "maxStack", "maxMint", "mintedCount"
+}
+
+
+def fix_event(event: dict, item_ids: list[str] = None) -> dict:
     """自动修复 GameEvent 中的常见问题"""
+    # 剥离非标准字段（如 source）
+    event = strip_to_schema(event, EVENT_ALLOWED_FIELDS)
+
     # 确保 requirements 存在
     if "requirements" not in event:
         event["requirements"] = {}
@@ -186,11 +208,34 @@ def fix_event(event: dict) -> dict:
 
             choice["outcome"] = outcome
 
+    # 修复隐藏选项的 requiresItems：确保引用的是实际存在的 item ID
+    if item_ids:
+        for stage in event.get("stages", []):
+            for choice in stage.get("choices", []):
+                if choice.get("hidden") and choice.get("requiresItems"):
+                    fixed_refs = []
+                    for ref in choice["requiresItems"]:
+                        if ref in item_ids:
+                            fixed_refs.append(ref)
+                        else:
+                            # 尝试找到与此事件关联的 item
+                            event_id = event.get("id", "")
+                            matching = [iid for iid in item_ids if event_id.replace("event", "item") in iid]
+                            if matching:
+                                fixed_refs.append(matching[0])
+                            elif item_ids:
+                                # 随机选一个同批次的 item
+                                fixed_refs.append(item_ids[0])
+                    if fixed_refs:
+                        choice["requiresItems"] = fixed_refs
+
     return event
 
 
 def fix_item(item: dict) -> dict:
     """自动修复 Item 中的常见问题"""
+    # 剥离非标准字段（如 source）
+    item = strip_to_schema(item, ITEM_ALLOWED_FIELDS)
     if "mintCost" not in item:
         item["mintCost"] = {"time": 60, "energy": 30}
 
@@ -261,19 +306,7 @@ def write_output(events: list[dict], items: list[dict]):
     print("Output Writer: Validating and writing...")
     print(f"{'='*60}")
 
-    # 验证和修复 events
-    valid_events = []
-    for event in events:
-        event = fix_event(event)
-        errors = validate_event(event)
-        if errors:
-            print(f"  [WARN] Event '{event.get('id', '?')}' has {len(errors)} issues:")
-            for err in errors:
-                print(f"    - {err}")
-            # 仍然保留，只是警告
-        valid_events.append(event)
-
-    # 验证和修复 items
+    # 验证和修复 items（先处理 items 以获取 item_ids）
     valid_items = []
     for item in items:
         item = fix_item(item)
@@ -283,6 +316,21 @@ def write_output(events: list[dict], items: list[dict]):
             for err in errors:
                 print(f"    - {err}")
         valid_items.append(item)
+
+    # 收集所有 item ID，用于修复隐藏选项引用
+    all_item_ids = [item["id"] for item in valid_items if "id" in item]
+
+    # 验证和修复 events
+    valid_events = []
+    for event in events:
+        event = fix_event(event, item_ids=all_item_ids)
+        errors = validate_event(event)
+        if errors:
+            print(f"  [WARN] Event '{event.get('id', '?')}' has {len(errors)} issues:")
+            for err in errors:
+                print(f"    - {err}")
+            # 仍然保留，只是警告
+        valid_events.append(event)
 
     # 写入 output 目录（JSON 备份）
     os.makedirs(OUTPUT_DIR, exist_ok=True)
