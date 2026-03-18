@@ -1,0 +1,52 @@
+[
+  {
+    "title": "Top US counterterrorism official resigns over Iran war, urging Trump to 'reverse course'",
+    "link": "https://www.bbc.com/news/articles/cg4g66r3z40o?at_medium=RSS&at_campaign=rss",
+    "source": "BBC World",
+    "category": "politics",
+    "published": "Wed, 18 Mar 2026 02:12:16 GMT",
+    "summary": "National Counterterrorism Center Director Joe Kent says Trump \"started this war due to pressure from Israel and its powerful American lobby\".",
+    "urgency": "critical",
+    "suggested_event_type": "story"
+  },
+  {
+    "title": "How World ID wants to put a unique human identity on every AI agent",
+    "link": "https://arstechnica.com/ai/2026/03/world-id-wants-you-to-put-a-cryptographically-unique-human-identity-behind-your-ai-agents/",
+    "source": "Ars Technica",
+    "category": "tech",
+    "published": "Tue, 17 Mar 2026 21:28:27 +0000",
+    "summary": "Iris-scan backed tokens could help stop agent swarms from overwhelming online systems.",
+    "urgency": "critical",
+    "suggested_event_type": "craft"
+  },
+  {
+    "title": "Iran launches retaliatory strikes on Israel and U.S. assets after security chief Larijani is killed",
+    "link": "https://www.cnbc.com/2026/03/18/iran-strikes-us-israeli-targets-gulf-larijani-death.html",
+    "source": "CNBC",
+    "category": "finance",
+    "published": "Wed, 18 Mar 2026 02:52:58 GMT",
+    "summary": "Iran has intensified attacks targeting U.S. assets in the Middle East and Israel in apparent retaliation against the killing of Iran's security chief Ali Larijani.",
+    "urgency": "critical",
+    "suggested_event_type": "challenge"
+  },
+  {
+    "title": "‘We’ll be doing something with Cuba very soon’, Trump says",
+    "link": "https://www.aljazeera.com/video/newsfeed/2026/3/18/well-be-doing-something-with-cuba-very-soon-trump-says?traffic_source=rss",
+    "source": "Al Jazeera",
+    "category": "crisis",
+    "published": "Wed, 18 Mar 2026 02:46:48 +0000",
+    "summary": "While waging war on Iran, the US president and his secretary of state are demanding a leadership change in Cuba.",
+    "urgency": "critical",
+    "suggested_event_type": "challenge"
+  },
+  {
+    "title": "Trump postpones trip to Beijing as Iran war delays China reset - Reuters",
+    "link": "https://news.google.com/rss/articles/CBMipwFBVV95cUxONVlKMXZlRUFVbTZGWjNVWml6M3N0VTBSMnpmREljby1QNUxYTGE0X0wtVEg1emZoa0RadDJBWUo3RHlWMUE2RDJkSklTY3puRWQ5WHREZW83akNnV2RiTWNFdDVWSnlCT3o3WTFTZ0xfamF0NmV2NW4temJoUzZFZ3BzSjZ6ZG1oQ3BNLURVRTZteGlwQ0NUYnI0OXBIcnBDQnFyR1V3RQ?oc=5",
+    "source": "Reuters China",
+    "category": "china",
+    "published": "Tue, 17 Mar 2026 16:21:36 GMT",
+    "summary": "Trump postpones trip to Beijing as Iran war delays China reset&nbsp;&nbsp;Reuters",
+    "urgency": "critical",
+    "suggested_event_type": "story"
+  }
+]

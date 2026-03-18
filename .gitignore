@@ -9,3 +9,4 @@ test_screenshots/
 .env.*.local
 *.sw?
 nohup.out
+__pycache__/
