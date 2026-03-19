@@ -13,7 +13,7 @@ const router = Router()
 /** GET /api/info/available — 获取可用信息列表 */
 router.get('/available', authMiddleware, async (req, res) => {
   try {
-    const infos = await informationService.getAvailableInformation(req.userId!)
+    const infos = await informationService.getAvailableInformation(req.user!.userId)
     res.json(infos)
   } catch (e: any) {
     res.status(500).json({ error: e.message })
@@ -23,7 +23,7 @@ router.get('/available', authMiddleware, async (req, res) => {
 /** GET /api/info/my — 获取已解锁的信息 */
 router.get('/my', authMiddleware, async (req, res) => {
   try {
-    const infos = await informationService.getUserInformation(req.userId!)
+    const infos = await informationService.getUserInformation(req.user!.userId)
     res.json(infos)
   } catch (e: any) {
     res.status(500).json({ error: e.message })
@@ -58,7 +58,7 @@ router.post('/unlock', authMiddleware, async (req, res) => {
     const { informationId } = req.body
     if (!informationId) return res.status(400).json({ error: 'informationId required' })
 
-    const result = await informationService.unlockInformation(req.userId!, informationId)
+    const result = await informationService.unlockInformation(req.user!.userId, informationId)
     res.json(result)
   } catch (e: any) {
     res.status(500).json({ error: e.message })
@@ -73,7 +73,7 @@ router.post('/share', authMiddleware, async (req, res) => {
       return res.status(400).json({ error: 'informationId and targetUserId required' })
     }
 
-    const result = await informationService.shareInformation(req.userId!, informationId, targetUserId)
+    const result = await informationService.shareInformation(req.user!.userId, informationId, targetUserId)
     res.json(result)
   } catch (e: any) {
     res.status(500).json({ error: e.message })
