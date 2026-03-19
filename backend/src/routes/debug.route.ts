@@ -12,6 +12,9 @@ import * as worldService from '../services/world.service.js'
 import * as eventService from '../services/event.service.js'
 import * as resourceService from '../services/resource.service.js'
 import * as worldTick from '../jobs/world-tick.job.js'
+import { socialService } from '../services/social.service.js'
+import { informationService } from '../services/information.service.js'
+import { realtimeService } from '../services/realtime.service.js'
 
 const router = Router()
 
@@ -323,5 +326,185 @@ function getEpochBonusPreview(epoch: string): number {
   }
   return bonuses[epoch] ?? 1.0
 }
+
+// ==================== Phase 3: 社交/信息/实时状态 ====================
+
+/**
+ * GET /api/debug/phase3/status — Phase 3 引擎状态总览
+ */
+router.get('/phase3/status', async (_req: Request, res: Response) => {
+  try {
+    const wsStatus = realtimeService.getStatus()
+    const infoMarket = await informationService.getInformationMarketStats()
+
+    res.json({
+      websocket: wsStatus,
+      informationMarket: infoMarket,
+      engines: ['social', 'information', 'realtime'],
+    })
+  } catch (err: any) {
+    res.status(500).json({ error: err.message })
+  }
+})
+
+/**
+ * POST /api/debug/social/create-test-users — 创建测试用户用于社交测试
+ */
+router.post('/social/create-test-users', async (_req: Request, res: Response) => {
+  try {
+    const { db: database, schema: s } = await import('../db/index.js')
+    const bcryptMod = await import('bcryptjs')
+    const bcryptLib = bcryptMod.default || bcryptMod
+    const crypto = await import('crypto')
+
+    const testUsers = [
+      { nickname: 'Alice', email: 'alice@test.com' },
+      { nickname: 'Bob', email: 'bob@test.com' },
+      { nickname: 'Charlie', email: 'charlie@test.com' },
+    ]
+
+    const created: any[] = []
+    for (const u of testUsers) {
+      const id = crypto.randomUUID()
+      const hash = bcryptLib.hashSync('test123', 10)
+      const now = Date.now()
+
+      try {
+        await database.insert(s.llUsers).values({
+          id,
+          email: u.email,
+          passwordHash: hash,
+          nickname: u.nickname,
+          avatar: ['\ud83d\udc69', '\ud83d\udc68', '\ud83e\uddd1'][created.length % 3],
+          bio: `Test user ${u.nickname}`,
+          walletTime: 1000,
+          walletEnergy: 100,
+          walletReputation: 50,
+          tags: JSON.stringify([
+            { tagId: 'tech', weight: Math.random() * 50 + 10 },
+            { tagId: 'social', weight: Math.random() * 30 + 5 },
+          ]),
+          inventory: '[]',
+          history: '{}',
+          createdAt: now,
+          lastActiveAt: now,
+        })
+        created.push({ id, ...u })
+      } catch (e: any) {
+        // User may already exist
+        const { eq } = await import('drizzle-orm')
+        const existing = await database.select()
+          .from(s.llUsers)
+          .where(eq(s.llUsers.email, u.email))
+          .limit(1)
+        if (existing.length > 0) {
+          created.push({ id: existing[0].id, ...u, note: 'already exists' })
+        }
+      }
+    }
+
+    res.json({ success: true, users: created })
+  } catch (err: any) {
+    res.status(500).json({ error: err.message })
+  }
+})
+
+/**
+ * POST /api/debug/social/setup-network — 在测试用户之间建立社交网络
+ */
+router.post('/social/setup-network', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const { db: database, schema: s } = await import('../db/index.js')
+    const { ne } = await import('drizzle-orm')
+
+    const allUsers = await database.select()
+      .from(s.llUsers)
+      .limit(10)
+
+    const currentUserId = req.user!.userId
+    const otherUsers = allUsers.filter(u => u.id !== currentUserId)
+
+    const results: any[] = []
+    for (const other of otherUsers) {
+      // Current user follows others
+      const rel = await socialService.follow(currentUserId, other.id)
+      results.push({ action: 'follow', from: currentUserId, to: other.id, trust: rel.trustValue })
+
+      // Others follow current user back (mutual)
+      const relBack = await socialService.follow(other.id, currentUserId)
+      results.push({ action: 'follow_back', from: other.id, to: currentUserId, trust: relBack.trustValue })
+
+      // Simulate some positive interactions
+      for (let i = 0; i < 3; i++) {
+        const interaction = await socialService.recordInteraction(currentUserId, other.id, 'positive')
+        results.push({ action: 'interact', with: other.nickname, trust: interaction.trustAfter })
+      }
+    }
+
+    res.json({ success: true, actions: results.length, results })
+  } catch (err: any) {
+    res.status(500).json({ error: err.message })
+  }
+})
+
+/**
+ * POST /api/debug/info/generate-all — 为所有活跃事件生成信息
+ */
+router.post('/info/generate-all', async (_req: Request, res: Response) => {
+  try {
+    const { db: database, schema: s } = await import('../db/index.js')
+    const { eq } = await import('drizzle-orm')
+
+    const events = await database.select()
+      .from(s.llEvents)
+      .where(eq(s.llEvents.status, 'active'))
+
+    let totalGenerated = 0
+    for (const event of events) {
+      const pieces = await informationService.generateEventInformation(event.id)
+      totalGenerated += pieces.length
+    }
+
+    res.json({ success: true, eventsProcessed: events.length, totalInfoGenerated: totalGenerated })
+  } catch (err: any) {
+    res.status(500).json({ error: err.message })
+  }
+})
+
+/**
+ * POST /api/debug/info/force-rumor — 强制生成谣言（跳过随机概率）
+ */
+router.post('/info/force-rumor', async (_req: Request, res: Response) => {
+  try {
+    // Call generateRumor multiple times until one is generated
+    let rumor = null
+    for (let i = 0; i < 20; i++) {
+      rumor = await informationService.generateRumor()
+      if (rumor) break
+    }
+    res.json({ success: !!rumor, rumor })
+  } catch (err: any) {
+    res.status(500).json({ error: err.message })
+  }
+})
+
+/**
+ * GET /api/debug/world/snapshots — 获取世界历史快照
+ */
+router.get('/world/snapshots', async (_req: Request, res: Response) => {
+  try {
+    const { db: database, schema: s } = await import('../db/index.js')
+    const { desc } = await import('drizzle-orm')
+
+    const snapshots = await database.select()
+      .from(s.llWorldSnapshots)
+      .orderBy(desc(s.llWorldSnapshots.createdAt))
+      .limit(50)
+
+    res.json({ count: snapshots.length, snapshots })
+  } catch (err: any) {
+    res.status(500).json({ error: err.message })
+  }
+})
 
 export default router

@@ -3,7 +3,7 @@
     <!-- 顶部标题 -->
     <view class="debug-header">
       <text class="debug-title">🔧 引擎测试面板</text>
-      <text class="debug-subtitle">Phase 2 — 可视化验证所有后端引擎效果</text>
+      <text class="debug-subtitle">Phase 3 (GA) — 可视化验证所有后端引擎效果</text>
     </view>
 
     <!-- 加载状态 -->
@@ -397,6 +397,133 @@
       </view>
     </view>
 
+    <!-- ==================== 卡片8: 社交引擎测试 ==================== -->
+    <view class="card">
+      <view class="card-header">
+        <text class="card-title">🤝 社交引擎</text>
+        <view class="btn btn-small" @click="loadSocial">刷新</view>
+      </view>
+
+      <view class="btn-row">
+        <view class="btn btn-small" @click="createTestUsers">创建测试用户</view>
+        <view class="btn btn-small" @click="setupSocialNetwork">建立社交网络</view>
+      </view>
+      <text v-if="socialSetupResult" class="result-text">{{ socialSetupResult }}</text>
+
+      <view v-if="socialOverview" class="social-overview">
+        <view class="info-row">
+          <text class="info-label">关注</text>
+          <text class="info-value">{{ socialOverview.followingCount }}</text>
+        </view>
+        <view class="info-row">
+          <text class="info-label">粉丝</text>
+          <text class="info-value">{{ socialOverview.followerCount }}</text>
+        </view>
+        <view class="info-row">
+          <text class="info-label">互关</text>
+          <text class="info-value">{{ socialOverview.mutualCount }}</text>
+        </view>
+        <view class="info-row">
+          <text class="info-label">平均信任值(给出)</text>
+          <text class="info-value">{{ socialOverview.avgTrustGiven?.toFixed(2) }}</text>
+        </view>
+        <view class="info-row">
+          <text class="info-label">平均信任值(收到)</text>
+          <text class="info-value">{{ socialOverview.avgTrustReceived?.toFixed(2) }}</text>
+        </view>
+        <view v-if="socialOverview.reputationBonuses?.length > 0">
+          <text class="section-label">声誉加成</text>
+          <view v-for="(b, idx) in socialOverview.reputationBonuses" :key="idx" class="info-row">
+            <text class="info-label">{{ b.fromNickname }}</text>
+            <text class="info-value gain">+{{ b.bonus?.toFixed(2) }} (trust: {{ b.trust?.toFixed(2) }})</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- ==================== 卡片9: 信息引擎测试 ==================== -->
+    <view class="card">
+      <view class="card-header">
+        <text class="card-title">📡 信息引擎</text>
+        <view class="btn btn-small" @click="loadInfoMarket">刷新</view>
+      </view>
+
+      <view class="btn-row">
+        <view class="btn btn-small" @click="generateAllInfo">生成事件信息</view>
+        <view class="btn btn-small" @click="forceRumor">生成谣言</view>
+      </view>
+      <text v-if="infoActionResult" class="result-text">{{ infoActionResult }}</text>
+
+      <view v-if="infoMarketData" class="info-market-stats">
+        <view class="info-row">
+          <text class="info-label">总信息数</text>
+          <text class="info-value">{{ infoMarketData.totalPieces }}</text>
+        </view>
+        <view class="info-row">
+          <text class="info-label">公开 / 深层 / 核心</text>
+          <text class="info-value">{{ infoMarketData.tierDistribution?.public }} / {{ infoMarketData.tierDistribution?.deep }} / {{ infoMarketData.tierDistribution?.core }}</text>
+        </view>
+        <view class="info-row">
+          <text class="info-label">平均准确度</text>
+          <text class="info-value">{{ ((infoMarketData.avgAccuracy || 0) * 100).toFixed(0) }}%</text>
+        </view>
+        <view class="info-row">
+          <text class="info-label">活跃谣言</text>
+          <text class="info-value">{{ infoMarketData.activeRumors }}</text>
+        </view>
+      </view>
+
+      <view v-if="availableInfoList.length > 0" style="margin-top: 12px;">
+        <text class="section-label">可用信息 (前5条)</text>
+        <view v-for="(info, idx) in availableInfoList.slice(0, 5)" :key="idx" class="info-item-card">
+          <view class="info-row">
+            <text class="info-label">{{ info.title }}</text>
+            <text class="info-value" :class="'tier-' + info.tier">[{{ info.tier }}]</text>
+          </view>
+          <view class="info-row" v-if="info.unlockCost > 0">
+            <text class="info-label">解锁费用</text>
+            <text class="info-value">⭐{{ info.unlockCost }}</text>
+          </view>
+          <view class="btn btn-small" @click="unlockInfo(info.id)" v-if="info.unlockCost > 0">解锁</view>
+        </view>
+      </view>
+    </view>
+
+    <!-- ==================== 卡片10: WebSocket 测试 ==================== -->
+    <view class="card">
+      <view class="card-header">
+        <text class="card-title">🔌 WebSocket 实时通信</text>
+      </view>
+
+      <view class="ws-status-row">
+        <view class="ws-dot" :class="wsConnected ? 'ws-on' : 'ws-off'"></view>
+        <text class="info-value">{{ wsConnected ? '已连接' : '未连接' }}</text>
+        <text class="info-label" style="margin-left: auto;">在线: {{ wsOnline }}</text>
+      </view>
+
+      <view class="btn-row">
+        <view class="btn btn-small" @click="connectWebSocket">{{ wsConnected ? '重连' : '连接' }}</view>
+        <view class="btn btn-small" @click="disconnectWebSocket" v-if="wsConnected">断开</view>
+      </view>
+
+      <view v-if="wsMessageLog.length > 0" class="ws-log">
+        <text class="section-label">消息日志 (最近10条)</text>
+        <view v-for="(msg, idx) in wsMessageLog.slice(0, 10)" :key="idx" class="ws-log-item">
+          <text class="ws-log-type">[{{ msg.type }}]</text>
+          <text class="ws-log-text">{{ JSON.stringify(msg.payload).slice(0, 60) }}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- ==================== 卡片11: 导航到仪表盘 ==================== -->
+    <view class="card">
+      <view class="card-header">
+        <text class="card-title">🌊 世界涟漪仪表盘</text>
+      </view>
+      <text class="card-desc">查看因果链可视化、世界编年史、信息市场和 WebSocket 实时连接</text>
+      <view class="btn btn-primary" @click="goToDashboard">🚀 打开仪表盘</view>
+    </view>
+
     <!-- 底部间距 -->
     <view style="height: 40px;"></view>
   </view>
@@ -443,6 +570,17 @@ const dimensionNames: Record<string, string> = {
 
 const tideIcons: Record<string, string> = { time: '⏱', energy: '⚡', reputation: '⭐' }
 const tideNames: Record<string, string> = { time: '时间', energy: '精力', reputation: '声誉' }
+
+// Phase 3 状态
+const socialOverview = ref<any>(null)
+const socialSetupResult = ref('')
+const infoMarketData = ref<any>(null)
+const infoActionResult = ref('')
+const availableInfoList = ref<any[]>([])
+const wsConnected = ref(false)
+const wsOnline = ref(0)
+const wsMessageLog = ref<any[]>([])
+let ws: WebSocket | null = null
 
 // ==================== API 调用 ====================
 
@@ -667,10 +805,133 @@ function getDimColor(val: number): string {
   return '#ff4444'
 }
 
+// ==================== Phase 3: 社交引擎 ====================
+
+async function createTestUsers() {
+  socialSetupResult.value = ''
+  try {
+    const data = await api('/api/debug/social/create-test-users', { method: 'POST' })
+    socialSetupResult.value = `✅ 创建了 ${data.created || 0} 个测试用户`
+  } catch (e: any) {
+    socialSetupResult.value = '❌ ' + e.message
+  }
+}
+
+async function setupSocialNetwork() {
+  socialSetupResult.value = ''
+  try {
+    const data = await api('/api/debug/social/setup-network', {
+      method: 'POST',
+    })
+    socialSetupResult.value = `✅ 社交网络已建立，${data.actions || 0} 个操作完成`
+    await loadSocial()
+  } catch (e: any) {
+    socialSetupResult.value = '❌ ' + e.message
+  }
+}
+
+async function loadSocial() {
+  try {
+    const data = await api('/api/social/overview')
+    socialOverview.value = data
+  } catch (e: any) {
+    console.warn('Load social failed:', e.message)
+  }
+}
+
+// ==================== Phase 3: 信息引擎 ====================
+
+async function loadInfoMarket() {
+  try {
+    const [market, available] = await Promise.all([
+      api('/api/info/market'),
+      api('/api/info/available'),
+    ])
+    infoMarketData.value = market
+    availableInfoList.value = available || []
+  } catch (e: any) {
+    console.warn('Load info market failed:', e.message)
+  }
+}
+
+async function generateAllInfo() {
+  infoActionResult.value = ''
+  try {
+    const data = await api('/api/debug/info/generate-all', { method: 'POST' })
+    infoActionResult.value = `✅ 生成 ${data.totalInfoGenerated || 0} 条信息（${data.eventsProcessed || 0} 个事件）`
+    await loadInfoMarket()
+  } catch (e: any) {
+    infoActionResult.value = '❌ ' + e.message
+  }
+}
+
+async function forceRumor() {
+  infoActionResult.value = ''
+  try {
+    const data = await api('/api/debug/info/force-rumor', { method: 'POST' })
+    infoActionResult.value = `✅ 谣言已生成: ${data.rumor?.title || 'unknown'}`
+    await loadInfoMarket()
+  } catch (e: any) {
+    infoActionResult.value = '❌ ' + e.message
+  }
+}
+
+async function unlockInfo(infoId: string) {
+  try {
+    const data = await api(`/api/info/${infoId}/unlock`, { method: 'POST' })
+    uni.showToast({ title: '解锁成功', icon: 'success' })
+    await loadInfoMarket()
+    await loadUserState()
+  } catch (e: any) {
+    uni.showToast({ title: e.message, icon: 'none' })
+  }
+}
+
+// ==================== Phase 3: WebSocket ====================
+
+function connectWebSocket() {
+  if (ws) {
+    ws.close()
+    ws = null
+  }
+  try {
+    ws = new WebSocket('ws://localhost:3001/ws')
+    ws.onopen = () => {
+      wsConnected.value = true
+      wsMessageLog.value.unshift({ type: 'system', payload: 'Connected', timestamp: Date.now() })
+    }
+    ws.onmessage = (event) => {
+      try {
+        const msg = JSON.parse(event.data)
+        wsMessageLog.value.unshift(msg)
+        if (wsMessageLog.value.length > 20) wsMessageLog.value = wsMessageLog.value.slice(0, 20)
+        if (msg.type === 'player_count') wsOnline.value = msg.payload?.online || 0
+      } catch {}
+    }
+    ws.onclose = () => { wsConnected.value = false }
+    ws.onerror = () => { wsConnected.value = false }
+  } catch {
+    wsConnected.value = false
+  }
+}
+
+function disconnectWebSocket() {
+  if (ws) { ws.close(); ws = null }
+}
+
+// ==================== 导航 ====================
+
+function goToDashboard() {
+  uni.navigateTo({ url: '/pages/dashboard/dashboard' })
+}
+
 // ==================== 生命周期 ====================
 
-onMounted(() => {
-  loadAll()
+onMounted(async () => {
+  await loadAll()
+  // Phase 3 数据加载
+  await Promise.all([loadSocial(), loadInfoMarket()])
+  connectWebSocket()
 })
 </script>
 
@@ -1261,5 +1522,80 @@ onMounted(() => {
   padding: 12px;
   background: rgba(0, 245, 255, 0.05);
   border-radius: 8px;
+}
+
+/* Phase 3: 社交 */
+.social-overview {
+  margin-top: 12px;
+}
+
+.gain { color: #00ff88 !important; }
+
+/* Phase 3: 信息 */
+.info-market-stats {
+  margin-top: 8px;
+}
+
+.info-item-card {
+  margin-top: 8px;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.tier-public { color: #81C784; }
+.tier-deep { color: #FFD54F; }
+.tier-core { color: #EF5350; }
+
+/* Phase 3: WebSocket */
+.ws-status-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.ws-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.ws-on {
+  background: #00ff88;
+  box-shadow: 0 0 6px #00ff88;
+}
+
+.ws-off {
+  background: #ff4444;
+}
+
+.ws-log {
+  margin-top: 12px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.ws-log-item {
+  display: flex;
+  gap: 6px;
+  padding: 3px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.ws-log-type {
+  font-size: 11px;
+  color: #00f5ff;
+  font-family: monospace;
+  white-space: nowrap;
+}
+
+.ws-log-text {
+  font-size: 11px;
+  color: #888;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 </style>

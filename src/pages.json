@@ -41,6 +41,13 @@
         "navigationStyle": "custom",
         "navigationBarTitleText": "引擎测试"
       }
+    },
+    {
+      "path": "pages/dashboard/dashboard",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTitleText": "世界仪表盘"
+      }
     }
   ],
   "globalStyle": {

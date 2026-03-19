@@ -119,6 +119,60 @@ export const llWorldState = sqliteTable('ll_world_state', {
   updatedAt: integer('updated_at').notNull(),
 })
 
+// ==================== 社交关系表 ====================
+
+export const llSocialRelations = sqliteTable('ll_social_relations', {
+  fromUserId: text('from_user_id').notNull().references(() => llUsers.id),
+  toUserId: text('to_user_id').notNull().references(() => llUsers.id),
+  trustValue: real('trust_value').notNull().default(0.1),
+  interactionCount: integer('interaction_count').notNull().default(0),
+  lastInteractionAt: integer('last_interaction_at').notNull(),
+  createdAt: integer('created_at').notNull(),
+})
+
+// ==================== 信息表 ====================
+
+export const llInformation = sqliteTable('ll_information', {
+  id: text('id').primaryKey(),
+  tier: text('tier').notNull().default('public'),       // public | deep | core
+  category: text('category').notNull(),                  // event_outcome | choice_distribution | item_hidden | world_precise | rumor
+  targetId: text('target_id').notNull(),                 // 关联的事件/物品 ID
+  title: text('title').notNull(),
+  content: text('content').notNull(),
+  unlockCost: real('unlock_cost').notNull().default(0),
+  discoveredBy: text('discovered_by'),
+  shareCount: integer('share_count').notNull().default(0),
+  accuracy: real('accuracy').notNull().default(1.0),
+  expiresAt: integer('expires_at'),
+  createdAt: integer('created_at').notNull(),
+})
+
+// ==================== 信息访问记录表 ====================
+
+export const llInformationAccess = sqliteTable('ll_information_access', {
+  id: text('id').primaryKey(),
+  userId: text('user_id').notNull().references(() => llUsers.id),
+  informationId: text('information_id').notNull().references(() => llInformation.id),
+  method: text('method').notNull(),                      // self_unlock | shared | item_effect
+  unlockedAt: integer('unlocked_at').notNull(),
+})
+
+// ==================== 世界历史快照表 ====================
+
+export const llWorldSnapshots = sqliteTable('ll_world_snapshots', {
+  id: text('id').primaryKey(),
+  epoch: text('epoch').notNull(),
+  dimStability: real('dim_stability').notNull(),
+  dimProsperity: real('dim_prosperity').notNull(),
+  dimFreedom: real('dim_freedom').notNull(),
+  dimKnowledge: real('dim_knowledge').notNull(),
+  dimSolidarity: real('dim_solidarity').notNull(),
+  tideMultiplier: text('tide_multiplier').notNull().default('{}'),
+  tickNumber: integer('tick_number').notNull(),
+  significantEvent: text('significant_event'),           // 该 Tick 的重大事件描述
+  createdAt: integer('created_at').notNull(),
+})
+
 // ==================== 事件遗产表 ====================
 
 export const llEventLegacies = sqliteTable('ll_event_legacies', {
