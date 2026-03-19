@@ -328,3 +328,79 @@ describe('Trust Decay', () => {
     expect(following[0].trustValue).toBeLessThan(0.5)
   })
 })
+
+// ==================== 圈子倾向 ====================
+
+describe('Circle Tendency', () => {
+  it('getCircleTendency: 无关注时返回 null', async () => {
+    createTestUser('ct-alone', 'ct-alone@test.com')
+    createTestEvent('ct-evt1', { title: 'CT Event' })
+
+    const result = await socialService.socialService.getCircleTendency('ct-alone', 'ct-evt1')
+    expect(result).toBeNull()
+  })
+
+  it('getCircleTendency: 关注者无选择时返回 null', async () => {
+    createTestUser('ct-a', 'ct-a@test.com')
+    createTestUser('ct-b', 'ct-b@test.com')
+    createTestEvent('ct-evt2', { title: 'CT Event 2' })
+
+    await socialService.socialService.follow('ct-a', 'ct-b')
+
+    const result = await socialService.socialService.getCircleTendency('ct-a', 'ct-evt2')
+    expect(result).toBeNull()
+  })
+
+  it('getCircleTendency: 关注者有选择时返回分布', async () => {
+    createTestUser('ct-x', 'ct-x@test.com', { time: 1000, energy: 100, reputation: 50 })
+    createTestUser('ct-y', 'ct-y@test.com', { time: 1000, energy: 100, reputation: 50 })
+    createTestUser('ct-z', 'ct-z@test.com', { time: 1000, energy: 100, reputation: 50 })
+    createTestEvent('ct-evt3', { title: 'CT Event 3' })
+
+    // x 关注 y 和 z
+    await socialService.socialService.follow('ct-x', 'ct-y')
+    await socialService.socialService.follow('ct-x', 'ct-z')
+
+    // y 和 z 在事件中做出选择
+    const eventService = await import('../../src/services/event.service.js')
+    await eventService.processChoice(
+      'ct-y', 'ct-evt3', 'stage_1', 'choice_a', '选择A',
+      { rewards: { time: 1 } }
+    )
+    await eventService.processChoice(
+      'ct-z', 'ct-evt3', 'stage_1', 'choice_a', '选择A',
+      { rewards: { time: 1 } }
+    )
+
+    const result = await socialService.socialService.getCircleTendency('ct-x', 'ct-evt3')
+    expect(result).toBeDefined()
+    expect(result!.sampleSize).toBe(2)
+    expect(result!.choiceDistribution).toBeDefined()
+    expect(result!.message).toContain('选择A')
+  })
+
+  it('getCircleTendency: 多种选择显示正确百分比', async () => {
+    createTestUser('ct-m', 'ct-m@test.com', { time: 1000, energy: 100, reputation: 50 })
+    createTestUser('ct-n1', 'ct-n1@test.com', { time: 1000, energy: 100, reputation: 50 })
+    createTestUser('ct-n2', 'ct-n2@test.com', { time: 1000, energy: 100, reputation: 50 })
+    createTestUser('ct-n3', 'ct-n3@test.com', { time: 1000, energy: 100, reputation: 50 })
+    createTestEvent('ct-evt4', { title: 'CT Event 4' })
+
+    await socialService.socialService.follow('ct-m', 'ct-n1')
+    await socialService.socialService.follow('ct-m', 'ct-n2')
+    await socialService.socialService.follow('ct-m', 'ct-n3')
+
+    const eventService = await import('../../src/services/event.service.js')
+    await eventService.processChoice('ct-n1', 'ct-evt4', 'stage_1', 'choice_a', '选择A', { rewards: { time: 1 } })
+    await eventService.processChoice('ct-n2', 'ct-evt4', 'stage_1', 'choice_a', '选择A', { rewards: { time: 1 } })
+    await eventService.processChoice('ct-n3', 'ct-evt4', 'stage_1', 'choice_b', '选择B', { rewards: { time: 1 } })
+
+    const result = await socialService.socialService.getCircleTendency('ct-m', 'ct-evt4')
+    expect(result).toBeDefined()
+    expect(result!.sampleSize).toBe(3)
+    expect(result!.choiceDistribution['选择A'].count).toBe(2)
+    expect(result!.choiceDistribution['选择B'].count).toBe(1)
+    expect(result!.choiceDistribution['选择A'].percentage).toBe(67)
+    expect(result!.choiceDistribution['选择B'].percentage).toBe(33)
+  })
+})

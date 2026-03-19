@@ -486,3 +486,439 @@ describe('Debug Routes', () => {
     expect(res.body.legacies).toBeDefined()
   })
 })
+
+
+// ==================== Game Routes - 补齐遗漏 ====================
+
+describe('Game Routes - Extended', () => {
+  it('GET /api/debug/items/:id/price: 返回单个物品动态价格', async () => {
+    createTestItem('price-item-1', { name: 'Price Item', maxMint: 100, mintedCount: 5 })
+
+    const res = await request(app).get('/api/debug/items/price-item-1/price')
+    expect(res.status).toBe(200)
+    expect(res.body.itemId).toBe('price-item-1')
+    expect(res.body.price).toBeDefined()
+    expect(res.body.price.finalCost).toBeDefined()
+    expect(res.body.price.bondingMultiplier).toBeDefined()
+  })
+
+  it('GET /api/debug/items/:id/price: 不存在的物品返回 404', async () => {
+    const res = await request(app).get('/api/debug/items/nonexistent-item/price')
+    expect(res.status).toBe(404)
+  })
+
+  it('POST /api/items/:id/buy: 需要认证', async () => {
+    const res = await request(app).post('/api/items/test-item/buy')
+    expect(res.status).toBe(401)
+  })
+
+  it('POST /api/items/:id/buy: 认证用户可以购买物品', async () => {
+    createTestItem('buy-item-1', { name: 'Buy Item', mintCost: { time: 10, energy: 5 }, maxMint: 100, mintedCount: 0 })
+
+    const reg = await request(app)
+      .post('/api/auth/register')
+      .send({ email: 'buyer@test.com', password: 'password123', nickname: 'Buyer' })
+
+    const res = await request(app)
+      .post('/api/items/buy-item-1/buy')
+      .set('Authorization', `Bearer ${reg.body.token}`)
+
+    expect(res.status).toBe(200)
+    expect(res.body.wallet).toBeDefined()
+  })
+
+  it('POST /api/events/:id/start: 需要认证', async () => {
+    const res = await request(app).post('/api/events/test-evt/start')
+    expect(res.status).toBe(401)
+  })
+
+  it('POST /api/events/:id/start: 认证用户可以开始事件', async () => {
+    createTestEvent('start-api-evt', { title: 'Start API Event' })
+
+    const reg = await request(app)
+      .post('/api/auth/register')
+      .send({ email: 'starter@test.com', password: 'password123', nickname: 'Starter' })
+
+    const res = await request(app)
+      .post('/api/events/start-api-evt/start')
+      .set('Authorization', `Bearer ${reg.body.token}`)
+
+    expect(res.status).toBe(200)
+  })
+
+  it('POST /api/events/:id/complete: 需要认证', async () => {
+    const res = await request(app).post('/api/events/test-evt/complete')
+    expect(res.status).toBe(401)
+  })
+
+  it('POST /api/events/:id/complete: 认证用户可以完成事件', async () => {
+    createTestEvent('complete-api-evt', { title: 'Complete API Event' })
+
+    const reg = await request(app)
+      .post('/api/auth/register')
+      .send({ email: 'completer@test.com', password: 'password123', nickname: 'Completer' })
+
+    // 先开始
+    await request(app)
+      .post('/api/events/complete-api-evt/start')
+      .set('Authorization', `Bearer ${reg.body.token}`)
+
+    // 再完成
+    const res = await request(app)
+      .post('/api/events/complete-api-evt/complete')
+      .set('Authorization', `Bearer ${reg.body.token}`)
+
+    expect(res.status).toBe(200)
+  })
+
+  it('GET /api/worldline: 需要认证', async () => {
+    const res = await request(app).get('/api/worldline')
+    expect(res.status).toBe(401)
+  })
+
+  it('GET /api/worldline: 返回用户世界线', async () => {
+    const reg = await request(app)
+      .post('/api/auth/register')
+      .send({ email: 'worldline@test.com', password: 'password123', nickname: 'Worldline' })
+
+    const res = await request(app)
+      .get('/api/worldline')
+      .set('Authorization', `Bearer ${reg.body.token}`)
+
+    expect(res.status).toBe(200)
+    expect(res.body.records).toBeDefined()
+    expect(Array.isArray(res.body.records)).toBe(true)
+  })
+
+  it('GET /api/user/history: 需要认证', async () => {
+    const res = await request(app).get('/api/user/history')
+    expect(res.status).toBe(401)
+  })
+
+  it('GET /api/user/history: 返回用户历史', async () => {
+    const reg = await request(app)
+      .post('/api/auth/register')
+      .send({ email: 'uhist@test.com', password: 'password123', nickname: 'UHist' })
+
+    const res = await request(app)
+      .get('/api/user/history')
+      .set('Authorization', `Bearer ${reg.body.token}`)
+
+    expect(res.status).toBe(200)
+    expect(res.body.history).toBeDefined()
+  })
+
+  it('GET /api/debug/world/snapshots: 返回世界快照', async () => {
+    const res = await request(app).get('/api/debug/world/snapshots')
+    expect(res.status).toBe(200)
+    expect(res.body.snapshots).toBeDefined()
+    expect(Array.isArray(res.body.snapshots)).toBe(true)
+  })
+
+  it('GET /api/debug/world/tick-history: 返回 Tick 历史', async () => {
+    const res = await request(app).get('/api/debug/world/tick-history')
+    expect(res.status).toBe(200)
+    expect(res.body).toBeDefined()
+  })
+})
+
+// ==================== Social Routes - 补齐遗漏 ====================
+
+describe('Social Routes - Extended', () => {
+  it('GET /api/social/following: 需要认证', async () => {
+    const res = await request(app).get('/api/social/following')
+    expect(res.status).toBe(401)
+  })
+
+  it('GET /api/social/following: 返回关注列表', async () => {
+    const reg = await request(app)
+      .post('/api/auth/register')
+      .send({ email: 'soc-fing@test.com', password: 'password123', nickname: 'SocFing' })
+
+    const res = await request(app)
+      .get('/api/social/following')
+      .set('Authorization', `Bearer ${reg.body.token}`)
+
+    expect(res.status).toBe(200)
+    expect(Array.isArray(res.body)).toBe(true)
+  })
+
+  it('GET /api/social/followers: 返回粉丝列表', async () => {
+    const reg = await request(app)
+      .post('/api/auth/register')
+      .send({ email: 'soc-fers@test.com', password: 'password123', nickname: 'SocFers' })
+
+    const res = await request(app)
+      .get('/api/social/followers')
+      .set('Authorization', `Bearer ${reg.body.token}`)
+
+    expect(res.status).toBe(200)
+    expect(Array.isArray(res.body)).toBe(true)
+  })
+
+  it('GET /api/social/mutuals: 返回互关列表', async () => {
+    const regA = await request(app)
+      .post('/api/auth/register')
+      .send({ email: 'soc-mut-a@test.com', password: 'password123', nickname: 'SocMutA' })
+
+    const regB = await request(app)
+      .post('/api/auth/register')
+      .send({ email: 'soc-mut-b@test.com', password: 'password123', nickname: 'SocMutB' })
+
+    // 互关
+    await request(app)
+      .post('/api/social/follow')
+      .set('Authorization', `Bearer ${regA.body.token}`)
+      .send({ targetUserId: regB.body.user.id })
+
+    await request(app)
+      .post('/api/social/follow')
+      .set('Authorization', `Bearer ${regB.body.token}`)
+      .send({ targetUserId: regA.body.user.id })
+
+    const res = await request(app)
+      .get('/api/social/mutuals')
+      .set('Authorization', `Bearer ${regA.body.token}`)
+
+    expect(res.status).toBe(200)
+    expect(Array.isArray(res.body)).toBe(true)
+    expect(res.body.length).toBeGreaterThanOrEqual(1)
+  })
+
+  it('GET /api/social/circle-tendency/:eventId: 需要认证', async () => {
+    const res = await request(app).get('/api/social/circle-tendency/some-event')
+    expect(res.status).toBe(401)
+  })
+
+  it('GET /api/social/circle-tendency/:eventId: 无关注时返回 message', async () => {
+    createTestEvent('ct-api-evt', { title: 'CT API Event' })
+
+    const reg = await request(app)
+      .post('/api/auth/register')
+      .send({ email: 'soc-ct@test.com', password: 'password123', nickname: 'SocCT' })
+
+    const res = await request(app)
+      .get('/api/social/circle-tendency/ct-api-evt')
+      .set('Authorization', `Bearer ${reg.body.token}`)
+
+    expect(res.status).toBe(200)
+    // 无数据时返回 { message: 'No data from your circle for this event' }
+    expect(res.body.message).toBeDefined()
+  })
+
+  it('POST /api/social/interact: 需要认证', async () => {
+    const res = await request(app)
+      .post('/api/social/interact')
+      .send({ targetUserId: 'someone', type: 'cooperate' })
+    expect(res.status).toBe(401)
+  })
+
+  it('POST /api/social/interact: 记录互动并增加信任', async () => {
+    const regA = await request(app)
+      .post('/api/auth/register')
+      .send({ email: 'soc-int-a@test.com', password: 'password123', nickname: 'SocIntA' })
+
+    const regB = await request(app)
+      .post('/api/auth/register')
+      .send({ email: 'soc-int-b@test.com', password: 'password123', nickname: 'SocIntB' })
+
+    // 先关注
+    await request(app)
+      .post('/api/social/follow')
+      .set('Authorization', `Bearer ${regA.body.token}`)
+      .send({ targetUserId: regB.body.user.id })
+
+    // 记录互动（type 必须是 positive/negative/betrayal）
+    const res = await request(app)
+      .post('/api/social/interact')
+      .set('Authorization', `Bearer ${regA.body.token}`)
+      .send({ targetUserId: regB.body.user.id, type: 'positive' })
+
+    expect(res.status).toBe(200)
+    expect(res.body.success).toBe(true)
+  })
+
+  it('GET /api/social/reputation-bonus: 需要认证', async () => {
+    const res = await request(app).get('/api/social/reputation-bonus')
+    expect(res.status).toBe(401)
+  })
+
+  it('GET /api/social/reputation-bonus: 返回声誉加成数组', async () => {
+    const reg = await request(app)
+      .post('/api/auth/register')
+      .send({ email: 'soc-rep@test.com', password: 'password123', nickname: 'SocRep' })
+
+    const res = await request(app)
+      .get('/api/social/reputation-bonus')
+      .set('Authorization', `Bearer ${reg.body.token}`)
+
+    expect(res.status).toBe(200)
+    // 返回的是 ReputationBonus[] 数组
+    expect(Array.isArray(res.body)).toBe(true)
+  })
+})
+
+// ==================== Information Routes - 补齐遗漏 ====================
+
+describe('Information Routes - Extended', () => {
+  it('GET /api/info/my: 需要认证', async () => {
+    const res = await request(app).get('/api/info/my')
+    expect(res.status).toBe(401)
+  })
+
+  it('GET /api/info/my: 返回已解锁信息', async () => {
+    const reg = await request(app)
+      .post('/api/auth/register')
+      .send({ email: 'info-my@test.com', password: 'password123', nickname: 'InfoMy' })
+
+    const res = await request(app)
+      .get('/api/info/my')
+      .set('Authorization', `Bearer ${reg.body.token}`)
+
+    expect(res.status).toBe(200)
+    expect(Array.isArray(res.body)).toBe(true)
+  })
+
+  it('POST /api/info/share: 需要认证', async () => {
+    const res = await request(app)
+      .post('/api/info/share')
+      .send({ informationId: 'test' })
+    expect(res.status).toBe(401)
+  })
+
+  it('POST /api/info/share: 分享已解锁的信息给另一个用户', async () => {
+    createTestInfo('share-info-1', { tier: 'public', unlockCost: 0 })
+
+    const regA = await request(app)
+      .post('/api/auth/register')
+      .send({ email: 'info-share-a@test.com', password: 'password123', nickname: 'InfoShareA' })
+
+    const regB = await request(app)
+      .post('/api/auth/register')
+      .send({ email: 'info-share-b@test.com', password: 'password123', nickname: 'InfoShareB' })
+
+    // 先解锁
+    await request(app)
+      .post('/api/info/unlock')
+      .set('Authorization', `Bearer ${regA.body.token}`)
+      .send({ informationId: 'share-info-1' })
+
+    // 分享给 B（需要 targetUserId）
+    const res = await request(app)
+      .post('/api/info/share')
+      .set('Authorization', `Bearer ${regA.body.token}`)
+      .send({ informationId: 'share-info-1', targetUserId: regB.body.user.id })
+
+    expect(res.status).toBe(200)
+  })
+
+  it('POST /api/info/generate/:eventId: 为事件生成信息', async () => {
+    createTestEvent('info-gen-evt', { title: 'Info Gen Event' })
+
+    const res = await request(app)
+      .post('/api/info/generate/info-gen-evt')
+
+    expect(res.status).toBe(200)
+    expect(res.body.generated).toBeDefined()
+  })
+
+  it('POST /api/info/generate-rumor: 生成谣言', async () => {
+    createTestInfo('rumor-src', { tier: 'public', category: 'event_outcome', targetId: 'test-evt' })
+
+    const res = await request(app).post('/api/info/generate-rumor')
+    expect(res.status).toBe(200)
+  })
+})
+
+// ==================== Debug Routes - 补齐遗漏 ====================
+
+describe('Debug Routes - Extended', () => {
+  it('POST /api/debug/simulate-choice: 需要认证', async () => {
+    const res = await request(app)
+      .post('/api/debug/simulate-choice')
+      .send({ eventId: 'test', choiceId: 'test' })
+    expect(res.status).toBe(401)
+  })
+
+  it('POST /api/debug/simulate-choice: 模拟选择结算', async () => {
+    createTestEvent('sim-evt', { title: 'Sim Event' })
+
+    const reg = await request(app)
+      .post('/api/auth/register')
+      .send({ email: 'sim@test.com', password: 'password123', nickname: 'Sim' })
+
+    const res = await request(app)
+      .post('/api/debug/simulate-choice')
+      .set('Authorization', `Bearer ${reg.body.token}`)
+      .send({
+        eventId: 'sim-evt',
+        choiceId: 'choice_a',
+        outcome: { rewards: { time: 50, reputation: 10 }, penalties: { energy: 20 } },
+      })
+
+    expect(res.status).toBe(200)
+    // 返回的是 { preview: { ... } }
+    expect(res.body.preview).toBeDefined()
+    expect(res.body.preview.currentWallet).toBeDefined()
+    expect(res.body.preview.settlement).toBeDefined()
+    expect(res.body.preview.estimatedWalletAfter).toBeDefined()
+  })
+
+  it('POST /api/debug/reset-user: 需要认证', async () => {
+    const res = await request(app).post('/api/debug/reset-user')
+    expect(res.status).toBe(401)
+  })
+
+  it('POST /api/debug/reset-user: 重置用户数据', async () => {
+    const reg = await request(app)
+      .post('/api/auth/register')
+      .send({ email: 'reset@test.com', password: 'password123', nickname: 'Reset' })
+
+    const res = await request(app)
+      .post('/api/debug/reset-user')
+      .set('Authorization', `Bearer ${reg.body.token}`)
+
+    expect(res.status).toBe(200)
+  })
+
+  it('POST /api/debug/social/create-test-users: 创建测试用户', async () => {
+    const res = await request(app).post('/api/debug/social/create-test-users')
+    expect(res.status).toBe(200)
+    expect(res.body.users).toBeDefined()
+  })
+
+  it('POST /api/debug/social/setup-network: 需要认证', async () => {
+    const res = await request(app).post('/api/debug/social/setup-network')
+    expect(res.status).toBe(401)
+  })
+
+  it('POST /api/debug/social/setup-network: 设置社交网络', async () => {
+    // 先创建测试用户
+    const created = await request(app).post('/api/debug/social/create-test-users')
+    const users = created.body.users || []
+
+    const reg = await request(app)
+      .post('/api/auth/register')
+      .send({ email: 'setup-net@test.com', password: 'password123', nickname: 'SetupNet' })
+
+    const res = await request(app)
+      .post('/api/debug/social/setup-network')
+      .set('Authorization', `Bearer ${reg.body.token}`)
+
+    expect(res.status).toBe(200)
+  })
+
+  it('POST /api/debug/info/generate-all: 生成所有事件信息', async () => {
+    createTestEvent('gen-all-evt', { title: 'Gen All Event' })
+
+    const res = await request(app).post('/api/debug/info/generate-all')
+    expect(res.status).toBe(200)
+  })
+
+  it('POST /api/debug/info/force-rumor: 强制生成谣言', async () => {
+    createTestInfo('force-rumor-src', { tier: 'public', category: 'event_outcome', targetId: 'test-evt' })
+
+    const res = await request(app).post('/api/debug/info/force-rumor')
+    expect(res.status).toBe(200)
+  })
+})

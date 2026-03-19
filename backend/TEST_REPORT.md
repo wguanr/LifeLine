@@ -1,80 +1,240 @@
 # LifeLine 后端测试报告
 
-**日期**：2026-03-19
-**提交**：cfa0f41
-**结果**：8 个测试文件，184 个测试，全部通过
+> 生成时间：2026-03-19
+> 框架：Vitest 3.x + supertest
+> 运行模式：单线程（SQLite 并发安全）
 
-## 测试覆盖总览
+## 总览
 
-| 测试文件 | 测试数 | 耗时 | 覆盖模块 |
-| :--- | ---: | ---: | :--- |
-| `resource.service.test.ts` | 31 | 2.6s | 钱包 CRUD、标签权重更新（含衰减）、背包管理 |
-| `social.service.test.ts` | 22 | 3.6s | 关注/取关、互关检测、信任值变化、声誉传播、社交分红 |
-| `information.service.test.ts` | 19 | 2.1s | 三层信息生成、谣言生成、信息解锁、市场统计 |
-| `event.service.test.ts` | 14 | 0.8s | 事件 CRUD、选择结算（含潮汐乘数）、编年史记录 |
-| `world.service.test.ts` | 14 | 0.2s | 世界维度更新、纪元变迁、潮汐计算、快照 |
-| `item.service.test.ts` | 10 | 0.5s | Bonding Curve 定价、世界敏感性乘数、购买流程 |
-| `api.integration.test.ts` | 42 | 2.3s | 全部 HTTP 端点（auth、game、social、info、debug） |
-| `engine-interplay.test.ts` | 32 | 4.3s | 跨引擎联动、边界条件、错误处理 |
-| **合计** | **184** | **16.3s** | |
+| 指标 | 数值 |
+| :--- | ---: |
+| 测试文件 | 10 |
+| 测试用例 | 292 |
+| 通过 | 292 |
+| 失败 | 0 |
+| 耗时 | ~23s |
 
-## 测试分类
+## 测试文件清单
 
-### 1. Service 层单元测试（110 个）
+| 文件 | 测试数 | 类型 | 覆盖范围 |
+| :--- | ---: | :--- | :--- |
+| `services/resource.service.test.ts` | 31 | 单元 | 钱包 CRUD、canAfford、标签权重更新/衰减、背包管理、购买物品、用户历史 |
+| `services/event.service.test.ts` | 26 | 单元 | 事件查询、startEvent、processChoice（含非对称结算）、completeEvent、选择历史、世界线记录、事件遗产 |
+| `services/item.service.test.ts` | 10 | 单元 | Bonding Curve 定价、世界状态敏感性、getAllItemsWithPrices、buyItemDynamic |
+| `services/world.service.test.ts` | 14 | 单元 | 世界维度更新、纪元变迁（创世纪→启蒙时代→黄金时代→衰退期→黑暗时代）、潮汐乘数、getAllEpochs |
+| `services/social.service.test.ts` | 26 | 单元 | 关注/取关、互动记录（positive/negative/betrayal）、信任衰减、互关检测、声誉加成、社交分红、圈子倾向 |
+| `services/information.service.test.ts` | 19 | 单元 | 信息生成（三层分级）、解锁（声誉扣减）、分享（声誉奖励+衰减）、谣言生成、市场统计 |
+| `jobs/world-tick.job.test.ts` | 13 | 单元 | executeWorldTick（维度漂移+潮汐调节）、startWorldTick/stopWorldTick（幂等性）、getTickHistory |
+| `routes/api.integration.test.ts` | 81 | 集成 | 全部 HTTP 端点：auth(13) + game(22) + social(14) + info(12) + debug(20) |
+| `integration/engine-interplay.test.ts` | 32 | 联动 | 选择→世界维度、维度→物品价格、潮汐→结算乘数、纪元变迁级联、边界条件(6)、错误处理(5) |
+| `integration/engine-interplay-extended.test.ts` | 40 | 联动 | 购买全链路(5)、选择→标签(3)、世界Tick→价格(3)、社交分红(3)、信息分享(4)、事件生命周期(3)、跨引擎级联(3)、边界条件(8)、错误处理(8) |
 
-覆盖 6 个核心 Service 的所有公开方法：
+## Service 层覆盖率（52 个方法 → 139 个测试）
 
-**resource.service（31 个）**：`getWallet`、`updateWallet`、`getUserTags`、`updateTagWeight`（含衰减公式验证）、`getInventory`、`addToInventory`、`removeFromInventory`
+### resource.service — 14 methods, 31 tests
 
-**event.service（14 个）**：`getAllEvents`、`getEventById`、`processChoice`（含非对称结算、潮汐乘数联动）、`getUserChoices`、`getUserChronicle`
+| 方法 | 测试数 | 状态 |
+| :--- | ---: | :--- |
+| `getWallet` | 2 | PASS |
+| `canAfford` | 4 | PASS |
+| `deductResources` | 2 | PASS |
+| `addResources` | 2 | PASS |
+| `getUserTags` | 2 | PASS |
+| `updateTagWeight` | 3 | PASS |
+| `updateTagWeights` | 1 | PASS |
+| `decayTagWeights` | 2 | PASS |
+| `getInventory` | 1 | PASS |
+| `addItem` | 3 | PASS |
+| `removeItem` | 4 | PASS |
+| `buyItem` | 3 | PASS |
+| `getUserHistory` | 1 | PASS |
+| `updateUserHistory` | 1 | PASS |
 
-**item.service（10 个）**：`getAllItems`、`getDynamicPrice`（Bonding Curve 公式验证）、`purchaseItem`（含余额检查、铸造量递增）
+### event.service — 9 methods, 26 tests
 
-**world.service（14 个）**：`getCurrentWorldState`、`updateDimensions`（含 clamp 验证）、`getEpochInfo`、纪元变迁（genesis → golden_age → turmoil）、潮汐乘数计算
+| 方法 | 测试数 | 状态 |
+| :--- | ---: | :--- |
+| `getActiveEvents` | 2 | PASS |
+| `getEventById` | 2 | PASS |
+| `startEvent` | 3 | PASS |
+| `processChoice` | 8 | PASS |
+| `completeEvent` | 3 | PASS |
+| `getUserChoices` | 2 | PASS |
+| `getWorldlineRecords` | 2 | PASS |
+| `createEventLegacy` | 2 | PASS |
+| `getEventLegacies` | 2 | PASS |
 
-**social.service（22 个）**：`follow`/`unfollow`、`getFollowing`/`getFollowers`、`getMutualFriends`、`recordInteraction`（positive/negative/betrayal 信任值变化）、`calculateReputationBonus`、`getSocialOverview`
+### item.service — 3 methods, 10 tests
 
-**information.service（19 个）**：`generateEventInformation`（三层分布验证）、`generateRumor`、`unlockInformation`（含声誉扣减）、`getAvailableInformation`、`getInformationMarketStats`
+| 方法 | 测试数 | 状态 |
+| :--- | ---: | :--- |
+| `getDynamicPrice` | 4 | PASS |
+| `getAllItemsWithPrices` | 2 | PASS |
+| `buyItemDynamic` | 4 | PASS |
 
-### 2. API 路由集成测试（42 个）
+### world.service — 4 methods, 14 tests
 
-使用 supertest 对全部 HTTP 端点进行端到端测试：
+| 方法 | 测试数 | 状态 |
+| :--- | ---: | :--- |
+| `getCurrentWorldState` | 1 | PASS |
+| `updateDimensions` | 9 | PASS |
+| `getEpochInfo` | 3 | PASS |
+| `getAllEpochs` | 1 | PASS |
 
-- **Auth**：`POST /register`、`POST /login`、`GET /me`、重复注册 409、错误密码 401
-- **Game**：`GET /events`、`GET /events/:id`、`GET /items`、`GET /tags`、`GET /world`、`POST /choices`、`GET /wallet`、`GET /user/tags`、`GET /inventory`、`GET /worldline`
-- **Social**：`POST /follow`、`DELETE /unfollow`、`GET /overview`、`POST /interact`
-- **Info**：`GET /available`、`POST /unlock`、`GET /market/stats`
-- **Debug**：`GET /status`、`GET /items/prices`、`POST /world/tick`、`POST /world/set-dimensions`
-- **Guard**：未认证请求返回 401
+### social.service — 11 methods, 26 tests
 
-### 3. 引擎联动测试（32 个）
+| 方法 | 测试数 | 状态 |
+| :--- | ---: | :--- |
+| `follow` | 3 | PASS |
+| `unfollow` | 2 | PASS |
+| `recordInteraction` | 6 | PASS |
+| `applyTrustDecay` | 1 | PASS |
+| `getFollowing` | 1 | PASS |
+| `getFollowers` | 1 | PASS |
+| `getMutualFriends` | 2 | PASS |
+| `calculateReputationBonus` | 2 | PASS |
+| `distributeSocialDividend` | 3 | PASS |
+| `getCircleTendency` | 3 | PASS |
+| `getSocialOverview` | 2 | PASS |
 
-**选择结算联动（3 个）**：选择 → 钱包更新、惩罚扣减、多次选择累积历史
+### information.service — 7 methods, 19 tests
 
-**世界维度 → 物品定价（2 个）**：维度变化影响价格、高铸造量 Bonding Curve 价格上升
+| 方法 | 测试数 | 状态 |
+| :--- | ---: | :--- |
+| `generateEventInformation` | 3 | PASS |
+| `unlockInformation` | 6 | PASS |
+| `shareInformation` | 4 | PASS |
+| `generateRumor` | 1 | PASS |
+| `getUserInformation` | 1 | PASS |
+| `getAvailableInformation` | 1 | PASS |
+| `getInformationMarketStats` | 3 | PASS |
 
-**纪元变迁与潮汐（3 个）**：高维度触发纪元变迁、低维度变化、潮汐乘数正数验证
+### world-tick.job — 4 exports, 13 tests
 
-**社交引擎联动（5 个）**：关注概览、互关形成、正面互动提升信任、背叛降低信任、声誉加成计算
+| 方法 | 测试数 | 状态 |
+| :--- | ---: | :--- |
+| `executeWorldTick` | 7 | PASS |
+| `startWorldTick` | 3 | PASS |
+| `stopWorldTick` | 1 | PASS |
+| `getTickHistory` | 2 | PASS |
 
-**信息引擎联动（5 个）**：事件信息生成、免费解锁、付费解锁扣减声誉、声誉不足拒绝、市场统计
+## API 路由覆盖率（45 个端点 → 81 个测试）
 
-**完整生命周期（3 个）**：注册 → 选择 → 验证全流程、多用户并发不干扰、社交 + 信息完整流程
+### auth.route — 4 endpoints, 12 tests
 
-**边界条件（5 个）**：资源不能为负、维度 clamp 到 [0,1]、不能关注自己、重复关注幂等、空 ID 不崩溃
+| 端点 | 测试数 | 状态 |
+| :--- | ---: | :--- |
+| `POST /api/auth/register` | 5 | PASS |
+| `POST /api/auth/login` | 3 | PASS |
+| `GET /api/auth/me` | 3 | PASS |
+| `PATCH /api/auth/me` | 1 | PASS |
 
-**错误处理（5 个）**：不存在的事件/物品/信息优雅处理、无关系用户返回空、新用户零值
+### game.route — 17 endpoints, 22 tests
 
-## 发现并修复的 Bug
+| 端点 | 测试数 | 状态 |
+| :--- | ---: | :--- |
+| `GET /api/events` | 1 | PASS |
+| `GET /api/events/:id` | 2 | PASS |
+| `POST /api/events/:id/start` | 2 | PASS |
+| `POST /api/events/:id/complete` | 2 | PASS |
+| `POST /api/choices` | 2 | PASS |
+| `GET /api/choices` | 1 | PASS |
+| `GET /api/items` | 1 | PASS |
+| `POST /api/items/:id/buy` | 2 | PASS |
+| `GET /api/tags` | 1 | PASS |
+| `GET /api/wallet` | 2 | PASS |
+| `GET /api/user/tags` | 1 | PASS |
+| `GET /api/inventory` | 1 | PASS |
+| `GET /api/user/history` | 1 | PASS |
+| `GET /api/world` | 1 | PASS |
+| `GET /api/world/epochs` | 1 | PASS |
+| `GET /api/worldline` | 1 | PASS |
+| `GET /api/legacies` | 1 | PASS |
+
+### social.route — 9 endpoints, 14 tests
+
+| 端点 | 测试数 | 状态 |
+| :--- | ---: | :--- |
+| `POST /api/social/follow` | 2 | PASS |
+| `POST /api/social/unfollow` | 1 | PASS |
+| `GET /api/social/following` | 2 | PASS |
+| `GET /api/social/followers` | 1 | PASS |
+| `GET /api/social/mutuals` | 1 | PASS |
+| `GET /api/social/overview` | 1 | PASS |
+| `POST /api/social/interact` | 2 | PASS |
+| `GET /api/social/reputation-bonus` | 2 | PASS |
+| `GET /api/social/circle-tendency/:eventId` | 2 | PASS |
+
+### information.route — 7 endpoints, 12 tests
+
+| 端点 | 测试数 | 状态 |
+| :--- | ---: | :--- |
+| `GET /api/info/available` | 2 | PASS |
+| `GET /api/info/my` | 2 | PASS |
+| `GET /api/info/market` | 1 | PASS |
+| `POST /api/info/generate/:eventId` | 1 | PASS |
+| `POST /api/info/unlock` | 2 | PASS |
+| `POST /api/info/share` | 2 | PASS |
+| `POST /api/info/generate-rumor` | 2 | PASS |
+
+### debug.route — 14 endpoints, 20 tests
+
+| 端点 | 测试数 | 状态 |
+| :--- | ---: | :--- |
+| `GET /api/debug/status` | 1 | PASS |
+| `GET /api/debug/items/prices` | 1 | PASS |
+| `GET /api/debug/items/:id/price` | 2 | PASS |
+| `POST /api/debug/world/tick` | 1 | PASS |
+| `GET /api/debug/world/tick-history` | 1 | PASS |
+| `GET /api/debug/world/snapshots` | 1 | PASS |
+| `POST /api/debug/world/set-dimensions` | 1 | PASS |
+| `POST /api/debug/simulate-choice` | 2 | PASS |
+| `POST /api/debug/reset-user` | 2 | PASS |
+| `GET /api/debug/phase3/status` | 1 | PASS |
+| `POST /api/debug/social/create-test-users` | 1 | PASS |
+| `POST /api/debug/social/setup-network` | 2 | PASS |
+| `POST /api/debug/info/generate-all` | 1 | PASS |
+| `POST /api/debug/info/force-rumor` | 1 | PASS |
+| 401 守卫（未认证） | 2 | PASS |
+
+## 引擎联动测试（72 个测试）
+
+### engine-interplay.test.ts — 32 tests
+
+| 场景 | 测试数 | 状态 |
+| :--- | ---: | :--- |
+| 选择结算联动世界状态 | 5 | PASS |
+| 物品定价联动世界维度 | 5 | PASS |
+| 潮汐乘数联动结算 | 5 | PASS |
+| 纪元变迁级联效应 | 6 | PASS |
+| 边界条件 | 6 | PASS |
+| 错误处理 | 5 | PASS |
+
+### engine-interplay-extended.test.ts — 40 tests
+
+| 场景 | 测试数 | 状态 |
+| :--- | ---: | :--- |
+| 购买物品全链路（Bonding Curve + 标签 + 钱包） | 5 | PASS |
+| 选择结算与标签联动 | 3 | PASS |
+| 世界 Tick 全链路（维度漂移 → 价格联动） | 3 | PASS |
+| 社交分红联动（粉丝钱包增加） | 3 | PASS |
+| 信息分享全链路（生成 → 解锁 → 分享 → 接收） | 4 | PASS |
+| 事件生命周期全链路（start → choice → complete → legacy） | 3 | PASS |
+| 跨引擎级联效应（选择 → 世界 → 价格 → 购买） | 3 | PASS |
+| 扩展边界条件（空标签、极端维度、零铸造量等） | 8 | PASS |
+| 扩展错误处理（不存在的 ID、重复操作、资源不足等） | 8 | PASS |
+
+## 测试发现并修复的 Bug
 
 | Bug | 文件 | 严重性 | 描述 |
 | :--- | :--- | :--- | :--- |
-| `req.userId` 未定义 | `social.route.ts` | **高** | auth 中间件设置的是 `req.user.userId`，但路由中使用了 `req.userId`，导致所有社交 API 在生产环境中 400 |
-| `req.userId` 未定义 | `information.route.ts` | **高** | 同上，所有信息 API 在生产环境中 400 |
+| `req.userId` 未定义 | `social.route.ts` | **高** | auth 中间件设置 `req.user.userId`，但路由使用 `req.userId`，导致所有社交 API 返回 400 |
+| `req.userId` 未定义 | `information.route.ts` | **高** | 同上，所有信息 API 返回 400 |
 
 ## 测试基础设施
 
 - **框架**：Vitest 3.x（单线程模式，避免 SQLite 并发冲突）
+- **HTTP 测试**：supertest（无需启动真实服务器）
 - **数据库隔离**：每个测试文件使用独立的 `test.db`，`beforeEach` 清空所有表
 - **辅助函数**：`createTestUser`、`createTestEvent`、`createTestItem`、`createTestInfo`、`createTestRelation`
 - **运行方式**：`cd backend && pnpm test`
