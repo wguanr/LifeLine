@@ -1,10 +1,33 @@
 <script setup lang="ts">
 import { onLaunch, onShow, onHide } from '@dcloudio/uni-app'
 import { useUserStore } from '@/stores/user'
+import { useEventStore } from '@/stores/event'
+import { useItemStore } from '@/stores/item'
+import { useWorldStore } from '@/stores/world'
 
 onLaunch(async () => {
+  // 1. 初始化用户（优先后端恢复，回退本地）
   const userStore = useUserStore()
   await userStore.initUser()
+
+  // 2. 初始化世界状态（从后端加载维度、纪元、潮汐）
+  const worldStore = useWorldStore()
+  await worldStore.initWorld()
+
+  // 3. 加载事件和物品（优先后端，回退本地 mock）
+  const eventStore = useEventStore()
+  const itemStore = useItemStore()
+  await Promise.all([
+    eventStore.loadEvents(),
+    itemStore.loadItems(),
+  ])
+
+  console.log('[App] 初始化完成', {
+    online: userStore.isOnline,
+    events: eventStore.events.length,
+    items: itemStore.items.length,
+    epoch: worldStore.worldEpochName,
+  })
 })
 
 onShow(() => {

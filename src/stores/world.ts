@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import type { WorldType } from '@/types'
+import { worldApi, worldlineApi, getToken } from '@/api'
 
 interface WorldlineRecord {
   id: string
@@ -31,8 +32,26 @@ export interface WorldlineBranch {
   endingSummary?: string
 }
 
+/** 世界状态维度 */
+export interface WorldDimensions {
+  stability: number
+  prosperity: number
+  freedom: number
+  knowledge: number
+  solidarity: number
+}
+
+/** 资源潮汐乘数 */
+export interface TideMultiplier {
+  time: number
+  energy: number
+  reputation: number
+}
+
 export const useWorldStore = defineStore('world', () => {
   const currentWorld = ref<WorldType>('real')
+  /** 是否已连接后端 */
+  const isOnline = ref(false)
 
   const isRealWorld = computed(() => currentWorld.value === 'real')
   const isChainWorld = computed(() => currentWorld.value === 'chain')
@@ -45,15 +64,59 @@ export const useWorldStore = defineStore('world', () => {
     currentWorld.value = currentWorld.value === 'real' ? 'chain' : 'real'
   }
 
-  // 世界线事件记录（原始记录）
+  // ==================== 世界状态 ====================
+
+  const worldEpoch = ref('genesis')
+  const worldEpochName = ref('创世纪')
+  const worldEpochDescription = ref('世界初生，一切皆有可能。')
+  const worldDimensions = ref<WorldDimensions>({
+    stability: 0.5,
+    prosperity: 0.5,
+    freedom: 0.5,
+    knowledge: 0.5,
+    solidarity: 0.5,
+  })
+  const tideMultiplier = ref<TideMultiplier>({
+    time: 1.0,
+    energy: 1.0,
+    reputation: 1.0,
+  })
+
+  /**
+   * 从后端加载世界状态
+   */
+  const loadWorldState = async () => {
+    try {
+      const res = await worldApi.getWorldState()
+      if (res.data && res.data.world) {
+        const w = res.data.world
+        worldEpoch.value = w.epoch || 'genesis'
+        worldEpochName.value = w.epochName || '创世纪'
+        worldEpochDescription.value = w.epochDescription || ''
+        if (w.dimensions) {
+          worldDimensions.value = w.dimensions
+        }
+        if (w.tideMultiplier) {
+          tideMultiplier.value = w.tideMultiplier
+        }
+        isOnline.value = true
+        console.log(`[WorldStore] 世界状态已加载: ${worldEpochName.value}`)
+      }
+    } catch (err) {
+      console.warn('[WorldStore] 加载世界状态失败:', err)
+    }
+  }
+
+  // ==================== 世界线记录 ====================
+
   const worldlineRecords = ref<WorldlineRecord[]>([])
 
-  // 持久化
+  // 持久化（本地备份）
   const saveWorldline = () => {
     uni.setStorageSync('choser_worldline', JSON.stringify(worldlineRecords.value))
   }
 
-  const loadWorldline = () => {
+  const loadWorldlineLocal = () => {
     const stored = uni.getStorageSync('choser_worldline')
     if (stored) {
       try {
@@ -64,8 +127,34 @@ export const useWorldStore = defineStore('world', () => {
     }
   }
 
-  // 初始化时加载
-  loadWorldline()
+  /**
+   * 从后端加载世界线记录
+   * 如果后端有数据则使用后端数据，否则保留本地数据
+   */
+  const loadWorldlineFromApi = async () => {
+    if (!getToken()) {
+      loadWorldlineLocal()
+      return
+    }
+
+    try {
+      const res = await worldlineApi.getRecords()
+      if (res.data && res.data.records && res.data.records.length > 0) {
+        worldlineRecords.value = res.data.records
+        saveWorldline() // 同步到本地
+        console.log(`[WorldStore] 从后端加载了 ${worldlineRecords.value.length} 条世界线记录`)
+        return
+      }
+    } catch (err) {
+      console.warn('[WorldStore] 从后端加载世界线失败:', err)
+    }
+
+    // 回退到本地
+    loadWorldlineLocal()
+  }
+
+  // 初始化时加载本地数据
+  loadWorldlineLocal()
 
   // 兼容旧API
   const worldlineEvents = computed(() => worldlineRecords.value.filter(r => r.type === 'event_start'))
@@ -305,18 +394,38 @@ export const useWorldStore = defineStore('world', () => {
     )
   }
 
+  /**
+   * 初始化：加载世界状态和世界线
+   */
+  const initWorld = async () => {
+    await loadWorldState()
+    await loadWorldlineFromApi()
+  }
+
   return {
     currentWorld,
     isRealWorld,
     isChainWorld,
+    isOnline,
     switchWorld,
     toggleWorld,
+    // 世界状态
+    worldEpoch,
+    worldEpochName,
+    worldEpochDescription,
+    worldDimensions,
+    tideMultiplier,
+    loadWorldState,
+    // 世界线
     worldlineEvents,
     worldlineRecords,
     worldlineBranches,
     recordEvent,
     recordChoice,
     recordEventComplete,
-    seedDemoData
+    seedDemoData,
+    // 初始化
+    initWorld,
+    loadWorldlineFromApi,
   }
 })

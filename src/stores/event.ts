@@ -4,14 +4,17 @@ import type { GameEvent } from '@/types'
 import { mockEvents } from '@/data/events'
 import { aigcEvents } from '@/data/aigc_events'
 import { generatedEvents } from '@/data/generated_events'
+import { eventApi, getToken } from '@/api'
 
 export const useEventStore = defineStore('event', () => {
   const events = ref<GameEvent[]>([])
   const isLoading = ref(false)
   const activeEventIds = ref<Set<string>>(new Set())
   const completedEventIds = ref<Set<string>>(new Set())
+  /** 是否已连接后端 */
+  const isOnline = ref(false)
 
-  // 持久化事件状态
+  // 持久化事件状态（本地备份）
   const saveEventState = () => {
     uni.setStorageSync('choser_active_events', JSON.stringify([...activeEventIds.value]))
     uni.setStorageSync('choser_completed_events', JSON.stringify([...completedEventIds.value]))
@@ -94,13 +97,40 @@ export const useEventStore = defineStore('event', () => {
       ? rewards : undefined
   }
 
+  /**
+   * 加载事件列表
+   * 优先从后端 API 加载，失败时回退到本地 mock 数据
+   */
   const loadEvents = async () => {
     isLoading.value = true
     try {
-      // 合并原始事件和AIGC事件（规范化格式）
+      // 如果有 token，尝试从后端加载
+      if (getToken()) {
+        const res = await eventApi.getEvents()
+        if (res.data && res.data.events && res.data.events.length > 0) {
+          // 后端返回的事件已经是标准格式，直接使用
+          events.value = res.data.events.map((e: any) => ({
+            ...e,
+            status: e.status || 'active',
+            participantCount: e.participantCount || 1000,
+            createdAt: e.createdAt || Date.now(),
+          })) as GameEvent[]
+          isOnline.value = true
+          console.log(`[EventStore] 从后端加载了 ${events.value.length} 个事件`)
+          return
+        }
+      }
+    } catch (err) {
+      console.warn('[EventStore] 后端加载失败，回退到本地数据:', err)
+    }
+
+    // 回退：从本地 mock 数据加载
+    try {
       const aigcNormalized = ([...aigcEvents] as any[]).map(normalizeAigcEvent)
       const genNormalized = ([...generatedEvents] as any[]).map(normalizeAigcEvent)
       events.value = [...mockEvents, ...aigcNormalized, ...genNormalized]
+      isOnline.value = false
+      console.log(`[EventStore] 从本地加载了 ${events.value.length} 个事件`)
     } finally {
       isLoading.value = false
     }
@@ -110,15 +140,39 @@ export const useEventStore = defineStore('event', () => {
     return events.value.find(e => e.id === id)
   }
 
-  const startEvent = (eventId: string) => {
+  /**
+   * 开始事件
+   * 联网模式下同步到后端
+   */
+  const startEvent = async (eventId: string) => {
     activeEventIds.value.add(eventId)
     saveEventState()
+
+    if (isOnline.value && getToken()) {
+      try {
+        await eventApi.startEvent(eventId)
+      } catch (err) {
+        console.warn('[EventStore] 同步开始事件失败:', err)
+      }
+    }
   }
 
-  const completeEvent = (eventId: string) => {
+  /**
+   * 完成事件
+   * 联网模式下同步到后端
+   */
+  const completeEvent = async (eventId: string) => {
     activeEventIds.value.delete(eventId)
     completedEventIds.value.add(eventId)
     saveEventState()
+
+    if (isOnline.value && getToken()) {
+      try {
+        await eventApi.completeEvent(eventId)
+      } catch (err) {
+        console.warn('[EventStore] 同步完成事件失败:', err)
+      }
+    }
   }
 
   const isEventActive = (eventId: string) => {
@@ -129,9 +183,39 @@ export const useEventStore = defineStore('event', () => {
     return completedEventIds.value.has(eventId)
   }
 
+  /**
+   * 记录选择并执行结算
+   * 联网模式下调用后端非对称结算引擎
+   */
+  const recordChoice = async (data: {
+    eventId: string
+    stageId: string
+    choiceId: string
+    choiceText: string
+    outcome?: {
+      resultText?: string
+      rewards?: any
+      penalties?: any
+    }
+  }) => {
+    if (isOnline.value && getToken()) {
+      try {
+        const res = await eventApi.recordChoice(data)
+        if (res.data) {
+          console.log('[EventStore] 选择已结算:', res.data)
+          return res.data
+        }
+      } catch (err) {
+        console.warn('[EventStore] 记录选择失败:', err)
+      }
+    }
+    return null
+  }
+
   return {
     events,
     isLoading,
+    isOnline,
     availableEvents,
     aigcEventList,
     originalEventList,
@@ -141,6 +225,7 @@ export const useEventStore = defineStore('event', () => {
     completeEvent,
     isEventActive,
     isEventCompleted,
+    recordChoice,
     activeEventIds,
     completedEventIds
   }
