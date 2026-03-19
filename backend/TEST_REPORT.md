@@ -1,7 +1,7 @@
 # LifeLine 后端测试报告
 
 > 生成时间：2026-03-19
-> 框架：Vitest 3.x + supertest
+> 框架：Vitest 4.1.0 + supertest
 > 运行模式：单线程（SQLite 并发安全）
 
 ## 总览
@@ -13,6 +13,8 @@
 | 通过 | 292 |
 | 失败 | 0 |
 | 耗时 | ~23s |
+| Service 方法覆盖 | 55/55 (100%) |
+| API 端点覆盖 | 51/51 (100%) |
 
 ## 测试文件清单
 
@@ -25,11 +27,11 @@
 | `services/social.service.test.ts` | 26 | 单元 | 关注/取关、互动记录（positive/negative/betrayal）、信任衰减、互关检测、声誉加成、社交分红、圈子倾向 |
 | `services/information.service.test.ts` | 19 | 单元 | 信息生成（三层分级）、解锁（声誉扣减）、分享（声誉奖励+衰减）、谣言生成、市场统计 |
 | `jobs/world-tick.job.test.ts` | 13 | 单元 | executeWorldTick（维度漂移+潮汐调节）、startWorldTick/stopWorldTick（幂等性）、getTickHistory |
-| `routes/api.integration.test.ts` | 81 | 集成 | 全部 HTTP 端点：auth(13) + game(22) + social(14) + info(12) + debug(20) |
+| `routes/api.integration.test.ts` | 81 | 集成 | 全部 HTTP 端点：auth(12) + game(28) + social(16) + info(12) + debug(13) |
 | `integration/engine-interplay.test.ts` | 32 | 联动 | 选择→世界维度、维度→物品价格、潮汐→结算乘数、纪元变迁级联、边界条件(6)、错误处理(5) |
-| `integration/engine-interplay-extended.test.ts` | 40 | 联动 | 购买全链路(5)、选择→标签(3)、世界Tick→价格(3)、社交分红(3)、信息分享(4)、事件生命周期(3)、跨引擎级联(3)、边界条件(8)、错误处理(8) |
+| `integration/engine-interplay-extended.test.ts` | 40 | 联动 | 购买全链路(5)、选择→标签(5)、世界Tick→价格(6)、社交分红(4)、信息分享(4)、事件遗产(4)、边界条件(6)、错误处理(6) |
 
-## Service 层覆盖率（52 个方法 → 139 个测试）
+## Service 层覆盖率（55 个方法 → 139 个测试）
 
 ### resource.service — 14 methods, 31 tests
 
@@ -118,18 +120,19 @@
 | `stopWorldTick` | 1 | PASS |
 | `getTickHistory` | 2 | PASS |
 
-## API 路由覆盖率（45 个端点 → 81 个测试）
+## API 路由覆盖率（51 个端点 → 81 个测试）
 
-### auth.route — 4 endpoints, 12 tests
+### auth.route — 5 endpoints, 12 tests
 
 | 端点 | 测试数 | 状态 |
 | :--- | ---: | :--- |
 | `POST /api/auth/register` | 5 | PASS |
 | `POST /api/auth/login` | 3 | PASS |
-| `GET /api/auth/me` | 3 | PASS |
+| `GET /api/auth/me` | 2 | PASS |
 | `PATCH /api/auth/me` | 1 | PASS |
+| 401 守卫（未认证） | 1 | PASS |
 
-### game.route — 17 endpoints, 22 tests
+### game.route — 18 endpoints, 28 tests
 
 | 端点 | 测试数 | 状态 |
 | :--- | ---: | :--- |
@@ -145,13 +148,14 @@
 | `GET /api/wallet` | 2 | PASS |
 | `GET /api/user/tags` | 1 | PASS |
 | `GET /api/inventory` | 1 | PASS |
-| `GET /api/user/history` | 1 | PASS |
+| `GET /api/user/history` | 2 | PASS |
 | `GET /api/world` | 1 | PASS |
 | `GET /api/world/epochs` | 1 | PASS |
-| `GET /api/worldline` | 1 | PASS |
+| `GET /api/worldline` | 2 | PASS |
 | `GET /api/legacies` | 1 | PASS |
+| 401 守卫（未认证） | 3 | PASS |
 
-### social.route — 9 endpoints, 14 tests
+### social.route — 9 endpoints, 16 tests
 
 | 端点 | 测试数 | 状态 |
 | :--- | ---: | :--- |
@@ -164,6 +168,7 @@
 | `POST /api/social/interact` | 2 | PASS |
 | `GET /api/social/reputation-bonus` | 2 | PASS |
 | `GET /api/social/circle-tendency/:eventId` | 2 | PASS |
+| 401 守卫（未认证） | 2 | PASS |
 
 ### information.route — 7 endpoints, 12 tests
 
@@ -175,9 +180,10 @@
 | `POST /api/info/generate/:eventId` | 1 | PASS |
 | `POST /api/info/unlock` | 2 | PASS |
 | `POST /api/info/share` | 2 | PASS |
-| `POST /api/info/generate-rumor` | 2 | PASS |
+| `POST /api/info/generate-rumor` | 1 | PASS |
+| 401 守卫（未认证） | 1 | PASS |
 
-### debug.route — 14 endpoints, 20 tests
+### debug.route — 14 endpoints, 13 tests
 
 | 端点 | 测试数 | 状态 |
 | :--- | ---: | :--- |
@@ -191,11 +197,10 @@
 | `POST /api/debug/simulate-choice` | 2 | PASS |
 | `POST /api/debug/reset-user` | 2 | PASS |
 | `GET /api/debug/phase3/status` | 1 | PASS |
-| `POST /api/debug/social/create-test-users` | 1 | PASS |
+| `POST /api/debug/social/create-test-users` | 2 | PASS |
 | `POST /api/debug/social/setup-network` | 2 | PASS |
 | `POST /api/debug/info/generate-all` | 1 | PASS |
 | `POST /api/debug/info/force-rumor` | 1 | PASS |
-| 401 守卫（未认证） | 2 | PASS |
 
 ## 引擎联动测试（72 个测试）
 
@@ -215,14 +220,13 @@
 | 场景 | 测试数 | 状态 |
 | :--- | ---: | :--- |
 | 购买物品全链路（Bonding Curve + 标签 + 钱包） | 5 | PASS |
-| 选择结算与标签联动 | 3 | PASS |
-| 世界 Tick 全链路（维度漂移 → 价格联动） | 3 | PASS |
-| 社交分红联动（粉丝钱包增加） | 3 | PASS |
+| 选择结算与标签联动 | 5 | PASS |
+| 世界 Tick 全链路（维度漂移 → 价格联动） | 6 | PASS |
+| 社交分红联动（粉丝钱包增加） | 4 | PASS |
 | 信息分享全链路（生成 → 解锁 → 分享 → 接收） | 4 | PASS |
-| 事件生命周期全链路（start → choice → complete → legacy） | 3 | PASS |
-| 跨引擎级联效应（选择 → 世界 → 价格 → 购买） | 3 | PASS |
-| 扩展边界条件（空标签、极端维度、零铸造量等） | 8 | PASS |
-| 扩展错误处理（不存在的 ID、重复操作、资源不足等） | 8 | PASS |
+| 事件遗产全链路（start → choice → complete → legacy） | 4 | PASS |
+| 扩展边界条件（空标签、极端维度、零铸造量等） | 6 | PASS |
+| 扩展错误处理（不存在的 ID、重复操作、资源不足等） | 6 | PASS |
 
 ## 测试发现并修复的 Bug
 
@@ -233,8 +237,8 @@
 
 ## 测试基础设施
 
-- **框架**：Vitest 3.x（单线程模式，避免 SQLite 并发冲突）
-- **HTTP 测试**：supertest（无需启动真实服务器）
-- **数据库隔离**：每个测试文件使用独立的 `test.db`，`beforeEach` 清空所有表
-- **辅助函数**：`createTestUser`、`createTestEvent`、`createTestItem`、`createTestInfo`、`createTestRelation`
-- **运行方式**：`cd backend && pnpm test`
+测试框架使用 Vitest 4.1.0，配置为单线程模式以避免 SQLite 并发冲突。HTTP 集成测试通过 supertest 直接调用 Express 应用实例，无需启动真实服务器。数据库隔离策略为每个测试文件使用独立的 `test.db`，并在 `beforeEach` 钩子中清空所有表确保测试间无状态污染。
+
+测试辅助函数包括 `createTestUser`、`createTestEvent`、`createTestItem`、`createTestInfo`、`createTestRelation`，均通过 Drizzle ORM 直接操作数据库，与 Service 层使用同一个数据库连接，避免双连接不一致问题。
+
+**运行方式**：`cd backend && pnpm test`
