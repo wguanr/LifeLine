@@ -2,9 +2,9 @@
 import { onLaunch, onShow, onHide } from '@dcloudio/uni-app'
 import { useUserStore } from '@/stores/user'
 
-onLaunch(() => {
+onLaunch(async () => {
   const userStore = useUserStore()
-  userStore.initUser()
+  await userStore.initUser()
 })
 
 onShow(() => {
