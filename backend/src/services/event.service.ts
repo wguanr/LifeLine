@@ -7,6 +7,7 @@
 import { db, schema } from '../db/index.js'
 import { eq, desc } from 'drizzle-orm'
 import * as resourceService from './resource.service.js'
+import * as worldService from './world.service.js'
 
 // ==================== 类型定义 ====================
 
@@ -122,26 +123,39 @@ export async function processChoice(
 }> {
   const now = Date.now()
 
-  // 1. 获取用户当前标签（身份光谱），用于非对称结算
+  // 1. 获取用户当前标签（身份光谱）和世界状态
   const userTags = await resourceService.getUserTags(userId)
+  const worldState = await worldService.getCurrentWorldState()
 
-  // 2. 计算资源变动
+  // 2. 获取事件定义（用于标签匹配）
+  const eventDef = await getEventById(eventId)
+  const eventTags = eventDef ? extractEventTags(eventDef) : []
+
+  // 3. 计算三重乘数
+  const identityMultiplier = calculateIdentityMultiplier(userTags, eventTags)
+  const tideMultiplier = worldState.tideMultiplier
+  const epochBonus = calculateEpochBonus(worldState.epoch)
+
+  // 4. 计算资源变动
   let walletChanges: Partial<resourceService.Wallet> = {}
 
-  // 扣减成本（penalties）
+  // 扣减成本（penalties）— 成本受潮汐反向影响（潮汐高时成本略降）
   if (outcome.penalties) {
-    if (outcome.penalties.time) walletChanges.time = -(outcome.penalties.time)
-    if (outcome.penalties.energy) walletChanges.energy = -(outcome.penalties.energy)
-    if (outcome.penalties.reputation) walletChanges.reputation = -(outcome.penalties.reputation)
+    const costReduction = 1 / Math.sqrt(tideMultiplier.time || 1)
+    if (outcome.penalties.time) walletChanges.time = -Math.round(outcome.penalties.time * costReduction)
+    if (outcome.penalties.energy) walletChanges.energy = -Math.round(outcome.penalties.energy * (1 / Math.sqrt(tideMultiplier.energy || 1)))
+    if (outcome.penalties.reputation) walletChanges.reputation = -Math.round(outcome.penalties.reputation * (1 / Math.sqrt(tideMultiplier.reputation || 1)))
   }
 
-  // 增加奖励（rewards）— 带身份加成
+  // 增加奖励（rewards）— 三重乘数叠加：身份 * 潮汐 * 纪元
   if (outcome.rewards) {
-    const identityMultiplier = calculateIdentityMultiplier(userTags, eventId)
+    const timeRewardMul = identityMultiplier * (tideMultiplier.time || 1) * epochBonus
+    const energyRewardMul = identityMultiplier * (tideMultiplier.energy || 1) * epochBonus
+    const repRewardMul = identityMultiplier * (tideMultiplier.reputation || 1) * epochBonus
 
-    walletChanges.time = (walletChanges.time || 0) + Math.round((outcome.rewards.time || 0) * identityMultiplier)
-    walletChanges.energy = (walletChanges.energy || 0) + Math.round((outcome.rewards.energy || 0) * identityMultiplier)
-    walletChanges.reputation = (walletChanges.reputation || 0) + Math.round((outcome.rewards.reputation || 0) * identityMultiplier)
+    walletChanges.time = (walletChanges.time || 0) + Math.round((outcome.rewards.time || 0) * timeRewardMul)
+    walletChanges.energy = (walletChanges.energy || 0) + Math.round((outcome.rewards.energy || 0) * energyRewardMul)
+    walletChanges.reputation = (walletChanges.reputation || 0) + Math.round((outcome.rewards.reputation || 0) * repRewardMul)
   }
 
   // 3. 应用资源变动
@@ -183,7 +197,13 @@ export async function processChoice(
     }
   }
 
-  // 6. 记录选择到数据库
+  // 6. 选择对世界维度的微量影响
+  const worldImpact = calculateWorldImpact(outcome, eventTags)
+  if (Object.keys(worldImpact).length > 0) {
+    await worldService.updateDimensions(worldImpact)
+  }
+
+  // 7. 记录选择到数据库（含结算详情）
   const choiceRecordId = `choice_${now}_${Math.random().toString(36).slice(2, 6)}`
   await db.insert(schema.llUserChoices).values({
     id: choiceRecordId,
@@ -194,24 +214,140 @@ export async function processChoice(
     choiceText,
     resultText: outcome.resultText || null,
     costSnapshot: JSON.stringify(outcome.penalties || {}),
-    rewardSnapshot: JSON.stringify(outcome.rewards || {}),
+    rewardSnapshot: JSON.stringify({
+      ...outcome.rewards,
+      _settlement: {
+        identityMultiplier: Math.round(identityMultiplier * 100) / 100,
+        tideMultiplier,
+        epochBonus,
+        epoch: worldState.epoch,
+        walletChanges,
+      },
+    }),
     timestamp: now,
   })
 
-  return { choiceRecordId, walletAfter, tagsAfter }
+  return {
+    choiceRecordId,
+    walletAfter,
+    tagsAfter,
+    settlement: {
+      identityMultiplier: Math.round(identityMultiplier * 100) / 100,
+      tideMultiplier,
+      epochBonus,
+      epoch: worldState.epoch,
+      worldImpact,
+    },
+  }
+}
+
+// ==================== 非对称结算辅助函数 ====================
+
+/**
+ * 从事件定义中提取关联标签
+ */
+function extractEventTags(event: any): string[] {
+  const tags: string[] = []
+  if (event.stages) {
+    for (const stage of event.stages) {
+      if (stage.choices) {
+        for (const choice of stage.choices) {
+          if (choice.outcome?.tags) {
+            tags.push(...Object.keys(choice.outcome.tags))
+          }
+        }
+      }
+    }
+  }
+  return [...new Set(tags)]
 }
 
 /**
  * V4 非对称结算：身份加成乘数
  * 用户的标签越匹配事件主题，获得的奖励越多
+ * 
+ * 计算逻辑：
+ * 1. 基础乘数 = 1.0
+ * 2. 标签匹配加成：用户拥有的标签与事件标签重叠越多，加成越高
+ * 3. 标签深度加成：匹配标签的权重越高，加成越高
+ * 4. 最终范围 [0.7, 1.8]
  */
-function calculateIdentityMultiplier(userTags: resourceService.UserTag[], eventId: string): number {
-  // MVP 阶段简化实现：基于标签总权重给予 0.8~1.5 的乘数
-  const totalWeight = userTags.reduce((sum, t) => sum + t.weight, 0)
-  const avgWeight = userTags.length > 0 ? totalWeight / userTags.length : 0
+function calculateIdentityMultiplier(userTags: resourceService.UserTag[], eventTags: string[]): number {
+  if (userTags.length === 0) return 1.0
+  if (eventTags.length === 0) {
+    // 无事件标签时，基于用户身份鲜明度给予基础加成
+    const avgWeight = userTags.reduce((sum, t) => sum + t.weight, 0) / userTags.length
+    return Math.max(0.8, Math.min(1.3, 0.9 + avgWeight / 200))
+  }
 
-  // 标签平均权重越高，乘数越大（代表用户身份越鲜明）
-  return Math.max(0.8, Math.min(1.5, 0.8 + avgWeight / 100))
+  // 计算标签匹配度
+  let matchScore = 0
+  let matchCount = 0
+
+  for (const eventTag of eventTags) {
+    const userTag = userTags.find(t => t.tagId === eventTag)
+    if (userTag) {
+      matchCount++
+      // 权重越高，匹配分越高（对数衰减，避免极端值）
+      matchScore += Math.log(1 + userTag.weight) / Math.log(101) // 归一化到 [0, 1]
+    }
+  }
+
+  const matchRatio = eventTags.length > 0 ? matchCount / eventTags.length : 0
+  const depthScore = matchCount > 0 ? matchScore / matchCount : 0
+
+  // 综合乘数：匹配广度 * 0.6 + 匹配深度 * 0.4
+  const combinedScore = matchRatio * 0.6 + depthScore * 0.4
+
+  // 映射到 [0.7, 1.8]
+  return 0.7 + combinedScore * 1.1
+}
+
+/**
+ * 纪元加成乘数
+ * 不同纪元对奖励有不同的全局加成
+ */
+function calculateEpochBonus(epoch: string): number {
+  const bonuses: Record<string, number> = {
+    genesis: 1.0,
+    golden_age: 1.2,      // 黄金时代：奖励丰厚
+    turbulence: 0.85,     // 动荡时代：奖励缩水
+    enlightenment: 1.15,  // 启蒙时代：知识红利
+    solidarity: 1.1,      // 大团结：合作红利
+    dark_age: 0.7,        // 至暗时刻：资源匮乏
+  }
+  return bonuses[epoch] ?? 1.0
+}
+
+/**
+ * 计算选择对世界维度的微量影响
+ * 每个玩家的选择都会对世界产生涟漪
+ */
+function calculateWorldImpact(
+  outcome: { rewards?: any; penalties?: any },
+  eventTags: string[]
+): Partial<worldService.WorldDimensions> {
+  const impact: Partial<worldService.WorldDimensions> = {}
+  const scale = 0.001 // 单个选择的影响非常微小
+
+  // 声誉相关选择 → 影响稳定性和团结度
+  const repNet = (outcome.rewards?.reputation || 0) - (outcome.penalties?.reputation || 0)
+  if (repNet !== 0) {
+    impact.stability = repNet * scale
+    impact.solidarity = repNet * scale * 0.5
+  }
+
+  // 精力投入 → 影响知识水平
+  if (outcome.penalties?.energy) {
+    impact.knowledge = outcome.penalties.energy * scale * 0.3
+  }
+
+  // 时间投入 → 影响繁荣度
+  if (outcome.penalties?.time) {
+    impact.prosperity = outcome.penalties.time * scale * 0.2
+  }
+
+  return impact
 }
 
 /**
