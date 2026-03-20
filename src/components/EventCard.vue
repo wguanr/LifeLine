@@ -133,6 +133,29 @@
             <text class="bet-boost-desc">你的影响力占比：{{ (myInvestmentPercent * 100).toFixed(1) }}%</text>
           </view>
           
+          <!-- 实际结算详情 -->
+          <view class="settlement-result" v-if="showSettlementPreview">
+            <view class="sr-header">
+              <text class="sr-title">📊 结算详情</text>
+            </view>
+            <view class="sr-multipliers">
+              <view class="sr-mul">
+                <text class="sr-mul-label">🎭 身份</text>
+                <text class="sr-mul-val">x{{ settlementData.identityMultiplier.toFixed(2) }}</text>
+              </view>
+              <text class="sr-mul-op">×</text>
+              <view class="sr-mul">
+                <text class="sr-mul-label">🌊 潮汐</text>
+                <text class="sr-mul-val">x{{ ((settlementData.tideMultiplier.time + settlementData.tideMultiplier.energy) / 2).toFixed(2) }}</text>
+              </view>
+              <text class="sr-mul-op">×</text>
+              <view class="sr-mul">
+                <text class="sr-mul-label">🌍 纪元</text>
+                <text class="sr-mul-val">x{{ settlementData.epochBonus.toFixed(2) }}</text>
+              </view>
+            </view>
+          </view>
+          
           <!-- 概率掉落物品展示 -->
           <view class="item-drops-panel" v-if="droppedItems.length > 0">
             <view class="drops-header">
@@ -227,6 +250,18 @@
             </view>
           </view>
           
+          <!-- 非对称结算预览 -->
+          <SettlementPreview
+            :visible="showSettlementPreview"
+            :settlement="settlementData"
+            :loading="settlementLoading"
+            @close="showSettlementPreview = false"
+          />
+          <view class="settlement-trigger" v-if="selectedChoiceId && !showSettlementPreview" @click="loadSettlementPreview">
+            <text class="st-icon">📊</text>
+            <text class="st-text">查看结算预览</text>
+          </view>
+
           <view class="progress-dots">
             <view 
               v-for="(stage, idx) in event.stages" 
@@ -373,11 +408,13 @@
 <script setup lang="ts">
 import { ref, computed, watch, onUnmounted, reactive } from 'vue'
 import BaseCard from '@/components/BaseCard.vue'
+import SettlementPreview from '@/components/SettlementPreview.vue'
 import { useEventStore } from '@/stores/event'
 import { useUserStore } from '@/stores/user'
 import { useItemStore } from '@/stores/item'
 import { useWorldStore } from '@/stores/world'
 import { useInfluencerStore, costToValue } from '@/stores/influencer'
+import { settlementApi } from '@/api'
 import { showItemDrops } from '@/utils/itemShowcase'
 import { generateSimulatedParticipation } from '@/data/simulated_users'
 import { getTagDefinition } from '@/data/tags'
@@ -702,6 +739,45 @@ const canJoin = computed(() => {
 const canAffordChoice = (choice: EventChoice): boolean => {
   if (!choice.cost) return true
   return userStore.canAfford(choice.cost)
+}
+
+// ========== 非对称结算预览 ==========
+const showSettlementPreview = ref(false)
+const settlementLoading = ref(false)
+const settlementData = ref({
+  identityMultiplier: 1,
+  tideMultiplier: { time: 1, energy: 1, reputation: 1 },
+  epochBonus: 1,
+  epoch: 'genesis',
+  estimatedRewards: { time: 0, energy: 0, reputation: 0 },
+  estimatedCosts: { time: 0, energy: 0, reputation: 0 },
+})
+
+/** 加载结算预览数据 */
+const loadSettlementPreview = async () => {
+  if (!selectedChoiceId.value) return
+  const choice = visibleChoices.value.find(c => c.id === selectedChoiceId.value)
+  if (!choice) return
+
+  settlementLoading.value = true
+  showSettlementPreview.value = true
+
+  try {
+    const res = await settlementApi.preview({
+      eventId: props.event.id,
+      outcome: {
+        rewards: choice.outcome?.rewards,
+        penalties: choice.outcome?.penalties || choice.cost,
+      },
+    })
+    if (res.data?.settlement) {
+      settlementData.value = res.data.settlement
+    }
+  } catch (err) {
+    console.warn('[EventCard] 结算预览加载失败:', err)
+  } finally {
+    settlementLoading.value = false
+  }
 }
 
 // ========== 选择交互方案 ==========
@@ -3013,10 +3089,75 @@ defineExpose({
   border-radius: $radius-md;
   text-align: center;
 }
-
 .no-drops-text {
   font-size: 24rpx;
   color: $text-tertiary;
   font-style: italic;
+}
+
+// ==================== 结算预览触发按钮 ====================
+.settlement-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8rpx;
+  padding: 12rpx 20rpx;
+  margin: 12rpx 0;
+  background: rgba(0, 229, 255, 0.08);
+  border: 1px solid rgba(0, 229, 255, 0.2);
+  border-radius: 12rpx;
+  cursor: pointer;
+}
+.st-icon {
+  font-size: 24rpx;
+}
+.st-text {
+  font-size: 22rpx;
+  color: #00e5ff;
+}
+
+// ==================== 结算详情（result 模式） ====================
+.settlement-result {
+  margin: 16rpx 0;
+  padding: 16rpx;
+  background: rgba(0, 229, 255, 0.05);
+  border: 1px solid rgba(0, 229, 255, 0.15);
+  border-radius: 12rpx;
+}
+.sr-header {
+  margin-bottom: 12rpx;
+}
+.sr-title {
+  font-size: 24rpx;
+  font-weight: 600;
+  color: #00e5ff;
+}
+.sr-multipliers {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12rpx;
+}
+.sr-mul {
+  text-align: center;
+  padding: 8rpx 16rpx;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 8rpx;
+}
+.sr-mul-label {
+  font-size: 18rpx;
+  color: #888;
+  display: block;
+}
+.sr-mul-val {
+  font-size: 24rpx;
+  font-weight: 700;
+  color: #FFD54F;
+  display: block;
+  margin-top: 4rpx;
+}
+.sr-mul-op {
+  font-size: 20rpx;
+  color: #555;
 }
 </style>

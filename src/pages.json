@@ -43,6 +43,13 @@
       }
     },
     {
+      "path": "pages/market/market",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTitleText": "物品市场"
+      }
+    },
+    {
       "path": "pages/dashboard/dashboard",
       "style": {
         "navigationStyle": "custom",
