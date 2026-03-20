@@ -192,10 +192,10 @@
       <text class="loading-text">加载市场数据中...</text>
     </view>
 
-    <!-- 物品详情弹窗 -->
-    <view class="modal-overlay" v-if="selectedItem" @click="selectedItem = null">
-      <view class="modal-content" @click.stop>
-        <view class="modal-header">
+    <!-- 物品详情底部弹出面板 -->
+    <SwipeDownSheet v-model="showItemSheet" max-height="80vh" @close="closeItemSheet">
+      <template #header>
+        <view class="sheet-item-header" v-if="selectedItem">
           <text class="modal-icon">{{ selectedItem.icon }}</text>
           <view class="modal-title-area">
             <text class="modal-title">{{ selectedItem.name }}</text>
@@ -203,10 +203,9 @@
               {{ rarityLabel(selectedItem.rarity) }}
             </text>
           </view>
-          <view class="modal-close" @click="selectedItem = null">
-            <text class="close-icon">✕</text>
-          </view>
         </view>
+      </template>
+      <view class="sheet-item-body" v-if="selectedItem">
 
         <text class="modal-desc">{{ selectedItem.description }}</text>
 
@@ -283,16 +282,24 @@
           </view>
         </view>
       </view>
-    </view>
+    </SwipeDownSheet>
   </view>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useMarketStore, type MarketItem } from '@/stores/market'
+import SwipeDownSheet from '@/components/SwipeDownSheet.vue'
+
+const showItemSheet = ref(false)
 
 const store = useMarketStore()
 const selectedItem = ref<MarketItem | null>(null)
+
+function closeItemSheet() {
+  showItemSheet.value = false
+  setTimeout(() => { selectedItem.value = null }, 300)
+}
 
 // ==================== 稀有度配置 ====================
 
@@ -369,6 +376,7 @@ function cycleSortBy() {
 
 function selectItem(item: MarketItem) {
   selectedItem.value = item
+  showItemSheet.value = true
 }
 
 async function handleBuy() {
@@ -376,7 +384,8 @@ async function handleBuy() {
   const result = await store.buyItem(selectedItem.value.id)
   if (result) {
     uni.showToast({ title: '购买成功！', icon: 'success' })
-    selectedItem.value = null
+    showItemSheet.value = false
+    setTimeout(() => { selectedItem.value = null }, 300)
   } else {
     uni.showToast({ title: '购买失败', icon: 'none' })
   }
@@ -758,7 +767,19 @@ onMounted(() => {
   color: #666;
 }
 
-/* ==================== 弹窗 ==================== */
+/* ==================== 底部弹出面板 ====================  */
+
+.sheet-item-header {
+  display: flex;
+  align-items: center;
+  flex: 1;
+}
+
+.sheet-item-body {
+  padding: 24rpx 32rpx 48rpx;
+}
+
+/* ==================== 弹窗样式复用 ==================== */
 
 .modal-overlay {
   position: fixed;

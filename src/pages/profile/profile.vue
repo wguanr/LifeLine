@@ -174,10 +174,10 @@
       </view>
     </view>
 
-    <!-- ==================== 藏品详情弹窗 ==================== -->
-    <view class="detail-overlay" v-if="selectedItem" @click.self="closeItemDetail">
-      <view class="detail-modal">
-        <view class="dm-header">
+    <!-- ==================== 藏品详情底部弹出面板 ==================== -->
+    <SwipeDownSheet v-model="showItemSheet" max-height="70vh" @close="closeItemDetail">
+      <template #header>
+        <view class="dm-sheet-header" v-if="selectedItem">
           <view class="dm-icon-area" :class="selectedItem.rarity">
             <text class="dm-icon">{{ selectedItem.icon }}</text>
           </view>
@@ -191,10 +191,9 @@
             <text class="dm-desc">{{ selectedItem.description }}</text>
             <text class="dm-qty">拥有 {{ selectedItem.quantity }} 件</text>
           </view>
-          <view class="dm-close" @click="closeItemDetail">
-            <text class="dm-close-text">✕</text>
-          </view>
         </view>
+      </template>
+      <view class="dm-sheet-body" v-if="selectedItem">
 
         <view class="dm-section" v-if="selectedItem.featureTags.length">
           <text class="dm-section-title">特性标签</text>
@@ -239,7 +238,7 @@
           </view>
         </view>
       </view>
-    </view>
+    </SwipeDownSheet>
   </view>
 </template>
 
@@ -248,6 +247,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useUserStore } from '@/stores/user'
 import { useWorldStore } from '@/stores/world'
 import { useInfluencerStore } from '@/stores/influencer'
+import SwipeDownSheet from '@/components/SwipeDownSheet.vue'
 import { mockItems } from '@/data/items'
 import { aigcItems } from '@/data/aigc_items'
 import { mockUsers } from '@/data/users'
@@ -435,13 +435,16 @@ const collectionItems = computed<CollectionItem[]>(() => {
 })
 
 const selectedItem = ref<CollectionItem | null>(null)
+const showItemSheet = ref(false)
 
 const openItemDetail = (item: CollectionItem) => {
   selectedItem.value = item
+  showItemSheet.value = true
 }
 
 const closeItemDetail = () => {
-  selectedItem.value = null
+  showItemSheet.value = false
+  setTimeout(() => { selectedItem.value = null }, 300)
 }
 
 const getRarityLabel = (rarity: string): string => {
@@ -965,6 +968,17 @@ const formatTime = (timestamp: number): string => {
   padding-bottom: calc(40rpx + env(safe-area-inset-bottom, 0px));
   overflow-y: auto;
   border-top: 1rpx solid rgba($neon-cyan, 0.15);
+}
+
+.dm-sheet-header {
+  display: flex;
+  gap: 20rpx;
+  align-items: center;
+  flex: 1;
+}
+
+.dm-sheet-body {
+  padding: 24rpx 32rpx 48rpx;
 }
 
 .dm-header {

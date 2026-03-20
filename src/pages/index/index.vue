@@ -284,16 +284,8 @@
     </view>
     
     <!-- ====== 页面级底部弹出面板（详情） ====== -->
-    <view class="bottom-sheet" :class="{ visible: showDetailSheet }" @click.self="closeDetailSheet">
-      <view class="sheet-content" :class="{ visible: showDetailSheet }">
-        <view class="sheet-handle" @click="closeDetailSheet">
-          <view class="handle-bar"></view>
-        </view>
-        <view class="sheet-header">
-          <text class="sheet-title">📋 详细信息</text>
-          <text class="sheet-close" @click="closeDetailSheet">✕</text>
-        </view>
-        <scroll-view class="sheet-body" scroll-y v-if="activeSheetCard">
+    <SwipeDownSheet v-model="showDetailSheet" title="📋 详细信息" max-height="75vh" @close="onDetailSheetClose">
+        <view v-if="activeSheetCard">
                 <!-- 事件详情 -->
                 <view v-if="activeSheetCard.type === 'event'" class="detail-content">
                   <!-- 已参与状态提示 -->
@@ -558,21 +550,12 @@
                     </view>
                   </view>
                 </view>
-        </scroll-view>
-      </view>
-    </view>
+        </view>
+    </SwipeDownSheet>
     
     <!-- ====== 页面级底部弹出面板（操作） ====== -->
-    <view class="bottom-sheet" :class="{ visible: showActionsSheet }" @click.self="closeActionsSheet">
-      <view class="sheet-content" :class="{ visible: showActionsSheet }">
-        <view class="sheet-handle" @click="closeActionsSheet">
-          <view class="handle-bar"></view>
-        </view>
-        <view class="sheet-header">
-          <text class="sheet-title">⚙️ 更多操作</text>
-          <text class="sheet-close" @click="closeActionsSheet">✕</text>
-        </view>
-        <scroll-view class="sheet-body" scroll-y v-if="activeSheetCard">
+    <SwipeDownSheet v-model="showActionsSheet" title="⚙️ 更多操作" max-height="50vh" @close="onActionsSheetClose">
+        <view v-if="activeSheetCard">
                 <view v-if="activeSheetCard.type === 'event'" class="action-list">
                   <!-- 已完成事件 -->
                   <template v-if="eventStore.isEventCompleted((activeSheetCard.data as GameEvent).id)">
@@ -654,9 +637,8 @@
                     <text class="action-text">屏蔽用户</text>
                   </view>
                 </view>
-        </scroll-view>
-      </view>
-    </view>
+        </view>
+    </SwipeDownSheet>
   </view>
 </template>
 
@@ -672,6 +654,7 @@ import SwipeableCard from '@/components/SwipeableCard.vue'
 import EventCard from '@/components/EventCard.vue'
 import ItemCard from '@/components/ItemCard.vue'
 import UserCard from '@/components/UserCard.vue'
+import SwipeDownSheet from '@/components/SwipeDownSheet.vue'
 import type { GameEvent, Item, User, Card } from '@/types'
 import {
   formatNumber, formatRelativeTime, formatChoiceTime,
@@ -824,6 +807,15 @@ const closeDetailSheet = () => {
 
 const closeActionsSheet = () => {
   showActionsSheet.value = false
+  isPanelOpen.value = false
+}
+
+// SwipeDownSheet close 事件处理
+const onDetailSheetClose = () => {
+  isPanelOpen.value = false
+}
+
+const onActionsSheetClose = () => {
   isPanelOpen.value = false
 }
 
